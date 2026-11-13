@@ -17,7 +17,7 @@ var (
 		Tests:    []string{"TestX"},
 		Commands: []string{"make test"},
 		Logs:     []string{"checking {file}"},
-		Edits:    []string{"x := 1"},
+		Edits:    []string{"a", "b", "c", "d"},
 	}
 )
 
@@ -60,10 +60,15 @@ func TestTaskShape(t *testing.T) {
 				}
 				reads[s.Text] = true
 			case StepEdit:
+				seen := map[string]bool{}
 				for _, l := range s.Lines {
 					if l[0] != '+' && l[0] != '-' {
 						t.Fatalf("diff line %q has no +/- prefix", l)
 					}
+					if seen[l[1:]] {
+						t.Fatalf("diff repeats line %q: %v", l[1:], s.Lines)
+					}
+					seen[l[1:]] = true
 				}
 			case StepCommand:
 				if !s.OK {
@@ -81,5 +86,14 @@ func TestDistinctWithSingleFile(t *testing.T) {
 	g := New(1, agent)
 	if got := g.distinct([]string{"only.go"}, 3, "only.go"); !reflect.DeepEqual(got, []string{"only.go"}) {
 		t.Fatalf("distinct = %v", got)
+	}
+}
+
+func TestEditWithSingleLine(t *testing.T) {
+	one := *topic
+	one.Edits = []string{"only"}
+	s := New(1, agent).edit(&one, "a.go")
+	if !reflect.DeepEqual(s.Lines, []string{"+only"}) {
+		t.Fatalf("lines = %v", s.Lines)
 	}
 }

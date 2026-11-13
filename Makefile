@@ -27,8 +27,8 @@ fuzz: ## Run each fuzz test briefly
 	go test -run='^$$' -fuzz=FuzzParse -fuzztime=30s ./internal/profile
 	go test -run='^$$' -fuzz=FuzzHandleLine -fuzztime=30s ./internal/engine
 
-golden: ## Regenerate golden files (Phase 3)
-	@echo "golden files arrive in Phase 3"
+golden: ## Regenerate golden files; review the diff before committing
+	go test ./tests/golden -update
 
 lint: ## Vet and check formatting
 	go vet ./...

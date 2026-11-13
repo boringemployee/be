@@ -82,12 +82,17 @@ func (g *Generator) think() Step {
 }
 
 func (g *Generator) edit(t *profile.Topic, file string) Step {
+	// Removed and added lines come from one shuffled pool, so a diff never
+	// removes and re-adds the same line. With one edit line, it is only added.
+	order := g.rng.Perm(len(t.Edits))
+	removed := min(1+g.rng.IntN(2), len(order)-1)
+	added := min(1+g.rng.IntN(3), len(order)-removed)
 	var lines []string
-	for range 1 + g.rng.IntN(2) {
-		lines = append(lines, "-"+pick(g, t.Edits))
+	for _, i := range order[:removed] {
+		lines = append(lines, "-"+t.Edits[i])
 	}
-	for range 1 + g.rng.IntN(3) {
-		lines = append(lines, "+"+pick(g, t.Edits))
+	for _, i := range order[removed : removed+added] {
+		lines = append(lines, "+"+t.Edits[i])
 	}
 	return Step{Kind: StepEdit, Text: file, Lines: lines, Delay: g.between(800, 2000)}
 }

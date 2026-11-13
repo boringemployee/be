@@ -24,7 +24,7 @@ Early development. See the [phases in the design doc](docs/DESIGN.md#phases).
 | Command          | Status   |
 | ---------------- | -------- |
 | `be --version`   | ✅       |
-| `be claude`      | Phase 3  |
+| `be claude`      | ✅       |
 | `be codex`, `be kiro` | Phase 4 |
 | Web playground   | Phase 5  |
 
