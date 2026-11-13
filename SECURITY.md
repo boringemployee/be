@@ -47,6 +47,7 @@ gh attestation verify be_v1.2.3_linux_amd64.tar.gz --repo boringemployee/be
 
 - Actions are pinned to commit SHAs; workflows default to read-only permissions and never
   use `pull_request_target` (a test in `internal/guard` enforces this).
-- Releases run in the `release` environment; the web deploy runs in `cloudflare-pages`,
-  which holds the only secrets and is limited to the `main` branch.
+- Releases run in the `release` environment. The web version is built and deployed by
+  Cloudflare Pages' Git integration, so GitHub holds no Cloudflare credentials; its build
+  runs the full test suite and a failing test stops the deploy.
 - Dependabot proposes dependency updates weekly; CI and code owner review apply to each.

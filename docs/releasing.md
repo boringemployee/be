@@ -2,21 +2,30 @@
 
 ## Web (Cloudflare Pages)
 
-Every push to `main` builds and deploys `web/dist` via `.github/workflows/deploy-web.yml`.
-One-time setup by a maintainer:
+The web version is deployed by Cloudflare Pages' Git integration: every push to `main`
+deploys production, and every other branch gets a preview URL. No GitHub workflow or
+Cloudflare token is involved.
 
-1. In Cloudflare, create a **Pages** project using **Direct Upload** (no Git integration),
-   e.g. `be`.
-2. Create an API token with only **Account > Cloudflare Pages > Edit**.
-3. In GitHub, **Settings > Environments > New environment** named `cloudflare-pages`:
-   - Deployment branches: **Selected branches**, add `main`.
-   - Optional: **Required reviewers** to approve each deploy.
-   - Secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
-   - Variables: `CLOUDFLARE_PAGES_PROJECT` = your project name.
-4. Optional: add a custom domain to the Pages project.
+Project settings (Workers & Pages > your project > Settings > Build):
 
-Until `CLOUDFLARE_PAGES_PROJECT` is set, the workflow succeeds and skips the deploy.
-Security headers, including the CSP, come from `web/_headers`.
+| Setting | Value |
+| --- | --- |
+| Production branch | `main` |
+| Framework preset | None |
+| Build command | `make test web` |
+| Build output directory | `web/dist` |
+| Root directory | *(empty)* |
+
+Environment variables (Settings > Variables and Secrets, for Production and Preview):
+
+| Name | Value | Why |
+| --- | --- | --- |
+| `GOTOOLCHAIN` | `auto` | Lets the build image's Go download Go 1.27, as `go.mod` requires |
+| `NODE_VERSION` | `22` | Node.js for `npm ci` (xterm.js) |
+
+`make test web` runs the Go tests (including golden files and the coverage of shared
+packages via the tests) before building, so a failing test fails the deploy. Security
+headers, including the CSP, come from `web/_headers`, which is copied into `web/dist`.
 
 ## CLI releases
 
