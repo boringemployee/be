@@ -34,7 +34,10 @@ content/{agents,topics}  web/  tests/golden/  docs/
 2. **Content is data.** YAML strings must not contain control characters (ESC, BEL, ...),
    real URLs, IP addresses, base64 blobs, or copy-pasteable dangerous commands
    (`curl | sh`, `rm -rf`, ...). Schemas are strict: unknown fields fail.
-3. **Parody, not copy.** No real logos, ASCII art, or verbatim product text. Office-safe.
+3. **Parody, not copy.** Mimic layouts, but never real logos, mascots, ASCII art, or verbatim
+   product text. The UI uses parody names (e.g. "Clock Code", "Magnum Opus 5"), never real
+   product or model names. CLI commands (`be claude`) may name the tool being parodied.
+   Office-safe.
 4. **Minimal dependencies.** Ask before adding one. Pin GitHub Actions by commit SHA,
    default workflow permissions to read-only, never use `pull_request_target`, and keep
    secrets (e.g. `CLOUDFLARE_API_TOKEN`) behind a protected environment.
