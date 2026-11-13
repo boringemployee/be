@@ -1,0 +1,29 @@
+tasks:
+  - "Fix the flaky deploy step in {file}"
+  - "Speed up CI caching for {module}"
+  - "Run {test} on every pull request"
+  - "Split the {module} pipeline into parallel jobs"
+files:
+  - .github/workflows/deploy.yml
+  - .github/workflows/ci.yml
+  - .github/workflows/nightly.yml
+commands:
+  - run: actionlint
+    output: []
+    failure:
+      - "{file}:24:9: property \"node-version\" is not defined [expression]"
+  - run: make ci-check
+    output:
+      - "validating {file}"
+      - "all workflows valid"
+edits:
+  - from: "timeout-minutes: 15"
+    to: "timeout-minutes: 30"
+  - to: "  cache: true"
+  - from: "runs-on: ubuntu-22.04"
+    to: "runs-on: ubuntu-24.04"
+  - from: "  retries: 1"
+    to: "  retries: 3"
+  - to: "concurrency: { group: deploy-${{ github.ref }}, cancel-in-progress: true }"
+  - from: "  node-version: 20"
+    to: "  node-version: 22"

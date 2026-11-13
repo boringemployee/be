@@ -1,0 +1,13 @@
+# Topic: run security. Packs are the other files in this folder; lists missing
+# from a pack fall back to the lists in this file.
+description: Audits, patches and hardening
+modules:
+  - auth-service
+  - payments-api
+  - admin-portal
+  - file-uploads
+tests:
+  - TestLoginRateLimit
+  - TestCSRFProtection
+  - TestPathTraversal
+  - dependency-audit

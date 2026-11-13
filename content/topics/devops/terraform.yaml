@@ -1,0 +1,43 @@
+# Uses modules and tests from topic.yaml.
+tasks:
+  - "Import the legacy {module} bucket into Terraform"
+  - "Split the {module} state file"
+  - "Tag every resource owned by {module}"
+  - "Fix drift in {file}"
+files:
+  - infra/terraform/main.tf
+  - infra/terraform/variables.tf
+  - infra/terraform/outputs.tf
+  - infra/terraform/modules/network/main.tf
+commands:
+  - run: terraform fmt -check -recursive
+    output: []
+    failure:
+      - "{file}"
+  - run: terraform validate
+    output:
+      - "Success! The configuration is valid."
+    failure:
+      - "Error: Unsupported argument"
+      - "  on {file} line 18:"
+  - run: terraform plan
+    output:
+      - "Refreshing state..."
+      - "Plan: 0 to add, 3 to change, 0 to destroy."
+  - run: tflint
+    output: []
+    failure:
+      - "1 issue(s) found:"
+      - "Warning: terraform \"required_version\" attribute is required ({file}:1)"
+edits:
+  - from: "instance_type = \"t3.small\""
+    to: "instance_type = \"t3.medium\""
+  - from: "tags = local.tags"
+    to: "tags = merge(local.tags, { owner = \"platform\" })"
+  - to: "lifecycle { prevent_destroy = true }"
+  - from: "version = \"~> 4.0\""
+    to: "version = \"~> 5.0\""
+  - from: "count = 1"
+    to: "count = var.enabled ? 1 : 0"
+  - from: "min_size = 1"
+    to: "min_size = 2"

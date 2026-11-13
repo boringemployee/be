@@ -1,0 +1,180 @@
+// Package profile loads and validates agent and topic definitions.
+//
+// Content is untrusted data: every string is checked by the safety rules in
+// safety.go before it can reach the engine or the screen.
+package profile
+
+import (
+	"bytes"
+	"errors"
+	"fmt"
+	"io/fs"
+	"path"
+	"regexp"
+	"sort"
+	"strings"
+
+	"go.yaml.in/yaml/v3"
+)
+
+// Agent describes how a fake agent looks and talks.
+type Agent struct {
+	Name    string `yaml:"name"`
+	Title   string `yaml:"title"`
+	Version string `yaml:"version"`
+	Accent  string `yaml:"accent"`
+	// Welcome is drawn once at the start; Live is the area redrawn under
+	// the output (status, input, footer).
+	Welcome        []Block   `yaml:"welcome"`
+	Live           []Block   `yaml:"live"`
+	Tools          ToolStyle `yaml:"tools"`
+	Spinner        []string  `yaml:"spinner"`
+	ThinkingWords  []string  `yaml:"thinking_words"`
+	DoneMessages   []string  `yaml:"done_messages"`
+	StoppedMessage string    `yaml:"stopped_message"`
+}
+
+// Catalog holds every loaded agent and topic, keyed by name.
+type Catalog struct {
+	Agents map[string]*Agent
+	Topics map[string]*Topic
+}
+
+// AgentNames returns the agent names in sorted order.
+func (c *Catalog) AgentNames() []string { return sortedKeys(c.Agents) }
+
+// TopicNames returns the topic names in sorted order.
+func (c *Catalog) TopicNames() []string { return sortedKeys(c.Topics) }
+
+func sortedKeys[V any](m map[string]V) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+var (
+	nameRE    = regexp.MustCompile(`^[a-z][a-z0-9-]{0,31}$`)
+	colorRE   = regexp.MustCompile(`^#[0-9a-fA-F]{6}$`)
+	versionRE = regexp.MustCompile(`^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$`)
+	// Placeholders a task template may use.
+	placeholderRE = regexp.MustCompile(`\{([a-z]+)\}`)
+	placeholders  = map[string]bool{"file": true, "module": true, "test": true}
+)
+
+// Load reads agents/*.yaml and topics/<name>/*.yaml from fsys and validates
+// them.
+func Load(fsys fs.FS) (*Catalog, error) {
+	c := &Catalog{Agents: map[string]*Agent{}, Topics: map[string]*Topic{}}
+	if err := loadDir(fsys, "agents", c.Agents, ParseAgent); err != nil {
+		return nil, err
+	}
+	if err := loadTopics(fsys, c.Topics); err != nil {
+		return nil, err
+	}
+	if len(c.Agents) == 0 || len(c.Topics) == 0 {
+		return nil, errors.New("profile: need at least one agent and one topic")
+	}
+	return c, nil
+}
+
+type named interface{ name() string }
+
+func (a *Agent) name() string { return a.Name }
+
+func loadDir[T named](fsys fs.FS, dir string, into map[string]T, parse func([]byte) (T, error)) error {
+	files, err := fs.Glob(fsys, dir+"/*.yaml")
+	if err != nil {
+		return err
+	}
+	for _, file := range files {
+		data, err := fs.ReadFile(fsys, file)
+		if err != nil {
+			return fmt.Errorf("%s: %w", file, err)
+		}
+		v, err := parse(data)
+		if err != nil {
+			return fmt.Errorf("%s: %w", file, err)
+		}
+		if want := strings.TrimSuffix(path.Base(file), ".yaml"); v.name() != want {
+			return fmt.Errorf("%s: name %q must match file name %q", file, v.name(), want)
+		}
+		into[v.name()] = v
+	}
+	return nil
+}
+
+func decodeStrict(data []byte, v any) error {
+	dec := yaml.NewDecoder(bytes.NewReader(data))
+	dec.KnownFields(true)
+	return dec.Decode(v)
+}
+
+// ParseAgent decodes and validates a single agent definition.
+func ParseAgent(data []byte) (*Agent, error) {
+	var a Agent
+	if err := decodeStrict(data, &a); err != nil {
+		return nil, err
+	}
+	return &a, a.validate()
+}
+
+type checker struct{ errs []error }
+
+func (c *checker) fail(format string, args ...any) {
+	c.errs = append(c.errs, fmt.Errorf(format, args...))
+}
+
+func (c *checker) str(field, s string, required bool) {
+	if s == "" {
+		if required {
+			c.fail("%s: required", field)
+		}
+		return
+	}
+	if err := CheckText(s); err != nil {
+		c.fail("%s: %w", field, err)
+	}
+}
+
+func (c *checker) list(field string, items []string, min int) {
+	c.listMax(field, items, min, MaxItems)
+}
+
+func (c *checker) listMax(field string, items []string, min, max int) {
+	if len(items) < min {
+		c.fail("%s: need at least %d item(s)", field, min)
+	}
+	if len(items) > max {
+		c.fail("%s: at most %d items", field, max)
+	}
+	for i, s := range items {
+		c.str(fmt.Sprintf("%s[%d]", field, i), s, true)
+	}
+}
+
+func (c *checker) name(s string) {
+	if !nameRE.MatchString(s) {
+		c.fail("name: %q must match %s", s, nameRE)
+	}
+}
+
+func (a *Agent) validate() error {
+	var c checker
+	c.name(a.Name)
+	c.str("title", a.Title, true)
+	if !versionRE.MatchString(a.Version) {
+		c.fail("version: %q must look like v1.2.3", a.Version)
+	}
+	if !colorRE.MatchString(a.Accent) {
+		c.fail("accent: %q must be a #rrggbb color", a.Accent)
+	}
+	c.layout(a)
+	c.list("spinner", a.Spinner, 1)
+	c.list("thinking_words", a.ThinkingWords, 1)
+	c.list("done_messages", a.DoneMessages, 1)
+	c.str("stopped_message", a.StoppedMessage, true)
+	return errors.Join(c.errs...)
+}

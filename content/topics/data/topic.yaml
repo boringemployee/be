@@ -1,0 +1,14 @@
+# Topic: run data. Packs are the other files in this folder; lists missing
+# from a pack fall back to the lists in this file.
+description: Pipelines, models and data quality
+modules:
+  - daily-revenue
+  - user-events
+  - churn-model
+  - orders-mart
+  - marketing-attribution
+tests:
+  - test_no_duplicate_orders
+  - test_revenue_not_null
+  - test_events_freshness
+  - test_churn_auc

@@ -1,0 +1,14 @@
+# Topic: run frontend. Packs are the other files in this folder; lists missing
+# from a pack fall back to the lists in this file.
+description: Components, styling and accessibility
+modules:
+  - checkout
+  - navbar
+  - settings-page
+  - design-system
+  - onboarding
+tests:
+  - Button.test.tsx
+  - checkout.spec.ts
+  - Modal.test.tsx
+  - a11y.spec.ts

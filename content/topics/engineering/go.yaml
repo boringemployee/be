@@ -1,0 +1,77 @@
+tasks:
+  - "Refactor {module} to remove a circular import"
+  - "Fix flaky test {test}"
+  - "Add retry with backoff to {module}"
+  - "Reduce allocations in {file}"
+  - "Replace deprecated API calls in {module}"
+  - "Add missing error handling in {file}"
+  - "Split {file} into smaller functions"
+  - "Make {test} deterministic"
+files:
+  - internal/auth/session.go
+  - internal/cache/lru.go
+  - internal/billing/invoice.go
+  - internal/queue/worker.go
+  - pkg/config/loader.go
+  - api/handlers/users.go
+  - cmd/server/main.go
+  - internal/storage/postgres.go
+modules:
+  - auth
+  - cache
+  - billing
+  - queue-worker
+  - config-loader
+  - storage
+tests:
+  - TestSessionExpiry
+  - TestLRUEviction
+  - TestInvoiceRounding
+  - TestWorkerShutdown
+  - TestConfigOverrides
+  - TestUserPagination
+commands:
+  - run: go test ./...
+    output:
+      - "ok   example.com/app/internal/{module}   0.412s"
+      - "ok   example.com/app/internal/cache       0.087s"
+      - "ok   example.com/app/pkg/config            0.031s"
+    failure:
+      - "--- FAIL: {test} (0.31s)"
+      - "    {file}:128: got 2 items, want 3"
+      - "FAIL example.com/app/internal/{module}   0.433s"
+  - run: go vet ./...
+    output: []
+    failure:
+      - "# example.com/app/internal/{module}"
+      - "{file}:57:2: unreachable code"
+  - run: golangci-lint run
+    output:
+      - "0 issues."
+    failure:
+      - "{file}:91:15: Error return value is not checked (errcheck)"
+      - "1 issues:"
+      - "* errcheck: 1"
+  - run: go build ./...
+    output: []
+edits:
+  - from: "return nil, err"
+    to: "return nil, fmt.Errorf(\"load config: %w\", err)"
+  - from: "ctx := context.Background()"
+    to: "ctx, cancel := context.WithTimeout(ctx, 5*time.Second)"
+  - to: "defer cancel()"
+  - from: "for i := 0; i < len(items); i++ {"
+    to: "for i := range items {"
+  - from: "result := []Item{}"
+    to: "result := make([]Item, 0, len(items))"
+  - to: "defer mu.Unlock()"
+  - from: "time.Sleep(100 * time.Millisecond)"
+    to: "backoff = min(backoff*2, maxBackoff)"
+  - from: "cache.Set(key, value, 0)"
+    to: "cache.Set(key, value, ttl)"
+  - from: "if resp.StatusCode != 200 {"
+    to: "if resp.StatusCode != http.StatusOK {"
+  - from: "log.Printf(\"error: %v\", err)"
+    to: "slog.Error(\"refresh failed\", \"err\", err)"
+  - from: "func (s *Store) Get(id string) (*User, error) {"
+    to: "func (s *Store) Get(ctx context.Context, id string) (*User, error) {"

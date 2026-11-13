@@ -1,0 +1,45 @@
+tasks:
+  - "Make {file} accessible to screen readers"
+  - "Fix hydration warning in {file}"
+  - "Reduce bundle size of {module}"
+  - "Make {test} less flaky"
+files:
+  - src/components/Button.tsx
+  - src/components/Modal.tsx
+  - src/pages/checkout.tsx
+  - src/hooks/useCart.ts
+commands:
+  - run: npm test
+    output:
+      - " PASS  src/components/Button.test.tsx"
+      - " PASS  src/components/Modal.test.tsx"
+      - "Tests:       128 passed, 128 total"
+    failure:
+      - " FAIL  src/components/{test}"
+      - "  ● Modal › closes on escape"
+      - "Tests:       1 failed, 127 passed, 128 total"
+  - run: npm run lint
+    output:
+      - "✔ No ESLint warnings or errors"
+    failure:
+      - "{file}"
+      - "  42:7  warning  React Hook useEffect has a missing dependency  react-hooks/exhaustive-deps"
+  - run: npx tsc --noEmit
+    output: []
+    failure:
+      - "{file}(31,9): error TS2322: Type 'undefined' is not assignable to type 'boolean'."
+  - run: npm run build
+    output:
+      - "✓ Compiled successfully in 4.1s"
+      - "First Load JS shared by all   182 kB"
+edits:
+  - from: "<button onClick={close}>"
+    to: "<button onClick={close} aria-label=\"Close dialog\">"
+  - from: "const [open, setOpen] = useState();"
+    to: "const [open, setOpen] = useState(false);"
+  - from: "useEffect(() => { setOpen(false); });"
+    to: "useEffect(() => { setOpen(false); }, [route]);"
+  - from: "export default Button;"
+    to: "export default memo(Button);"
+  - from: "import _ from \"lodash\";"
+    to: "import debounce from \"lodash/debounce\";"

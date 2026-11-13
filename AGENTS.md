@@ -57,7 +57,8 @@ content/{agents,topics/<name>}  web/  tests/golden/  docs/
 
 ## Commits
 
-- One commit per phase/feature, clear imperative subject.
+- One pull request per phase/feature, squash-merged into `main` (direct pushes to `main`
+  are blocked). Clear imperative subject.
 - End every commit message with exactly this trailer and nothing else:
 
   ```

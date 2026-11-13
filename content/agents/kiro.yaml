@@ -1,0 +1,43 @@
+# Parody of a terminal coding agent with a small mascot. Original art and wording.
+name: kiro
+title: Kiwi CLI
+version: v1.3.0
+accent: "#9046FF"
+
+welcome:
+  - header:
+      art:
+        - "  ▄██▄ "
+        - " ██◉██▶"
+        - " ▀███▀ "
+        - "  ▌ ▌  "
+      lines:
+        - "Welcome to {title} {version}"
+        - "Spec-driven development"
+        - "Using model: Clawed Sunnet 4.5-ish"
+        - "{cwd}"
+  - notice:
+      - "Did you know?"
+      - "You can run <topic> to generate specs, steering docs and tasks for a feature."
+  - text:
+      - "/help all commands  ·  esc stop  ·  ctrl+c exit"
+
+live:
+  - status: {}
+  - rule: {}
+  - input: { style: bare, marker: ">" }
+
+tools: inline
+spinner: ["◜", "◠", "◝", "◞", "◡", "◟"]
+thinking_words:
+  - Thinking
+  - Writing the spec
+  - Refining requirements
+  - Updating steering docs
+  - Breaking it into tasks
+  - Checking acceptance criteria
+done_messages:
+  - "Task complete. Requirements met, design updated, specs in sync."
+  - "Done. Marked the task as complete in tasks.md."
+  - "Finished. All acceptance criteria are satisfied."
+stopped_message: "Stopped. Waiting for your next instruction."

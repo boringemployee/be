@@ -1,0 +1,42 @@
+# Parody of a terminal coding agent with a big gradient banner. Original wording.
+name: gemini
+title: Geminy CLI
+version: v0.12.0
+accent: "#8B7BE8"
+
+welcome:
+  - banner:
+      text: "GEMINY"
+      gradient: ["#4796E4", "#847ACE", "#C3677F"]
+  - list:
+      title: "Tips for getting started:"
+      numbered: true
+      items:
+        - "Ask questions, edit files, or run <topic> to work through tasks."
+        - "Be specific for the best results."
+        - "Create context files to customize your interactions."
+        - "Type help for more information."
+
+live:
+  - status: {}
+  - input: { style: boxed, marker: ">", placeholder: "Type your message or run <topic>" }
+  - footer:
+      left: "{cwd}"
+      center: "no sandbox"
+      right: "geminy-2.5-pro-ish (99%)"
+
+tools: check
+spinner: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
+thinking_words:
+  - Thinking
+  - Analyzing dependencies
+  - Reviewing the codebase
+  - Planning changes
+  - Verifying assumptions
+  - Counting tokens
+  - Drafting the edit
+done_messages:
+  - "All done. The changes are in place and the tests are green."
+  - "Task complete. I verified the change with the existing test suite."
+  - "Finished. Everything builds and the tests pass."
+stopped_message: "Request cancelled."

@@ -1,0 +1,59 @@
+tasks:
+  - "Add type hints to {module}"
+  - "Fix flaky test {test}"
+  - "Replace print debugging in {file} with logging"
+  - "Make {module} async"
+  - "Reduce memory usage in {file}"
+files:
+  - app/services/billing.py
+  - app/api/routes.py
+  - app/models/user.py
+  - app/workers/emailer.py
+  - tests/test_billing.py
+modules:
+  - billing
+  - routes
+  - emailer
+  - user-model
+tests:
+  - test_invoice_rounding
+  - test_user_signup
+  - test_email_retry
+  - test_routes_auth
+commands:
+  - run: pytest -q
+    output:
+      - "........................................ [ 95%]"
+      - ".. [100%]"
+      - "42 passed in 3.21s"
+    failure:
+      - "......F...................................... [100%]"
+      - "FAILED tests/test_billing.py::{test} - AssertionError"
+      - "1 failed, 41 passed in 3.40s"
+  - run: ruff check .
+    output:
+      - "All checks passed!"
+    failure:
+      - "{file}:14:1: F401 [*] `os` imported but unused"
+      - "Found 1 error."
+  - run: mypy app
+    output:
+      - "Success: no issues found in 37 source files"
+    failure:
+      - "{file}:52: error: Missing return statement  [return]"
+      - "Found 1 error in 1 file (checked 37 source files)"
+edits:
+  - from: "def total(self):"
+    to: "def total(self) -> Decimal:"
+  - from: "print(\"invoice created\", invoice.id)"
+    to: "logger.info(\"invoice created\", extra={\"id\": invoice.id})"
+  - from: "def send(self, message):"
+    to: "async def send(self, message: Message) -> None:"
+  - from: "return sum([line.amount for line in self.lines])"
+    to: "return sum(line.amount for line in self.lines)"
+  - to: "from typing import Iterable"
+  - to: "@pytest.mark.parametrize(\"amount\", [0, 1, 99])"
+  - from: "except Exception:"
+    to: "except (TimeoutError, ConnectionError):"
+  - from: "time.sleep(1)"
+    to: "await asyncio.sleep(backoff)"

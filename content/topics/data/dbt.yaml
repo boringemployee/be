@@ -1,0 +1,38 @@
+tasks:
+  - "Fix the duplicate rows in {file}"
+  - "Speed up the {module} model"
+  - "Add a data quality check to {module}"
+  - "Make {test} pass again"
+files:
+  - models/marts/fct_orders.sql
+  - models/marts/fct_revenue.sql
+  - models/staging/stg_payments.sql
+  - models/staging/stg_events.sql
+commands:
+  - run: dbt run --select orders
+    output:
+      - "Found 14 models, 32 tests, 2 sources"
+      - "1 of 1 OK created sql table model analytics.fct_orders ... [SELECT 1284551 in 4.21s]"
+      - "Completed successfully"
+    failure:
+      - "1 of 1 ERROR creating sql table model analytics.fct_orders ... [ERROR in 0.84s]"
+      - "Database Error in model fct_orders (models/marts/fct_orders.sql)"
+  - run: dbt test --select {module}
+    output:
+      - "Found 14 models, 32 tests, 2 sources"
+      - "Done. PASS=12 WARN=0 ERROR=0 SKIP=0 TOTAL=12"
+    failure:
+      - "Failure in test {test}"
+      - "  Got 3 results, configured to fail if != 0"
+      - "Done. PASS=11 WARN=0 ERROR=1 SKIP=0 TOTAL=12"
+edits:
+  - from: "SELECT order_id,"
+    to: "SELECT DISTINCT order_id,"
+  - from: "WHERE created_at >= '2025-01-01'"
+    to: "WHERE created_at >= '2026-01-01'"
+  - from: "amount AS amount"
+    to: "COALESCE(amount, 0) AS amount"
+  - from: "JOIN payments USING (order_id)"
+    to: "LEFT JOIN payments USING (order_id)"
+  - to: "GROUP BY customer_id"
+  - to: "-- grain: one row per order"

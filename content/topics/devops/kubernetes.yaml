@@ -1,0 +1,43 @@
+tasks:
+  - "Add resource limits to the {module} deployment"
+  - "Tune the autoscaler for {module}"
+  - "Add a readiness probe to {module}"
+  - "Fix the crash loop in {module} on startup"
+files:
+  - deploy/k8s/api-deployment.yaml
+  - deploy/k8s/worker-deployment.yaml
+  - deploy/k8s/worker-hpa.yaml
+  - deploy/k8s/search-service.yaml
+commands:
+  - run: kubectl diff -f deploy/k8s
+    output:
+      - "diff -u -N /tmp/LIVE/apps.v1.Deployment.staging.api"
+      - "-  replicas: 2"
+      - "+  replicas: 3"
+  - run: helm lint charts/api
+    output:
+      - "==> Linting charts/api"
+      - "1 chart(s) linted, 0 chart(s) failed"
+    failure:
+      - "==> Linting charts/api"
+      - "[ERROR] templates/deployment.yaml: unable to parse YAML"
+      - "Error: 1 chart(s) linted, 1 chart(s) failed"
+  - run: kubectl rollout status deploy/api -n staging
+    output:
+      - "Waiting for deployment \"api\" rollout to finish: 2 of 3 updated replicas are available..."
+      - "deployment \"api\" successfully rolled out"
+    failure:
+      - "Waiting for deployment \"api\" rollout to finish: 1 of 3 updated replicas are available..."
+      - "error: deployment \"api\" exceeded its progress deadline"
+edits:
+  - from: "replicas: 2"
+    to: "replicas: 3"
+  - from: "  cpu: 250m"
+    to: "  cpu: 500m"
+  - from: "  memory: 256Mi"
+    to: "  memory: 512Mi"
+  - to: "readinessProbe: { httpGet: { path: /healthz, port: 8080 } }"
+  - from: "maxReplicas: 5"
+    to: "maxReplicas: 10"
+  - from: "image: api:1.41.2"
+    to: "image: api:1.42.0"

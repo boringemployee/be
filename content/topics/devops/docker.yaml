@@ -1,0 +1,31 @@
+tasks:
+  - "Bump the base image for {module}"
+  - "Shrink the {module} image"
+  - "Run {module} as a non-root user"
+files:
+  - docker/api.Dockerfile
+  - docker/worker.Dockerfile
+  - docker/indexer.Dockerfile
+commands:
+  - run: docker build -t api:dev .
+    output:
+      - "[+] Building 41.2s (14/14) FINISHED"
+      - " => exporting to image"
+      - " => naming to docker.io/library/api:dev"
+    failure:
+      - "[+] Building 12.8s (9/14)"
+      - " => ERROR [build 6/8] RUN go build -o /app ./cmd/server"
+      - "ERROR: failed to solve: process did not complete successfully: exit code: 1"
+  - run: hadolint docker/api.Dockerfile
+    output: []
+    failure:
+      - "docker/api.Dockerfile:12 DL3008 warning: Pin versions in apt get install"
+edits:
+  - from: "FROM golang:1.26"
+    to: "FROM golang:1.27"
+  - from: "FROM debian:bookworm"
+    to: "FROM gcr.io/distroless/static-debian12"
+  - to: "USER nonroot:nonroot"
+  - from: "RUN go build -o /app ./cmd/server"
+    to: "RUN CGO_ENABLED=0 go build -trimpath -o /app ./cmd/server"
+  - to: "HEALTHCHECK CMD [\"/app\", \"healthcheck\"]"

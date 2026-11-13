@@ -1,0 +1,8 @@
+{
+  "name": "be-browser-tests",
+  "private": true,
+  "description": "Browser tests for the web build (make e2e). Not shipped.",
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}

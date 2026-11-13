@@ -1,0 +1,42 @@
+tasks:
+  - "Add input validation to {file}"
+  - "Add rate limiting to {module}"
+  - "Fix the finding reported by {test}"
+  - "Patch the vulnerable dependency in {module}"
+files:
+  - internal/auth/login.go
+  - internal/api/middleware.go
+  - internal/uploads/handler.go
+commands:
+  - run: govulncheck ./...
+    output:
+      - "Scanning your code and 214 packages across 38 dependent modules for known vulnerabilities..."
+      - "No vulnerabilities found."
+    failure:
+      - "Vulnerability #1: GO-2026-3112"
+      - "    Found in: golang.org/x/net@v0.33.0"
+      - "Your code is affected by 1 vulnerability from 1 module."
+  - run: gosec ./...
+    output:
+      - "Summary:"
+      - "  Files  : 87"
+      - "  Issues : 0"
+    failure:
+      - "[{file}:61] - G304 (CWE-22): Potential file inclusion via variable"
+      - "  Issues : 1"
+  - run: go test ./internal/...
+    output:
+      - "ok   example.com/app/internal/auth     0.512s"
+      - "ok   example.com/app/internal/api      0.204s"
+    failure:
+      - "--- FAIL: {test} (0.02s)"
+      - "FAIL example.com/app/internal/auth   0.531s"
+edits:
+  - to: "if !limiter.Allow(ip) { return ErrTooManyRequests }"
+  - to: "w.Header().Set(\"X-Content-Type-Options\", \"nosniff\")"
+  - from: "path := r.URL.Query().Get(\"file\")"
+    to: "path := filepath.Clean(r.URL.Query().Get(\"file\"))"
+  - from: "if token == expected {"
+    to: "if subtle.ConstantTimeCompare([]byte(token), []byte(expected)) == 1 {"
+  - from: "MaxAge: 0,"
+    to: "MaxAge: 3600, Secure: true, HttpOnly: true,"
