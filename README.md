@@ -49,28 +49,49 @@ three parameters are read, and each is checked against an allowlist.
 
 ## Install
 
+Install the latest version on Linux or macOS:
+
 ```sh
 curl -fsSL https://raw.githubusercontent.com/boringemployee/be/main/install.sh | sh
 ```
 
-Linux and macOS. With Go 1.21+ installed it runs `go install`; otherwise it downloads the
-release for your OS and CPU, verifies its checksum (and signature, if `cosign` is installed)
-and installs `be` into `~/.local/bin`. [Read the script](install.sh) first; it is short.
+With Go 1.21+ installed it runs `go install`; otherwise it downloads the release for your OS
+and CPU, verifies its checksum (and signature, if `cosign` is installed) and installs `be`
+into `~/.local/bin`. [Read the script](install.sh) first; it is short.
+
+Install a specific version:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/boringemployee/be/main/install.sh | sh -s -- v0.1.0   # a specific version
-curl -fsSL https://raw.githubusercontent.com/boringemployee/be/main/install.sh | BE_METHOD=binary sh  # skip Go
+curl -fsSL https://raw.githubusercontent.com/boringemployee/be/main/install.sh | sh -s -- v0.1.0
+```
+
+Download the release binary even when Go is installed:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/boringemployee/be/main/install.sh | BE_METHOD=binary sh
+```
+
+Install into another folder, such as `/usr/local/bin`:
+
+```sh
 curl -fsSL https://raw.githubusercontent.com/boringemployee/be/main/install.sh | BE_INSTALL_DIR=/usr/local/bin sudo -E sh
 ```
 
-Other ways:
+Install with Go directly:
 
 ```sh
 go install github.com/boringemployee/be/cmd/be@latest
-make cli && ./bin/be --help          # from source
 ```
 
-Windows: download the `.zip` from [Releases](https://github.com/boringemployee/be/releases).
+Build from source:
+
+```sh
+make cli
+```
+
+Then run `./bin/be --help`.
+
+On Windows, download the `.zip` from [Releases](https://github.com/boringemployee/be/releases).
 Releases are signed; see [SECURITY.md](SECURITY.md#verifying-releases) to verify them.
 
 ## Contributing
