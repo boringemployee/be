@@ -50,14 +50,28 @@ three parameters are read, and each is checked against an allowlist.
 ## Install
 
 ```sh
-go install github.com/boringemployee/be/cmd/be@latest
-# or build from source:
-make cli && ./bin/be --help
+curl -fsSL https://raw.githubusercontent.com/boringemployee/be/main/install.sh | sh
 ```
 
-Or download a binary for Linux, macOS or Windows from
-[Releases](https://github.com/boringemployee/be/releases). Releases are signed; see
-[SECURITY.md](SECURITY.md#verifying-releases) to verify them.
+Linux and macOS. With Go 1.21+ installed it runs `go install`; otherwise it downloads the
+release for your OS and CPU, verifies its checksum (and signature, if `cosign` is installed)
+and installs `be` into `~/.local/bin`. [Read the script](install.sh) first; it is short.
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/boringemployee/be/main/install.sh | sh -s -- v0.1.0   # a specific version
+curl -fsSL https://raw.githubusercontent.com/boringemployee/be/main/install.sh | BE_METHOD=binary sh  # skip Go
+curl -fsSL https://raw.githubusercontent.com/boringemployee/be/main/install.sh | BE_INSTALL_DIR=/usr/local/bin sudo -E sh
+```
+
+Other ways:
+
+```sh
+go install github.com/boringemployee/be/cmd/be@latest
+make cli && ./bin/be --help          # from source
+```
+
+Windows: download the `.zip` from [Releases](https://github.com/boringemployee/be/releases).
+Releases are signed; see [SECURITY.md](SECURITY.md#verifying-releases) to verify them.
 
 ## Contributing
 
