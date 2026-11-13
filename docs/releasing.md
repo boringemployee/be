@@ -12,7 +12,7 @@ Project settings (Workers & Pages > your project > Settings > Build):
 | --- | --- |
 | Production branch | `main` |
 | Framework preset | None |
-| Build command | `make test web` |
+| Build command | `go test ./... && make web` |
 | Build output directory | `web/dist` |
 | Root directory | *(empty)* |
 
@@ -23,8 +23,8 @@ Environment variables (Settings > Variables and Secrets, for Production and Prev
 | `GOTOOLCHAIN` | `auto` | Lets the build image's Go download Go 1.27, as `go.mod` requires |
 | `NODE_VERSION` | `22` | Node.js for `npm ci` (xterm.js) |
 
-`make test web` runs the Go tests (including golden files and the coverage of shared
-packages via the tests) before building, so a failing test fails the deploy. Security
+The build command runs the Go tests, including golden files (without the race detector, which
+needs a C compiler; GitHub CI runs that), before building, so a failing test fails the deploy. Security
 headers, including the CSP, come from `web/_headers`, which is copied into `web/dist`.
 
 ## CLI releases
