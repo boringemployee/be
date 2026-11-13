@@ -1,7 +1,7 @@
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 LDFLAGS := -s -w -X github.com/boringemployee/be/internal/version.Version=$(VERSION)
 
-.PHONY: all cli web serve e2e dist test cover fuzz golden lint clean
+.PHONY: all cli web serve e2e dist install-test test cover fuzz golden lint clean
 
 all: lint test cover cli
 
@@ -18,6 +18,7 @@ web: ## Build the static web app into web/dist
 	cp web/node_modules/@xterm/xterm/lib/xterm.js web/node_modules/@xterm/xterm/css/xterm.css web/dist/
 	go run ./tools/catalog > web/dist/catalog.json
 	cp $(WEB_FILES) web/dist/
+	cp install.sh web/dist/install.sh
 
 serve: web ## Serve web/dist on http://localhost:8080 with production headers
 	node tests/web/serve.mjs web/dist 8080
@@ -26,7 +27,10 @@ e2e: web ## Browser tests: golden files and an interactive session
 	cd tests/web && npm ci --ignore-scripts --no-audit --no-fund
 	node tests/web/e2e.mjs
 
-PLATFORMS := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64 windows/arm64
+install-test: ## Test install.sh against a locally served release
+	sh tests/install/test.sh
+
+PLATFORMS ?= linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64 windows/arm64
 
 dist: ## Build release archives and checksums.txt into dist/
 	mkdir -p dist
@@ -39,7 +43,7 @@ dist: ## Build release archives and checksums.txt into dist/
 		if [ $$os = windows ]; then (cd dist && zip -qr $$name.zip $$name); \
 		else tar -C dist -czf dist/$$name.tar.gz $$name; fi; \
 	done
-	cd dist && sha256sum *.tar.gz *.zip > checksums.txt
+	cd dist && sha256sum $$(ls *.tar.gz *.zip 2>/dev/null) > checksums.txt
 
 test: ## Run all tests with the race detector
 	go test -race ./...

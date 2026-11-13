@@ -177,6 +177,10 @@ try {
   await page.unrouteAll();
   problems.length = 0; // the 404 above is expected
 
+  // The install script is served from the site, as text.
+  const install = await page.request.get(base + "install.sh");
+  check(install.ok() && (await install.text()).startsWith("#!/bin/sh") && install.headers()["content-type"].startsWith("text/plain"), "install.sh is served as text from the site");
+
   // 6. CSP and errors.
   check(problems.length === 0, `no CSP violations or page errors ${problems.slice(0, 3).join(" | ")}`);
 } finally {

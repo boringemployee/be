@@ -13,6 +13,7 @@ const TYPES = {
   ".wasm": "application/wasm",
   ".svg": "image/svg+xml",
   ".json": "application/json",
+  ".sh": "text/plain; charset=utf-8",
 };
 
 // headersFor parses the "/*" section of a Cloudflare _headers file.
