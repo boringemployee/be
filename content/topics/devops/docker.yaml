@@ -7,14 +7,19 @@ files:
   - docker/worker.Dockerfile
   - docker/indexer.Dockerfile
 commands:
-  - docker build -t api:dev .
-  - hadolint docker/api.Dockerfile
-  - make image
-logs:
-  - "Successfully built image api:dev"
-  - "Step 7/12 : RUN make build"
-  - "image size: 84.2MB (was 312MB)"
-  - "checking {file}"
+  - run: docker build -t api:dev .
+    output:
+      - "[+] Building 41.2s (14/14) FINISHED"
+      - " => exporting to image"
+      - " => naming to docker.io/library/api:dev"
+    failure:
+      - "[+] Building 12.8s (9/14)"
+      - " => ERROR [build 6/8] RUN go build -o /app ./cmd/server"
+      - "ERROR: failed to solve: process did not complete successfully: exit code: 1"
+  - run: hadolint docker/api.Dockerfile
+    output: []
+    failure:
+      - "docker/api.Dockerfile:12 DL3008 warning: Pin versions in apt get install"
 edits:
   - from: "FROM golang:1.26"
     to: "FROM golang:1.27"

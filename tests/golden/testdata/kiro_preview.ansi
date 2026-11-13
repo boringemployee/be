@@ -17,10 +17,10 @@
     [2m└[0m [2mRead 283 lines[0m
   [38;2;144;70;255m→[0m edit models/marts/fct_orders.sql
     [2m  86[0m [32m+ GROUP BY customer_id[0m
-  [38;2;144;70;255m→[0m run dbt build --select +fct_revenue
-      [2mchecking models/marts/fct_orders.sql[0m
-      [2mCompleted successfully: 14 models, 0 errors[0m
-      [32mPASS test_no_duplicate_orders[0m
+  [38;2;144;70;255m→[0m run dbt run --select orders
+      [2mFound 14 models, 32 tests, 2 sources[0m
+      [2m1 of 1 OK created sql table model analytics.fct_orders ... [SELECT 128455…[0m
+      [32mCompleted successfully[0m
 [32m●[0m Task complete. Requirements met, design updated, specs in sync.
 
                                                                                

@@ -7,13 +7,19 @@ files:
   - deploy/policies/network.yaml
   - deploy/policies/pod-security.yaml
 commands:
-  - trivy config deploy
-  - conftest test deploy/policies
-logs:
-  - "0 misconfigurations found"
-  - "5 tests, 5 passed, 0 warnings"
-  - "scanning {file}"
-  - "1 low severity issue (accepted risk)"
+  - run: trivy config deploy
+    output:
+      - "Tests: 41 (SUCCESSES: 41, FAILURES: 0)"
+    failure:
+      - "{file} (kubernetes)"
+      - "Tests: 41 (SUCCESSES: 40, FAILURES: 1)"
+      - "HIGH: Container should not be privileged"
+  - run: conftest test deploy/policies
+    output:
+      - "5 tests, 5 passed, 0 warnings, 0 failures, 0 exceptions"
+    failure:
+      - "FAIL - {file} - network policy allows all ingress"
+      - "5 tests, 4 passed, 0 warnings, 1 failure, 0 exceptions"
 edits:
   - from: "role: admin"
     to: "role: read-only"

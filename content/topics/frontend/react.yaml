@@ -9,16 +9,29 @@ files:
   - src/pages/checkout.tsx
   - src/hooks/useCart.ts
 commands:
-  - npm run lint
-  - npm test
-  - npm run build
-  - npx tsc --noEmit
-logs:
-  - "Compiled successfully in 4.1s"
-  - "Tests: 128 passed, 128 total"
-  - "No ESLint warnings or errors"
-  - "checking {file}"
-  - "bundle size: 182 kB (-12 kB)"
+  - run: npm test
+    output:
+      - " PASS  src/components/Button.test.tsx"
+      - " PASS  src/components/Modal.test.tsx"
+      - "Tests:       128 passed, 128 total"
+    failure:
+      - " FAIL  src/components/{test}"
+      - "  ● Modal › closes on escape"
+      - "Tests:       1 failed, 127 passed, 128 total"
+  - run: npm run lint
+    output:
+      - "✔ No ESLint warnings or errors"
+    failure:
+      - "{file}"
+      - "  42:7  warning  React Hook useEffect has a missing dependency  react-hooks/exhaustive-deps"
+  - run: npx tsc --noEmit
+    output: []
+    failure:
+      - "{file}(31,9): error TS2322: Type 'undefined' is not assignable to type 'boolean'."
+  - run: npm run build
+    output:
+      - "✓ Compiled successfully in 4.1s"
+      - "First Load JS shared by all   182 kB"
 edits:
   - from: "<button onClick={close}>"
     to: "<button onClick={close} aria-label=\"Close dialog\">"

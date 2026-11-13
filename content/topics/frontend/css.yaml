@@ -7,12 +7,14 @@ files:
   - src/styles/layout.css
   - src/components/Modal.module.css
 commands:
-  - npx stylelint "src/**/*.css"
-  - npm run build
-logs:
-  - "0 problems"
-  - "checking {file}"
-  - "Compiled successfully in 3.8s"
+  - run: npx stylelint "src/**/*.css"
+    output: []
+    failure:
+      - "{file}"
+      - "  12:3  ✖  Unexpected unknown property \"colour\"  property-no-unknown"
+  - run: npm run build
+    output:
+      - "✓ Compiled successfully in 3.8s"
 edits:
   - from: "float: left;"
     to: "display: flex;"

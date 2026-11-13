@@ -36,8 +36,7 @@ tasks: ["Fix {file} in {module} for {test}"]
 files: [a.go, b.go]
 modules: [m]
 tests: [TestA]
-commands: [make test]
-logs: [ok]
+commands: [{run: make test, output: ["ok {module}"], failure: ["FAIL {test}"]}]
 edits: [{from: "x = 0", to: "x := 1"}]
 `
 
@@ -170,7 +169,7 @@ func FuzzParse(f *testing.F) {
 			}
 		}
 		if tp, err := ParseTopic("fuzz", data); err == nil {
-			for _, s := range append(append([]string{}, tp.Packs[0].Tasks...), tp.Packs[0].Commands...) {
+			for _, s := range append(append([]string{}, tp.Packs[0].Tasks...), tp.Packs[0].Commands[0].Output...) {
 				if CheckText(s) != nil {
 					t.Fatalf("accepted unsafe text %q", s)
 				}

@@ -24,7 +24,7 @@
 | Package               | Role                                                         |
 | --------------------- | ------------------------------------------------------------ |
 | `internal/engine`     | Session state machine; input in, events out. No I/O.          |
-| `internal/generator`  | Seeded fake work: tasks, files, diffs, logs.                  |
+| `internal/generator`  | Seeded work: tasks, files, diffs, command output.              |
 | `internal/render`     | Events → ANSI text. The only producer of escape codes.        |
 | `internal/profile`    | Loads and validates agent/topic YAML.                         |
 | `internal/adapter/tty`| Raw mode (`golang.org/x/term`), key parsing, stdout.          |

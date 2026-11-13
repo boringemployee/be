@@ -10,17 +10,26 @@ import (
 )
 
 // Pack is a coherent set of fake work, such as "go" or "python" within the
-// engineering topic. Each task uses a single pack, so files, edits and logs
+// engineering topic. Each task uses a single pack, so files, edits and output
 // never mix languages or tools.
 type Pack struct {
-	Name     string   `yaml:"-"`
-	Tasks    []string `yaml:"tasks"`
-	Files    []string `yaml:"files"`
-	Modules  []string `yaml:"modules"`
-	Tests    []string `yaml:"tests"`
-	Commands []string `yaml:"commands"`
-	Logs     []string `yaml:"logs"`
-	Edits    []Edit   `yaml:"edits"`
+	Name     string    `yaml:"-"`
+	Tasks    []string  `yaml:"tasks"`
+	Files    []string  `yaml:"files"`
+	Modules  []string  `yaml:"modules"`
+	Tests    []string  `yaml:"tests"`
+	Commands []Command `yaml:"commands"`
+	Edits    []Edit    `yaml:"edits"`
+}
+
+// Command is a command the agent runs, with the output it prints. Output is
+// shown when it succeeds and may be empty, as for most linters; Failure, if
+// set, is shown when it fails. Only commands with failure output ever fail.
+// Lines may use {file}, {module} and {test}.
+type Command struct {
+	Run     string   `yaml:"run"`
+	Output  []string `yaml:"output"`
+	Failure []string `yaml:"failure"`
 }
 
 // Edit is one change shown in a diff: From is replaced by To. Without From it
@@ -53,7 +62,7 @@ const TopicFile = "topic.yaml"
 const MaxPacks = 50
 
 // lists returns a pack's string lists in a fixed order with their YAML
-// names. Edits are handled separately.
+// names. Commands and edits are handled separately.
 func (p *Pack) lists() []struct {
 	name  string
 	items *[]string
@@ -63,7 +72,6 @@ func (p *Pack) lists() []struct {
 		items *[]string
 	}{
 		{"tasks", &p.Tasks}, {"files", &p.Files}, {"modules", &p.Modules}, {"tests", &p.Tests},
-		{"commands", &p.Commands}, {"logs", &p.Logs},
 	}
 }
 
@@ -148,6 +156,9 @@ func resolve(p, base *Pack) *Pack {
 	if len(out.Edits) == 0 {
 		out.Edits = base.Edits
 	}
+	if len(out.Commands) == 0 {
+		out.Commands = base.Commands
+	}
 	return &out
 }
 
@@ -190,14 +201,31 @@ func (t *Topic) validate() error {
 		for i, task := range p.Tasks {
 			c.templates(fmt.Sprintf("%s.tasks[%d]", p.Name, i), task)
 		}
-		for i, log := range p.Logs {
-			c.templates(fmt.Sprintf("%s.logs[%d]", p.Name, i), log)
+		if len(p.Commands) == 0 || len(p.Commands) > MaxItems {
+			c.fail("%s.commands: need 1 to %d items", p.Name, MaxItems)
+		}
+		for i, cmd := range p.Commands {
+			field := fmt.Sprintf("%s.commands[%d]", p.Name, i)
+			c.str(field+".run", cmd.Run, true)
+			c.outputLines(field+".output", cmd.Output, 0) // many tools print nothing on success
+			c.outputLines(field+".failure", cmd.Failure, 0)
 		}
 	}
 	return errors.Join(c.errs...)
 }
 
-// templates checks the placeholders in a task or log line.
+// MaxOutputLines caps the output lines of one command.
+const MaxOutputLines = 8
+
+// outputLines checks a command's output lines.
+func (c *checker) outputLines(field string, lines []string, min int) {
+	c.listMax(field, lines, min, MaxOutputLines)
+	for i, l := range lines {
+		c.templates(fmt.Sprintf("%s[%d]", field, i), l)
+	}
+}
+
+// templates checks the placeholders in a task or output line.
 func (c *checker) templates(field, s string) {
 	for _, m := range placeholderRE.FindAllStringSubmatch(s, -1) {
 		if !placeholders[m[1]] {

@@ -8,15 +8,14 @@ files:
   - .github/workflows/ci.yml
   - .github/workflows/nightly.yml
 commands:
-  - actionlint
-  - make ci-check
-  - act -j build --dryrun
-logs:
-  - "no problems found"
-  - "cache hit: go-mod-deps"
-  - "checking {file}"
-  - "job build: success (2m 41s)"
-  - "job test: success (4m 03s)"
+  - run: actionlint
+    output: []
+    failure:
+      - "{file}:24:9: property \"node-version\" is not defined [expression]"
+  - run: make ci-check
+    output:
+      - "validating {file}"
+      - "all workflows valid"
 edits:
   - from: "timeout-minutes: 15"
     to: "timeout-minutes: 30"

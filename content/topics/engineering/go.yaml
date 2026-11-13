@@ -31,19 +31,29 @@ tests:
   - TestConfigOverrides
   - TestUserPagination
 commands:
-  - go test ./...
-  - go vet ./...
-  - make build
-  - make lint
-logs:
-  - "ok   internal/auth      0.412s"
-  - "ok   internal/cache     0.087s"
-  - "ok   pkg/config         0.031s"
-  - "--- checking {file}"
-  - "compiling 42 packages"
-  - "lint: 0 issues"
-  - "coverage: 87.3% of statements"
-  - "warning: unused variable in {file} (ignored)"
+  - run: go test ./...
+    output:
+      - "ok   example.com/app/internal/{module}   0.412s"
+      - "ok   example.com/app/internal/cache       0.087s"
+      - "ok   example.com/app/pkg/config            0.031s"
+    failure:
+      - "--- FAIL: {test} (0.31s)"
+      - "    {file}:128: got 2 items, want 3"
+      - "FAIL example.com/app/internal/{module}   0.433s"
+  - run: go vet ./...
+    output: []
+    failure:
+      - "# example.com/app/internal/{module}"
+      - "{file}:57:2: unreachable code"
+  - run: golangci-lint run
+    output:
+      - "0 issues."
+    failure:
+      - "{file}:91:15: Error return value is not checked (errcheck)"
+      - "1 issues:"
+      - "* errcheck: 1"
+  - run: go build ./...
+    output: []
 edits:
   - from: "return nil, err"
     to: "return nil, fmt.Errorf(\"load config: %w\", err)"

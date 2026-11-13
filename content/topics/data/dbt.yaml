@@ -9,15 +9,22 @@ files:
   - models/staging/stg_payments.sql
   - models/staging/stg_events.sql
 commands:
-  - dbt run --select orders
-  - dbt test
-  - dbt build --select +fct_revenue
-logs:
-  - "Completed successfully: 14 models, 0 errors"
-  - "Found 3 models, 12 tests, 2 sources"
-  - "checking {file}"
-  - "query time: 4.2s (was 31.8s)"
-  - "warning: 2 rows with null customer_id"
+  - run: dbt run --select orders
+    output:
+      - "Found 14 models, 32 tests, 2 sources"
+      - "1 of 1 OK created sql table model analytics.fct_orders ... [SELECT 1284551 in 4.21s]"
+      - "Completed successfully"
+    failure:
+      - "1 of 1 ERROR creating sql table model analytics.fct_orders ... [ERROR in 0.84s]"
+      - "Database Error in model fct_orders (models/marts/fct_orders.sql)"
+  - run: dbt test --select {module}
+    output:
+      - "Found 14 models, 32 tests, 2 sources"
+      - "Done. PASS=12 WARN=0 ERROR=0 SKIP=0 TOTAL=12"
+    failure:
+      - "Failure in test {test}"
+      - "  Got 3 results, configured to fail if != 0"
+      - "Done. PASS=11 WARN=0 ERROR=1 SKIP=0 TOTAL=12"
 edits:
   - from: "SELECT order_id,"
     to: "SELECT DISTINCT order_id,"

@@ -17,15 +17,14 @@ func TestLoadTopicFolder(t *testing.T) {
 		"agents/demo.yaml": validAgent,
 		// topic.yaml: description and shared lists, but no tasks, so it is
 		// only a fallback, not a pack of its own.
-		"topics/work/topic.yaml": "description: Work\nmodules: [shared]\ntests: [TestShared]\ncommands: [make]\nlogs: [ok]\n",
+		"topics/work/topic.yaml": "description: Work\nmodules: [shared]\ntests: [TestShared]\ncommands: [{run: make, output: [ok]}]\n",
 		"topics/work/go.yaml":    goPack,
 		"topics/work/python.yaml": `
 tasks: ["Fix {file}"]
 files: [a.py]
 modules: [own]
 tests: [test_own]
-commands: [pytest]
-logs: [passed]
+commands: [{run: pytest, output: [passed]}]
 edits: [{from: "x = 0", to: "x = 1"}]
 `,
 		"topics/work/notes.md": "ignored",
@@ -42,11 +41,11 @@ edits: [{from: "x = 0", to: "x = 1"}]
 		t.Errorf("packs must be sorted by file name: %q, %q", goP.Name, py.Name)
 	}
 	want := &Pack{Name: "go", Tasks: []string{"Fix {file}"}, Files: []string{"a.go"}, Modules: []string{"shared"},
-		Tests: []string{"TestShared"}, Commands: []string{"make"}, Logs: []string{"ok"}, Edits: []Edit{{To: "x := 1"}}}
+		Tests: []string{"TestShared"}, Commands: []Command{{Run: "make", Output: []string{"ok"}}}, Edits: []Edit{{To: "x := 1"}}}
 	if !reflect.DeepEqual(goP, want) {
 		t.Errorf("go pack should fall back to shared lists:\n got %+v\nwant %+v", goP, want)
 	}
-	if py.Modules[0] != "own" || py.Commands[0] != "pytest" {
+	if py.Modules[0] != "own" || py.Commands[0].Run != "pytest" {
 		t.Errorf("python pack must keep its own lists: %+v", py)
 	}
 }
@@ -79,7 +78,10 @@ func TestLoadTopicErrors(t *testing.T) {
 		{"unknown field in pack", map[string]string{"topics/work/topic.yaml": validTopic, "topics/work/go.yaml": "name: go\n"}, "topics/work/go.yaml"},
 		{"description in pack", map[string]string{"topics/work/topic.yaml": validTopic, "topics/work/go.yaml": "description: x\n"}, "field description not found"},
 		{"unreadable pack", map[string]string{"topics/work/topic.yaml": validTopic, "topics/work/go.yaml/x": ""}, "go.yaml"},
-		{"bad log placeholder", map[string]string{"topics/work/topic.yaml": strings.Replace(validTopic, "logs: [ok]", "logs: ['{home}']", 1)}, "topic.logs[0]: unknown placeholder"},
+		{"bad output placeholder", map[string]string{"topics/work/topic.yaml": strings.Replace(validTopic, `output: ["ok {module}"]`, `output: ["{home}"]`, 1)}, "topic.commands[0].output[0]: unknown placeholder"},
+		{"no commands", map[string]string{"topics/work/topic.yaml": strings.Replace(validTopic, `commands: [{run: make test, output: ["ok {module}"], failure: ["FAIL {test}"]}]`, "", 1)}, "topic.commands: need 1 to"},
+		{"command without run", map[string]string{"topics/work/topic.yaml": strings.Replace(validTopic, "run: make test", `run: ""`, 1)}, "commands[0].run: required"},
+		{"too much output", map[string]string{"topics/work/topic.yaml": strings.Replace(validTopic, `failure: ["FAIL {test}"]`, "failure: [a, b, c, d, e, f, g, h, i]", 1)}, "failure: at most 8"},
 		{"too many packs", tooManyPacks(), "at most 50 packs"},
 		{"no edits", map[string]string{"topics/work/topic.yaml": strings.Replace(validTopic, `edits: [{from: "x = 0", to: "x := 1"}]`, "", 1)}, "topic.edits: need 1 to"},
 		{"edit without to", map[string]string{"topics/work/topic.yaml": strings.Replace(validTopic, `to: "x := 1"`, `to: ""`, 1)}, "edits[0].to: required"},
@@ -114,7 +116,7 @@ func TestParseTopicErrors(t *testing.T) {
 	}{
 		{"bad placeholder", "{test}", "{user}", "unknown placeholder {user}"},
 		{"too many", "modules: [m]", "modules: [" + strings.Repeat("m,", MaxItems) + "m]", "at most"},
-		{"dangerous command", "commands: [make test]", "commands: ['rm -rf /tmp/x']", "dangerous command"},
+		{"dangerous command", "run: make test", "run: 'rm -rf /tmp/x'", "dangerous command"},
 		{"no description", "description: Work", "description: ''", "description: required"},
 	}
 	for _, tt := range tests {

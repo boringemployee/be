@@ -21,16 +21,27 @@ tests:
   - test_email_retry
   - test_routes_auth
 commands:
-  - pytest -q
-  - ruff check .
-  - mypy app
-  - python -m build
-logs:
-  - "42 passed in 3.21s"
-  - "All checks passed!"
-  - "Success: no issues found in 37 source files"
-  - "checking {file}"
-  - "1 skipped (needs network)"
+  - run: pytest -q
+    output:
+      - "........................................ [ 95%]"
+      - ".. [100%]"
+      - "42 passed in 3.21s"
+    failure:
+      - "......F...................................... [100%]"
+      - "FAILED tests/test_billing.py::{test} - AssertionError"
+      - "1 failed, 41 passed in 3.40s"
+  - run: ruff check .
+    output:
+      - "All checks passed!"
+    failure:
+      - "{file}:14:1: F401 [*] `os` imported but unused"
+      - "Found 1 error."
+  - run: mypy app
+    output:
+      - "Success: no issues found in 37 source files"
+    failure:
+      - "{file}:52: error: Missing return statement  [return]"
+      - "Found 1 error in 1 file (checked 37 source files)"
 edits:
   - from: "def total(self):"
     to: "def total(self) -> Decimal:"

@@ -10,16 +10,25 @@ files:
   - infra/terraform/outputs.tf
   - infra/terraform/modules/network/main.tf
 commands:
-  - terraform fmt -check
-  - terraform validate
-  - terraform plan
-  - tflint
-logs:
-  - "Success! The configuration is valid."
-  - "Plan: 0 to add, 3 to change, 0 to destroy."
-  - "No changes. Your infrastructure matches the configuration."
-  - "formatting {file}"
-  - "1 issue(s) found: deprecated attribute"
+  - run: terraform fmt -check -recursive
+    output: []
+    failure:
+      - "{file}"
+  - run: terraform validate
+    output:
+      - "Success! The configuration is valid."
+    failure:
+      - "Error: Unsupported argument"
+      - "  on {file} line 18:"
+  - run: terraform plan
+    output:
+      - "Refreshing state..."
+      - "Plan: 0 to add, 3 to change, 0 to destroy."
+  - run: tflint
+    output: []
+    failure:
+      - "1 issue(s) found:"
+      - "Warning: terraform \"required_version\" attribute is required ({file}:1)"
 edits:
   - from: "instance_type = \"t3.small\""
     to: "instance_type = \"t3.medium\""

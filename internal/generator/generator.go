@@ -52,7 +52,7 @@ func (g *Generator) between(min, max int) time.Duration {
 }
 
 // Next returns the steps of a new fake task on one of topics, using one of
-// that topic's packs so the task's files, edits and logs belong together.
+// that topic's packs so the task's files, edits and output belong together.
 // With a single topic no random draw is spent choosing it.
 func (g *Generator) Next(topics ...*profile.Topic) []Step {
 	t := topics[0]
@@ -74,15 +74,17 @@ func (g *Generator) task(t *profile.Pack) []Step {
 	steps = append(steps, g.think(), g.edit(t, file))
 
 	cmd := pick(g, t.Commands)
-	if g.rng.IntN(4) == 0 { // sometimes fail first, then "fix" it
+	// Sometimes the command fails first and the change is fixed. Only
+	// commands with failure output can fail.
+	if g.rng.IntN(4) == 0 && len(cmd.Failure) > 0 {
 		steps = append(steps,
-			Step{Kind: StepCommand, Text: cmd, Lines: g.logs(t, false), Delay: g.between(1500, 4000)},
+			Step{Kind: StepCommand, Text: cmd.Run, Lines: g.output(t, cmd.Failure, file), Delay: g.between(1500, 4000)},
 			g.think(),
 			g.edit(t, file),
 		)
 	}
 	steps = append(steps,
-		Step{Kind: StepCommand, Text: cmd, Lines: g.logs(t, true), OK: true, Delay: g.between(1500, 4000)},
+		Step{Kind: StepCommand, Text: cmd.Run, Lines: g.output(t, cmd.Output, file), OK: true, Delay: g.between(1500, 4000)},
 		Step{Kind: StepDone, Text: pick(g, g.agent.DoneMessages), Delay: g.between(1000, 2500)},
 	)
 	return steps
@@ -110,16 +112,15 @@ func (g *Generator) edit(t *profile.Pack, file string) Step {
 	return Step{Kind: StepEdit, Text: file, Lines: lines, Numbers: numbers, Delay: g.between(800, 2000)}
 }
 
-func (g *Generator) logs(t *profile.Pack, ok bool) []string {
-	var lines []string
-	order := g.rng.Perm(len(t.Logs))
-	for _, i := range order[:min(2+g.rng.IntN(3), len(order))] {
-		lines = append(lines, g.fill(t.Logs[i], t, pick(g, t.Files)))
+// output fills the placeholders in a command's output lines, keeping their
+// order (the last line is usually a summary). {file} is the file the task
+// edits, so errors point at the code that was changed.
+func (g *Generator) output(t *profile.Pack, lines []string, file string) []string {
+	out := make([]string, len(lines))
+	for i, l := range lines {
+		out[i] = g.fill(l, t, file)
 	}
-	if ok {
-		return append(lines, "PASS "+pick(g, t.Tests))
-	}
-	return append(lines, "FAIL "+pick(g, t.Tests))
+	return out
 }
 
 // distinct returns up to n different items, always starting with first.

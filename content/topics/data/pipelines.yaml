@@ -7,14 +7,18 @@ files:
   - pipelines/user_events.py
   - dags/nightly_etl.py
 commands:
-  - pytest tests/pipelines
-  - make backfill
-  - python -m pipelines.daily_revenue --dry-run
-logs:
-  - "rows processed: 1,284,551"
-  - "6 passed in 2.10s"
-  - "checking {file}"
-  - "freshness: OK (12 minutes)"
+  - run: pytest tests/pipelines
+    output:
+      - "...... [100%]"
+      - "6 passed in 2.10s"
+    failure:
+      - ".....F [100%]"
+      - "FAILED tests/pipelines/test_daily_revenue.py::{test}"
+      - "1 failed, 5 passed in 2.38s"
+  - run: python -m pipelines.daily_revenue --dry-run
+    output:
+      - "reading source: orders (1,284,551 rows)"
+      - "dry run: would write 92 partitions"
 edits:
   - to: "df = df.drop_duplicates(subset=[\"order_id\"])"
   - from: "assert len(df) > 0"

@@ -11,13 +11,15 @@ import (
 var (
 	agent = &profile.Agent{ThinkingWords: []string{"Thinking"}, DoneMessages: []string{"Done"}}
 	pack  = &profile.Pack{
-		Tasks:    []string{"Fix {file} in {module} for {test}"},
-		Files:    []string{"a.go", "b.go", "c.go"},
-		Modules:  []string{"mod"},
-		Tests:    []string{"TestX"},
-		Commands: []string{"make test"},
-		Logs:     []string{"checking {file}", "ok", "lint: 0 issues", "compiling"},
-		Edits:    []profile.Edit{{From: "a", To: "a2"}, {To: "b"}, {From: "c", To: "c2"}, {From: "d", To: "d2"}},
+		Tasks:   []string{"Fix {file} in {module} for {test}"},
+		Files:   []string{"a.go", "b.go", "c.go"},
+		Modules: []string{"mod"},
+		Tests:   []string{"TestX"},
+		Commands: []profile.Command{
+			{Run: "make test", Output: []string{"checking {file}", "ok"}, Failure: []string{"FAIL {test}"}},
+			{Run: "make lint", Output: nil}, // silent on success, never fails
+		},
+		Edits: []profile.Edit{{From: "a", To: "a2"}, {To: "b"}, {From: "c", To: "c2"}, {From: "d", To: "d2"}},
 	}
 	topic = &profile.Topic{Packs: []*profile.Pack{pack}}
 )
@@ -46,11 +48,18 @@ func TestTaskShape(t *testing.T) {
 			t.Fatalf("unfilled placeholder in %q", steps[0].Text)
 		}
 		last := steps[len(steps)-2]
-		if last.Kind != StepCommand || !last.OK || !strings.HasPrefix(last.Lines[len(last.Lines)-1], "PASS ") {
+		if last.Kind != StepCommand || !last.OK {
 			t.Fatalf("task must end with a passing command: %+v", last)
 		}
 		reads := map[string]bool{}
+		edited := ""
 		for _, s := range steps {
+			if s.Kind == StepEdit {
+				edited = s.Text
+			}
+			if s.Kind == StepCommand && s.Text == "make test" && s.OK && s.Lines[0] != "checking "+edited {
+				t.Fatalf("{file} in output must be the edited file %q: %v", edited, s.Lines)
+			}
 			if s.Delay <= 0 {
 				t.Fatalf("step %+v has no delay", s)
 			}
@@ -78,15 +87,21 @@ func TestTaskShape(t *testing.T) {
 					}
 				}
 			case StepCommand:
-				seenLog := map[string]bool{}
-				for _, l := range s.Lines[:len(s.Lines)-1] {
-					if seenLog[l] {
-						t.Fatalf("command output repeats %q", l)
-					}
-					seenLog[l] = true
-				}
-				if !s.OK {
+				switch {
+				case s.Text == "make lint" && (!s.OK || len(s.Lines) != 0):
+					t.Fatalf("a silent command must print nothing and never fail: %+v", s)
+				case s.Text == "make test" && s.OK && (len(s.Lines) != 2 || s.Lines[1] != "ok"):
+					t.Fatalf("success must show the command's output in order: %v", s.Lines)
+				case !s.OK:
 					sawFailure = true
+					if !reflect.DeepEqual(s.Lines, []string{"FAIL TestX"}) {
+						t.Fatalf("failure must show the command's failure output: %v", s.Lines)
+					}
+				}
+				for _, l := range s.Lines {
+					if strings.ContainsAny(l, "{}") {
+						t.Fatalf("unfilled placeholder in %q", l)
+					}
 				}
 			}
 		}
@@ -114,9 +129,9 @@ func TestEditWithSingleLine(t *testing.T) {
 
 func TestTaskUsesOnePack(t *testing.T) {
 	goPack := &profile.Pack{Tasks: []string{"go task"}, Files: []string{"a.go"}, Modules: []string{"m"},
-		Tests: []string{"TestGo"}, Commands: []string{"go test"}, Logs: []string{"ok go"}, Edits: []profile.Edit{{To: "go1"}, {To: "go2"}}}
+		Tests: []string{"TestGo"}, Commands: []profile.Command{{Run: "go test", Output: []string{"ok go"}}}, Edits: []profile.Edit{{To: "go1"}, {To: "go2"}}}
 	pyPack := &profile.Pack{Tasks: []string{"py task"}, Files: []string{"a.py"}, Modules: []string{"m"},
-		Tests: []string{"test_py"}, Commands: []string{"pytest"}, Logs: []string{"ok py"}, Edits: []profile.Edit{{To: "py1"}, {To: "py2"}}}
+		Tests: []string{"test_py"}, Commands: []profile.Command{{Run: "pytest", Output: []string{"ok py"}}}, Edits: []profile.Edit{{To: "py1"}, {To: "py2"}}}
 	two := &profile.Topic{Packs: []*profile.Pack{goPack, pyPack}}
 	g := New(3, agent)
 	seen := map[string]bool{}
