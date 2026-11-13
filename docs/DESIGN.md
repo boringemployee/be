@@ -29,7 +29,7 @@
 | `internal/profile`    | Loads and validates agent/topic YAML.                         |
 | `internal/adapter/tty`| Raw mode (`golang.org/x/term`), key parsing, stdout.          |
 | `internal/adapter/wasm`| `syscall/js` glue to xterm.js.                               |
-| `content/`            | Embedded YAML: `agents/`, `topics/`.                          |
+| `content/`            | Embedded YAML: `agents/*.yaml`, `topics/<name>/*.yaml` (packs). |
 | `cmd/be`, `cmd/wasm` | Entrypoints; only wiring.                                     |
 
 ### Key decisions

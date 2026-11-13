@@ -1,0 +1,41 @@
+tasks:
+  - "Add type hints to {module}"
+  - "Fix flaky test {test}"
+  - "Replace print debugging in {file} with logging"
+  - "Make {module} async"
+  - "Reduce memory usage in {file}"
+files:
+  - app/services/billing.py
+  - app/api/routes.py
+  - app/models/user.py
+  - app/workers/emailer.py
+  - tests/test_billing.py
+modules:
+  - billing
+  - routes
+  - emailer
+  - user-model
+tests:
+  - test_invoice_rounding
+  - test_user_signup
+  - test_email_retry
+  - test_routes_auth
+commands:
+  - pytest -q
+  - ruff check .
+  - mypy app
+  - python -m build
+logs:
+  - "42 passed in 3.21s"
+  - "All checks passed!"
+  - "Success: no issues found in 37 source files"
+  - "checking {file}"
+  - "1 skipped (needs network)"
+edits:
+  - "def total(self) -> Decimal:"
+  - "    return sum(line.amount for line in self.lines)"
+  - "logger.info(\"invoice created\", extra={\"id\": invoice.id})"
+  - "async def send(self, message: Message) -> None:"
+  - "from typing import Iterable"
+  - "@pytest.mark.parametrize(\"amount\", [0, 1, 99])"
+  - "# TODO: revisit after the reorg"

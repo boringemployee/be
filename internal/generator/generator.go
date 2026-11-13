@@ -50,8 +50,13 @@ func (g *Generator) between(min, max int) time.Duration {
 	return time.Duration(min+g.rng.IntN(max-min)) * time.Millisecond
 }
 
-// Next returns the steps of a new fake task on topic.
+// Next returns the steps of a new fake task on topic, using one of its packs
+// so the task's files, edits and logs belong together.
 func (g *Generator) Next(t *profile.Topic) []Step {
+	return g.task(pick(g, t.Packs))
+}
+
+func (g *Generator) task(t *profile.Pack) []Step {
 	file := pick(g, t.Files)
 	steps := []Step{
 		{Kind: StepStart, Text: g.fill(pick(g, t.Tasks), t, file), Delay: g.between(300, 700)},
@@ -81,7 +86,7 @@ func (g *Generator) think() Step {
 	return Step{Kind: StepThink, Text: pick(g, g.agent.ThinkingWords), Delay: g.between(1200, 4000)}
 }
 
-func (g *Generator) edit(t *profile.Topic, file string) Step {
+func (g *Generator) edit(t *profile.Pack, file string) Step {
 	// Removed and added lines come from one shuffled pool, so a diff never
 	// removes and re-adds the same line. With one edit line, it is only added.
 	order := g.rng.Perm(len(t.Edits))
@@ -97,7 +102,7 @@ func (g *Generator) edit(t *profile.Topic, file string) Step {
 	return Step{Kind: StepEdit, Text: file, Lines: lines, Delay: g.between(800, 2000)}
 }
 
-func (g *Generator) logs(t *profile.Topic, ok bool) []string {
+func (g *Generator) logs(t *profile.Pack, ok bool) []string {
 	var lines []string
 	order := g.rng.Perm(len(t.Logs))
 	for _, i := range order[:min(2+g.rng.IntN(3), len(order))] {
@@ -123,7 +128,7 @@ func (g *Generator) distinct(items []string, n int, first string) []string {
 	return out
 }
 
-func (g *Generator) fill(s string, t *profile.Topic, file string) string {
+func (g *Generator) fill(s string, t *profile.Pack, file string) string {
 	return strings.NewReplacer(
 		"{file}", file,
 		"{module}", pick(g, t.Modules),

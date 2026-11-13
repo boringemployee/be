@@ -10,7 +10,7 @@ import (
 
 var (
 	agent = &profile.Agent{ThinkingWords: []string{"Thinking"}, DoneMessages: []string{"Done"}}
-	topic = &profile.Topic{
+	pack  = &profile.Pack{
 		Tasks:    []string{"Fix {file} in {module} for {test}"},
 		Files:    []string{"a.go", "b.go", "c.go"},
 		Modules:  []string{"mod"},
@@ -19,6 +19,7 @@ var (
 		Logs:     []string{"checking {file}", "ok", "lint: 0 issues", "compiling"},
 		Edits:    []string{"a", "b", "c", "d"},
 	}
+	topic = &profile.Topic{Packs: []*profile.Pack{pack}}
 )
 
 func TestDeterministic(t *testing.T) {
@@ -97,10 +98,38 @@ func TestDistinctWithSingleFile(t *testing.T) {
 }
 
 func TestEditWithSingleLine(t *testing.T) {
-	one := *topic
+	one := *pack
 	one.Edits = []string{"only"}
 	s := New(1, agent).edit(&one, "a.go")
 	if !reflect.DeepEqual(s.Lines, []string{"+only"}) {
 		t.Fatalf("lines = %v", s.Lines)
+	}
+}
+
+func TestTaskUsesOnePack(t *testing.T) {
+	goPack := &profile.Pack{Tasks: []string{"go task"}, Files: []string{"a.go"}, Modules: []string{"m"},
+		Tests: []string{"TestGo"}, Commands: []string{"go test"}, Logs: []string{"ok go"}, Edits: []string{"go1", "go2"}}
+	pyPack := &profile.Pack{Tasks: []string{"py task"}, Files: []string{"a.py"}, Modules: []string{"m"},
+		Tests: []string{"test_py"}, Commands: []string{"pytest"}, Logs: []string{"ok py"}, Edits: []string{"py1", "py2"}}
+	two := &profile.Topic{Packs: []*profile.Pack{goPack, pyPack}}
+	g := New(3, agent)
+	seen := map[string]bool{}
+	for range 50 {
+		steps := g.Next(two)
+		lang := "go"
+		if steps[0].Text == "py task" {
+			lang = "py"
+		}
+		seen[lang] = true
+		for _, s := range steps {
+			for _, l := range append([]string{s.Text}, s.Lines...) {
+				if lang == "go" && strings.Contains(l, "py") || lang == "py" && strings.Contains(l, "go") {
+					t.Fatalf("%s task mixed in %q", lang, l)
+				}
+			}
+		}
+	}
+	if !seen["go"] || !seen["py"] {
+		t.Errorf("both packs should be used: %v", seen)
 	}
 }

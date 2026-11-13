@@ -1,0 +1,130 @@
+package profile
+
+import (
+	"reflect"
+	"strings"
+	"testing"
+)
+
+const goPack = `
+tasks: ["Fix {file}"]
+files: [a.go]
+edits: [x := 1]
+`
+
+func TestLoadTopicFolder(t *testing.T) {
+	c, err := Load(fsWith(map[string]string{
+		"agents/demo.yaml": validAgent,
+		// topic.yaml: description and shared lists, but no tasks, so it is
+		// only a fallback, not a pack of its own.
+		"topics/work/topic.yaml": "description: Work\nmodules: [shared]\ntests: [TestShared]\ncommands: [make]\nlogs: [ok]\n",
+		"topics/work/go.yaml":    goPack,
+		"topics/work/python.yaml": `
+tasks: ["Fix {file}"]
+files: [a.py]
+modules: [own]
+tests: [test_own]
+commands: [pytest]
+logs: [passed]
+edits: [x = 1]
+`,
+		"topics/work/notes.md": "ignored",
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	topic := c.Topics["work"]
+	if topic.Description != "Work" || len(topic.Packs) != 2 {
+		t.Fatalf("topic = %+v", topic)
+	}
+	goP, py := topic.Packs[0], topic.Packs[1]
+	if goP.Name != "go" || py.Name != "python" {
+		t.Errorf("packs must be sorted by file name: %q, %q", goP.Name, py.Name)
+	}
+	want := &Pack{Name: "go", Tasks: []string{"Fix {file}"}, Files: []string{"a.go"}, Modules: []string{"shared"},
+		Tests: []string{"TestShared"}, Commands: []string{"make"}, Logs: []string{"ok"}, Edits: []string{"x := 1"}}
+	if !reflect.DeepEqual(goP, want) {
+		t.Errorf("go pack should fall back to shared lists:\n got %+v\nwant %+v", goP, want)
+	}
+	if py.Modules[0] != "own" || py.Commands[0] != "pytest" {
+		t.Errorf("python pack must keep its own lists: %+v", py)
+	}
+}
+
+func TestTopicFileAsPack(t *testing.T) {
+	c, err := Load(fsWith(map[string]string{
+		"agents/demo.yaml":       validAgent,
+		"topics/work/topic.yaml": validTopic,
+		"topics/work/extra.yaml": "tasks: [Another task]\n",
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	packs := c.Topics["work"].Packs
+	if len(packs) != 2 || packs[0].Name != "topic" || packs[1].Name != "extra" || packs[1].Files[0] != "a.go" {
+		t.Fatalf("packs = %+v %+v", packs[0], packs[1])
+	}
+}
+
+func TestLoadTopicErrors(t *testing.T) {
+	tests := []struct {
+		name  string
+		files map[string]string
+		want  string
+	}{
+		{"flat file", map[string]string{"topics/work.yaml": validTopic}, "topics must be folders"},
+		{"bad folder name", map[string]string{"topics/Work/topic.yaml": validTopic}, "folder name must match"},
+		{"no packs", map[string]string{"topics/work/topic.yaml": "description: Work\n"}, "no packs"},
+		{"missing list", map[string]string{"topics/work/topic.yaml": "description: Work\n", "topics/work/go.yaml": goPack}, "go.modules: need at least 1"},
+		{"unknown field in pack", map[string]string{"topics/work/topic.yaml": validTopic, "topics/work/go.yaml": "name: go\n"}, "topics/work/go.yaml"},
+		{"description in pack", map[string]string{"topics/work/topic.yaml": validTopic, "topics/work/go.yaml": "description: x\n"}, "field description not found"},
+		{"unreadable pack", map[string]string{"topics/work/topic.yaml": validTopic, "topics/work/go.yaml/x": ""}, "go.yaml"},
+		{"bad log placeholder", map[string]string{"topics/work/topic.yaml": strings.Replace(validTopic, "logs: [ok]", "logs: ['{home}']", 1)}, "topic.logs[0]: unknown placeholder"},
+		{"too many packs", tooManyPacks(), "at most 50 packs"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			files := map[string]string{"agents/demo.yaml": validAgent}
+			for k, v := range tt.files {
+				files[k] = v
+			}
+			_, err := Load(fsWith(files))
+			if err == nil || !strings.Contains(err.Error(), tt.want) {
+				t.Fatalf("err = %v, want containing %q", err, tt.want)
+			}
+		})
+	}
+}
+
+func tooManyPacks() map[string]string {
+	files := map[string]string{"topics/work/topic.yaml": validTopic}
+	for i := range MaxPacks {
+		files["topics/work/p"+strings.Repeat("x", i)+".yaml"] = "tasks: [t]\n"
+	}
+	return files
+}
+
+func TestParseTopicErrors(t *testing.T) {
+	tests := []struct {
+		name, replace, with, want string
+	}{
+		{"bad placeholder", "{test}", "{user}", "unknown placeholder {user}"},
+		{"too many", "modules: [m]", "modules: [" + strings.Repeat("m,", MaxItems) + "m]", "at most"},
+		{"dangerous command", "commands: [make test]", "commands: ['rm -rf /tmp/x']", "dangerous command"},
+		{"no description", "description: Work", "description: ''", "description: required"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := ParseTopic("work", []byte(strings.Replace(validTopic, tt.replace, tt.with, 1)))
+			if err == nil || !strings.Contains(err.Error(), tt.want) {
+				t.Fatalf("err = %v, want containing %q", err, tt.want)
+			}
+		})
+	}
+	if _, err := ParseTopic("work", []byte("[")); err == nil {
+		t.Fatal("want YAML syntax error")
+	}
+	if _, err := ParseTopic("Bad Name", []byte(validTopic)); err == nil {
+		t.Fatal("want name error")
+	}
+}

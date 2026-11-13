@@ -1,0 +1,15 @@
+# Topic: run devops. Packs are the other files in this folder; lists missing
+# from a pack fall back to the lists in this file.
+description: Pipelines, infrastructure and on-call heroics
+# Shared by every devops pack unless a pack defines its own.
+modules:
+  - api-gateway
+  - billing-worker
+  - search-indexer
+  - auth-service
+  - nightly-batch
+tests:
+  - smoke-test-api
+  - health-check-worker
+  - canary-checkout
+  - load-test-search

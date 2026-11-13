@@ -1,5 +1,3 @@
-name: engineering
-description: Refactors, bug fixes and flaky tests
 tasks:
   - "Refactor {module} to remove a circular import"
   - "Fix flaky test {test}"

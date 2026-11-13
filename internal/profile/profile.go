@@ -34,19 +34,6 @@ type Agent struct {
 	StoppedMessage string    `yaml:"stopped_message"`
 }
 
-// Topic describes the fake work done by "run <topic>".
-type Topic struct {
-	Name        string   `yaml:"name"`
-	Description string   `yaml:"description"`
-	Tasks       []string `yaml:"tasks"`
-	Files       []string `yaml:"files"`
-	Modules     []string `yaml:"modules"`
-	Tests       []string `yaml:"tests"`
-	Commands    []string `yaml:"commands"`
-	Logs        []string `yaml:"logs"`
-	Edits       []string `yaml:"edits"`
-}
-
 // Catalog holds every loaded agent and topic, keyed by name.
 type Catalog struct {
 	Agents map[string]*Agent
@@ -77,13 +64,14 @@ var (
 	placeholders  = map[string]bool{"file": true, "module": true, "test": true}
 )
 
-// Load reads agents/*.yaml and topics/*.yaml from fsys and validates them.
+// Load reads agents/*.yaml and topics/<name>/*.yaml from fsys and validates
+// them.
 func Load(fsys fs.FS) (*Catalog, error) {
 	c := &Catalog{Agents: map[string]*Agent{}, Topics: map[string]*Topic{}}
 	if err := loadDir(fsys, "agents", c.Agents, ParseAgent); err != nil {
 		return nil, err
 	}
-	if err := loadDir(fsys, "topics", c.Topics, ParseTopic); err != nil {
+	if err := loadTopics(fsys, c.Topics); err != nil {
 		return nil, err
 	}
 	if len(c.Agents) == 0 || len(c.Topics) == 0 {
@@ -95,7 +83,6 @@ func Load(fsys fs.FS) (*Catalog, error) {
 type named interface{ name() string }
 
 func (a *Agent) name() string { return a.Name }
-func (t *Topic) name() string { return t.Name }
 
 func loadDir[T named](fsys fs.FS, dir string, into map[string]T, parse func([]byte) (T, error)) error {
 	files, err := fs.Glob(fsys, dir+"/*.yaml")
@@ -132,15 +119,6 @@ func ParseAgent(data []byte) (*Agent, error) {
 		return nil, err
 	}
 	return &a, a.validate()
-}
-
-// ParseTopic decodes and validates a single topic definition.
-func ParseTopic(data []byte) (*Topic, error) {
-	var t Topic
-	if err := decodeStrict(data, &t); err != nil {
-		return nil, err
-	}
-	return &t, t.validate()
 }
 
 type checker struct{ errs []error }
@@ -198,26 +176,5 @@ func (a *Agent) validate() error {
 	c.list("thinking_words", a.ThinkingWords, 1)
 	c.list("done_messages", a.DoneMessages, 1)
 	c.str("stopped_message", a.StoppedMessage, true)
-	return errors.Join(c.errs...)
-}
-
-func (t *Topic) validate() error {
-	var c checker
-	c.name(t.Name)
-	c.str("description", t.Description, true)
-	c.list("tasks", t.Tasks, 1)
-	c.list("files", t.Files, 1)
-	c.list("modules", t.Modules, 1)
-	c.list("tests", t.Tests, 1)
-	c.list("commands", t.Commands, 1)
-	c.list("logs", t.Logs, 1)
-	c.list("edits", t.Edits, 1)
-	for i, task := range t.Tasks {
-		for _, m := range placeholderRE.FindAllStringSubmatch(task, -1) {
-			if !placeholders[m[1]] {
-				c.fail("tasks[%d]: unknown placeholder {%s}", i, m[1])
-			}
-		}
-	}
 	return errors.Join(c.errs...)
 }

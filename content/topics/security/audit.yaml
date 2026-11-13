@@ -1,5 +1,3 @@
-name: security
-description: Audits, patches and stern warnings
 tasks:
   - "Patch the vulnerable dependency in {module}"
   - "Add input validation to {file}"

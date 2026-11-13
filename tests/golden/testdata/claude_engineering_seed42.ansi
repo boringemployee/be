@@ -10,11 +10,9 @@
 
 [2m❯ run engineering[0m
 
-[38;2;217;119;87m●[0m [1mRefactor config-loader to remove a circular import[0m
+[38;2;217;119;87m●[0m [1mFix flaky test TestUserPagination[0m
   [38;2;217;119;87m●[0m Read(internal/auth/session.go)
     [2m⎿[0m [2mRead 180 lines[0m
-  [38;2;217;119;87m●[0m Read(internal/billing/invoice.go)
-    [2m⎿[0m [2mRead 340 lines[0m
   [38;2;217;119;87m●[0m Update(internal/auth/session.go)
       [31m-return result, nil[0m
       [31m-cache.Set(key, value, ttl)[0m
@@ -27,81 +25,94 @@
       [32mPASS TestInvoiceRounding[0m
 [32m●[0m All set. Moving on to the next item before anyone notices.
 
-[38;2;217;119;87m●[0m [1mReplace deprecated API calls in config-loader[0m
-  [38;2;217;119;87m●[0m Read(internal/cache/lru.go)
-    [2m⎿[0m [2mRead 365 lines[0m
-  [38;2;217;119;87m●[0m Update(internal/cache/lru.go)
-      [31m-for i := range items {[0m
-      [32m+select { case <-ctx.Done(): return ctx.Err() }[0m
-      [32m+if err != nil {[0m
-  [38;2;217;119;87m●[0m Run(make lint)
-      [2mlint: 0 issues[0m
-      [2mcoverage: 87.3% of statements[0m
-      [2m--- checking internal/storage/postgres.go[0m
-      [2mok   internal/cache     0.087s[0m
-      [32mPASS TestInvoiceRounding[0m
-[32m●[0m Done. All tests pass. I also tidied up a few things nobody asked about.
+[38;2;217;119;87m●[0m [1mMake user-model async[0m
+  [38;2;217;119;87m●[0m Read(app/api/routes.py)
+    [2m⎿[0m [2mRead 135 lines[0m
+  [38;2;217;119;87m●[0m Read(tests/test_billing.py)
+    [2m⎿[0m [2mRead 400 lines[0m
+  [38;2;217;119;87m●[0m Update(app/api/routes.py)
+      [31m-async def send(self, message: Message) -> None:[0m
+      [31m-@pytest.mark.parametrize("amount", [0, 1, 99])[0m
+      [32m+    return sum(line.amount for line in self.lines)[0m
+      [32m+def total(self) -> Decimal:[0m
+      [32m+# TODO: revisit after the reorg[0m
+  [38;2;217;119;87m●[0m Run(ruff check .)
+      [2m42 passed in 3.21s[0m
+      [2mchecking tests/test_billing.py[0m
+      [2mAll checks passed![0m
+      [2mSuccess: no issues found in 37 source files[0m
+      [31mFAIL test_user_signup[0m
+  [38;2;217;119;87m●[0m Update(app/api/routes.py)
+      [31m-def total(self) -> Decimal:[0m
+      [32m+async def send(self, message: Message) -> None:[0m
+      [32m+# TODO: revisit after the reorg[0m
+      [32m+@pytest.mark.parametrize("amount", [0, 1, 99])[0m
+  [38;2;217;119;87m●[0m Run(ruff check .)
+      [2mchecking app/api/routes.py[0m
+      [2m42 passed in 3.21s[0m
+      [32mPASS test_routes_auth[0m
+[32m●[0m Complete. I left the code slightly better than I found it.
 
-[38;2;217;119;87m●[0m [1mAdd retry with backoff to billing[0m
-  [38;2;217;119;87m●[0m Read(internal/queue/worker.go)
-    [2m⎿[0m [2mRead 293 lines[0m
-  [38;2;217;119;87m●[0m Read(internal/billing/invoice.go)
-    [2m⎿[0m [2mRead 340 lines[0m
-  [38;2;217;119;87m●[0m Read(internal/cache/lru.go)
-    [2m⎿[0m [2mRead 365 lines[0m
-  [38;2;217;119;87m●[0m Update(internal/queue/worker.go)
-      [31m-defer mu.Unlock()[0m
-      [32m+    return nil, fmt.Errorf("load config: %w", err)[0m
-  [38;2;217;119;87m●[0m Run(go vet ./...)
-      [2mcoverage: 87.3% of statements[0m
-      [2mok   internal/cache     0.087s[0m
-      [2mwarning: unused variable in internal/storage/postgres.go (ignored)[0m
-      [2mok   internal/auth      0.412s[0m
-      [31mFAIL TestLRUEviction[0m
-  [38;2;217;119;87m●[0m Update(internal/queue/worker.go)
-      [31m-for i := range items {[0m
-      [31m-mu.Lock()[0m
-      [32m+    return nil, fmt.Errorf("load config: %w", err)[0m
-  [38;2;217;119;87m●[0m Run(go vet ./...)
-      [2mok   pkg/config         0.031s[0m
-      [2mok   internal/cache     0.087s[0m
-      [32mPASS TestWorkerShutdown[0m
-[32m●[0m Done. All tests pass. I also tidied up a few things nobody asked about.
+[38;2;217;119;87m●[0m [1mMake emailer async[0m
+  [38;2;217;119;87m●[0m Read(app/workers/emailer.py)
+    [2m⎿[0m [2mRead 337 lines[0m
+  [38;2;217;119;87m●[0m Read(app/services/billing.py)
+    [2m⎿[0m [2mRead 370 lines[0m
+  [38;2;217;119;87m●[0m Update(app/workers/emailer.py)
+      [31m-async def send(self, message: Message) -> None:[0m
+      [31m-@pytest.mark.parametrize("amount", [0, 1, 99])[0m
+      [32m+# TODO: revisit after the reorg[0m
+      [32m+def total(self) -> Decimal:[0m
+      [32m+from typing import Iterable[0m
+  [38;2;217;119;87m●[0m Run(python -m build)
+      [2mchecking app/services/billing.py[0m
+      [2m42 passed in 3.21s[0m
+      [2mAll checks passed![0m
+      [32mPASS test_user_signup[0m
+[32m●[0m All set. Moving on to the next item before anyone notices.
 
-[38;2;217;119;87m●[0m [1mSplit cmd/server/main.go into smaller functions[0m
-  [38;2;217;119;87m●[0m Read(cmd/server/main.go)
-    [2m⎿[0m [2mRead 47 lines[0m
-  [38;2;217;119;87m●[0m Read(internal/storage/postgres.go)
-    [2m⎿[0m [2mRead 324 lines[0m
-  [38;2;217;119;87m●[0m Update(cmd/server/main.go)
-      [31m-defer mu.Unlock()[0m
-      [31m-backoff := min(backoff*2, maxBackoff)[0m
-      [32m+mu.Lock()[0m
-      [32m+for i := range items {[0m
-  [38;2;217;119;87m●[0m Run(go test ./...)
-      [2mcompiling 42 packages[0m
-      [2mcoverage: 87.3% of statements[0m
-      [2mlint: 0 issues[0m
-      [2m--- checking api/handlers/users.go[0m
-      [32mPASS TestLRUEviction[0m
-[32m●[0m Finished. The change is small, focused, and suspiciously elegant.
-
-[38;2;217;119;87m●[0m [1mAdd retry with backoff to config-loader[0m
+[38;2;217;119;87m●[0m [1mReduce allocations in internal/auth/session.go[0m
+  [38;2;217;119;87m●[0m Read(internal/auth/session.go)
+    [2m⎿[0m [2mRead 180 lines[0m
   [38;2;217;119;87m●[0m Read(api/handlers/users.go)
     [2m⎿[0m [2mRead 50 lines[0m
-  [38;2;217;119;87m●[0m Read(internal/billing/invoice.go)
-    [2m⎿[0m [2mRead 340 lines[0m
-  [38;2;217;119;87m●[0m Update(api/handlers/users.go)
-      [31m-ctx, cancel := context.WithTimeout(ctx, 5*time.Second)[0m
-      [31m-cache.Set(key, value, ttl)[0m
-      [32m+return result, nil[0m
-  [38;2;217;119;87m●[0m Run(go vet ./...)
+  [38;2;217;119;87m●[0m Update(internal/auth/session.go)
+      [31m-backoff := min(backoff*2, maxBackoff)[0m
+      [32m+cache.Set(key, value, ttl)[0m
+  [38;2;217;119;87m●[0m Run(make build)
       [2mcompiling 42 packages[0m
-      [2mok   pkg/config         0.031s[0m
-      [2mcoverage: 87.3% of statements[0m
+      [2mok   internal/auth      0.412s[0m
+      [2mok   internal/cache     0.087s[0m
       [2mlint: 0 issues[0m
-      [32mPASS TestWorkerShutdown[0m
+      [31mFAIL TestSessionExpiry[0m
+  [38;2;217;119;87m●[0m Update(internal/auth/session.go)
+      [31m-defer mu.Unlock()[0m
+      [32m+backoff := min(backoff*2, maxBackoff)[0m
+  [38;2;217;119;87m●[0m Run(make build)
+      [2m--- checking internal/queue/worker.go[0m
+      [2mlint: 0 issues[0m
+      [2mok   pkg/config         0.031s[0m
+      [2mcompiling 42 packages[0m
+      [32mPASS TestUserPagination[0m
 [32m●[0m Complete. I left the code slightly better than I found it.
+
+[38;2;217;119;87m●[0m [1mMake billing async[0m
+  [38;2;217;119;87m●[0m Read(app/workers/emailer.py)
+    [2m⎿[0m [2mRead 337 lines[0m
+  [38;2;217;119;87m●[0m Read(app/api/routes.py)
+    [2m⎿[0m [2mRead 135 lines[0m
+  [38;2;217;119;87m●[0m Read(tests/test_billing.py)
+    [2m⎿[0m [2mRead 400 lines[0m
+  [38;2;217;119;87m●[0m Update(app/workers/emailer.py)
+      [31m-logger.info("invoice created", extra={"id": invoice.id})[0m
+      [32m+from typing import Iterable[0m
+  [38;2;217;119;87m●[0m Run(python -m build)
+      [2m1 skipped (needs network)[0m
+      [2mchecking app/workers/emailer.py[0m
+      [2mAll checks passed![0m
+      [2mSuccess: no issues found in 37 source files[0m
+      [32mPASS test_user_signup[0m
+[32m●[0m Finished. The change is small, focused, and suspiciously elegant.
 
 [38;2;217;119;87m●[0m [1mAdd missing error handling in cmd/server/main.go[0m
   [38;2;217;119;87m●[0m Read(cmd/server/main.go)
@@ -115,15 +126,6 @@
       [31m-defer mu.Unlock()[0m
       [32m+mu.Lock()[0m
       [32m+for i := range items {[0m
-  [38;2;217;119;87m●[0m Run(go test ./...)
-      [2mlint: 0 issues[0m
-      [2mwarning: unused variable in internal/cache/lru.go (ignored)[0m
-      [2mok   internal/auth      0.412s[0m
-      [2mcompiling 42 packages[0m
-      [32mPASS TestInvoiceRounding[0m
-[32m●[0m Finished. The change is small, focused, and suspiciously elegant.
-
-[38;2;217;119;87m●[0m [1mFix flaky test TestLRUEviction[0m
   [33m⎿[0m [33mInterrupted. What should I do instead?[0m
 
 

@@ -1,5 +1,3 @@
-name: frontend
-description: Components, CSS and pixel pushing
 tasks:
   - "Fix the layout shift in {module}"
   - "Make {file} accessible to screen readers"

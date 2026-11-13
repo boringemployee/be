@@ -3,7 +3,7 @@ package content
 
 import "embed"
 
-// FS holds agents/*.yaml and topics/*.yaml.
+// FS holds agents/*.yaml and topics/<name>/*.yaml.
 //
-//go:embed agents/*.yaml topics/*.yaml
+//go:embed agents/*.yaml topics/*/*.yaml
 var FS embed.FS

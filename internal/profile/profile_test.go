@@ -31,7 +31,6 @@ stopped_message: Stopped
 `
 
 const validTopic = `
-name: work
 description: Work
 tasks: ["Fix {file} in {module} for {test}"]
 files: [a.go, b.go]
@@ -52,9 +51,9 @@ func fsWith(files map[string]string) fstest.MapFS {
 
 func TestLoad(t *testing.T) {
 	c, err := Load(fsWith(map[string]string{
-		"agents/demo.yaml": validAgent,
-		"topics/work.yaml": validTopic,
-		"agents/README.md": "ignored",
+		"agents/demo.yaml":       validAgent,
+		"topics/work/topic.yaml": validTopic,
+		"agents/README.md":       "ignored",
 	}))
 	if err != nil {
 		t.Fatal(err)
@@ -82,9 +81,9 @@ func TestLoadErrors(t *testing.T) {
 	}{
 		{"empty", nil, "at least one agent"},
 		{"no topics", map[string]string{"agents/demo.yaml": validAgent}, "at least one agent"},
-		{"bad agent", map[string]string{"agents/demo.yaml": "name: [", "topics/work.yaml": validTopic}, "agents/demo.yaml"},
-		{"bad topic", map[string]string{"agents/demo.yaml": validAgent, "topics/work.yaml": "nope: 1"}, "topics/work.yaml"},
-		{"name mismatch", map[string]string{"agents/other.yaml": validAgent, "topics/work.yaml": validTopic}, "must match file name"},
+		{"bad agent", map[string]string{"agents/demo.yaml": "name: [", "topics/work/topic.yaml": validTopic}, "agents/demo.yaml"},
+		{"bad topic", map[string]string{"agents/demo.yaml": validAgent, "topics/work/topic.yaml": "nope: 1"}, "topics/work/topic.yaml"},
+		{"name mismatch", map[string]string{"agents/other.yaml": validAgent, "topics/work/topic.yaml": validTopic}, "must match file name"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -150,27 +149,6 @@ func TestParseAgentErrors(t *testing.T) {
 	}
 }
 
-func TestParseTopicErrors(t *testing.T) {
-	tests := []struct {
-		name, replace, with, want string
-	}{
-		{"bad placeholder", "{test}", "{user}", "unknown placeholder {user}"},
-		{"too many", "modules: [m]", "modules: [" + strings.Repeat("m,", MaxItems) + "m]", "at most"},
-		{"dangerous command", "commands: [make test]", "commands: ['rm -rf /tmp/x']", "dangerous command"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, err := ParseTopic([]byte(strings.Replace(validTopic, tt.replace, tt.with, 1)))
-			if err == nil || !strings.Contains(err.Error(), tt.want) {
-				t.Fatalf("err = %v, want containing %q", err, tt.want)
-			}
-		})
-	}
-	if _, err := ParseTopic([]byte("[")); err == nil {
-		t.Fatal("want YAML syntax error")
-	}
-}
-
 func TestNoWelcome(t *testing.T) {
 	a := strings.Index(validAgent, "welcome:")
 	b := strings.Index(validAgent, "live:")
@@ -191,8 +169,8 @@ func FuzzParse(f *testing.F) {
 				}
 			}
 		}
-		if tp, err := ParseTopic(data); err == nil {
-			for _, s := range append(append([]string{}, tp.Tasks...), tp.Commands...) {
+		if tp, err := ParseTopic("fuzz", data); err == nil {
+			for _, s := range append(append([]string{}, tp.Packs[0].Tasks...), tp.Packs[0].Commands...) {
 				if CheckText(s) != nil {
 					t.Fatalf("accepted unsafe text %q", s)
 				}

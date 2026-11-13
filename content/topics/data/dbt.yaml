@@ -1,5 +1,3 @@
-name: data
-description: Pipelines, dashboards and suspicious numbers
 tasks:
   - "Backfill {module} for the last quarter"
   - "Fix the duplicate rows in {file}"

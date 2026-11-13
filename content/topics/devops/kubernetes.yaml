@@ -1,5 +1,3 @@
-name: devops
-description: Pipelines, infrastructure and on-call heroics
 tasks:
   - "Fix the flaky deploy step in {file}"
   - "Bump the base image for {module}"
@@ -16,17 +14,6 @@ files:
   - deploy/k8s/worker-hpa.yaml
   - docker/api.Dockerfile
   - ops/alerts/latency.yaml
-modules:
-  - api-gateway
-  - billing-worker
-  - search-indexer
-  - auth-service
-  - nightly-batch
-tests:
-  - smoke-test-api
-  - health-check-worker
-  - canary-checkout
-  - load-test-search
 commands:
   - terraform plan
   - kubectl get pods -n staging

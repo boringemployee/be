@@ -1,16 +1,42 @@
 # Adding a topic
 
-A topic is what `run <topic>` pretends to work on. It is one YAML file in
-`content/topics/<name>.yaml`. No Go code is needed.
+A topic is what `run <topic>` pretends to work on. It is a folder of YAML files in
+`content/topics/<name>/`. No Go code is needed.
 
-## Fields
+```
+content/topics/devops/
+├── topic.yaml        # description, plus lists shared by every pack
+├── kubernetes.yaml   # a pack
+└── terraform.yaml    # another pack (can be partial)
+```
 
-All lists need at least one item (at most 100); every string is at most 200 characters.
+## Packs
+
+Each file other than `topic.yaml` is a **pack**: a coherent set of fake work, such as one
+language or tool. Every task picks one pack and uses only that pack's lists, so a task never
+mixes Go files with Python edits or Terraform logs.
+
+- A pack may leave lists out. Missing lists come from `topic.yaml`.
+- If `topic.yaml` has `tasks`, it is also a pack.
+- To enrich a topic, add a new pack file. To add variety to an existing pack, add lines to it.
+
+## topic.yaml
+
+```yaml
+description: Pipelines, infrastructure and on-call heroics   # shown by "topics"
+modules: [api-gateway, billing-worker]   # optional shared lists, used by packs that omit them
+tests: [smoke-test-api, canary-checkout]
+```
+
+The folder name is the topic name (`run devops`): lowercase letters, digits and dashes.
+
+## Pack fields
+
+After falling back to `topic.yaml`, every pack must have at least one item in each list
+(at most 100). Every string is at most 200 characters.
 
 | Field | Used for | Example |
 | --- | --- | --- |
-| `name` | `run <name>`; must match the file name | `devops` |
-| `description` | Shown by `topics` | `Pipelines, infrastructure and on-call heroics` |
 | `tasks` | Task titles; may use `{file}`, `{module}`, `{test}` | `Bump the base image for {module}` |
 | `files` | Files the agent "reads" and "edits" | `deploy/k8s/api-deployment.yaml` |
 | `modules` | Fills `{module}` | `billing-worker` |
@@ -19,19 +45,31 @@ All lists need at least one item (at most 100); every string is at most 200 char
 | `logs` | Command output; may use `{file}`, `{module}`, `{test}` | `Plan: 2 to add, 1 to change, 0 to destroy.` |
 | `edits` | Code lines shown in diffs (`-` removed, `+` added) | `replicas: 3` |
 
-Use at least 4 edits and 4 logs so diffs and outputs vary.
+Use at least 4 edits and 4 logs per pack so diffs and outputs vary.
+
+A partial pack that reuses the shared `modules` and `tests`:
+
+```yaml
+# content/topics/devops/terraform.yaml
+tasks: ["Split the {module} state file", "Fix drift in {file}"]
+files: [infra/terraform/main.tf, infra/terraform/outputs.tf]
+commands: [terraform validate, terraform plan]
+logs: ["Success! The configuration is valid.", "formatting {file}"]
+edits: ['lifecycle { prevent_destroy = true }', 'version = "~> 5.0"']
+```
 
 ## How a task is generated
 
-Each task: pick a title, think, read 1 to 3 files, think, edit a file, run a command, done.
-About one task in four fails first, then gets "fixed" and passes. Tasks repeat forever,
-and the same `--seed` always produces the same sequence.
+Each task: pick a pack, pick a title, think, read 1 to 3 files, think, edit a file, run a
+command, done. About one task in four fails first, then gets "fixed" and passes. Tasks
+repeat forever, and the same `--seed` always produces the same sequence.
 
 ## Try it
 
 ```sh
 go run ./cmd/be preview claude mytopic
-go run ./cmd/be claude          # then: run mytopic
+go run ./cmd/be preview claude mytopic --seed 7   # other seeds show other packs
+go run ./cmd/be claude                            # then: run mytopic
 make golden && make test
 ```
 
@@ -40,5 +78,5 @@ make golden && make test
 - Commands must look harmless. These are rejected: `curl`, `wget`, `sudo`, `rm -rf`,
   piping into a shell or interpreter, `base64 -d`, and similar.
 - No URLs, IP addresses (use host names or plain words), encoded blobs or control characters.
-- Unknown placeholders and unknown fields fail.
+- Unknown placeholders and unknown fields fail; packs cannot have a `description`.
 - Keep it office-safe: fake work, real-sounding but harmless.

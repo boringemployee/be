@@ -10,19 +10,17 @@
 
 [2m❯ run data[0m
 
-[38;2;217;119;87m●[0m [1mMake test_events_freshness stop timing out[0m
-  [38;2;217;119;87m●[0m Read(models/marts/fct_orders.sql)
-    [2m⎿[0m [2mRead 283 lines[0m
-  [38;2;217;119;87m●[0m Read(models/staging/stg_payments.sql)
-    [2m⎿[0m [2mRead 410 lines[0m
-  [38;2;217;119;87m●[0m Update(models/marts/fct_orders.sql)
+[38;2;217;119;87m●[0m [1mExplain why revenue doubled in user-events[0m
+  [38;2;217;119;87m●[0m Read(dags/nightly_etl.py)
+    [2m⎿[0m [2mRead 495 lines[0m
+  [38;2;217;119;87m●[0m Update(dags/nightly_etl.py)
       [31m-GROUP BY customer_id[0m
       [32m+LEFT JOIN payments USING (order_id)[0m
   [38;2;217;119;87m●[0m Run(make backfill)
       [2mchecking models/staging/stg_payments.sql[0m
       [2mwarning: 2 rows with null customer_id (ignored)[0m
       [31mFAIL test_no_duplicate_orders[0m
-  [38;2;217;119;87m●[0m Update(models/marts/fct_orders.sql)
+  [38;2;217;119;87m●[0m Update(dags/nightly_etl.py)
       [31m-GROUP BY customer_id[0m
       [32m+-- TODO: confirm with finance[0m
       [32m+LEFT JOIN payments USING (order_id)[0m
