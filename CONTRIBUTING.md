@@ -11,7 +11,9 @@ git clone https://github.com/boringemployee/be
 cd be
 make test   # run all tests
 make cli    # build bin/be
-make web    # build the web playground (from Phase 5)
+make web    # build the web version into web/dist (needs Node.js)
+make serve  # serve it on http://localhost:8080
+make e2e    # browser tests (needs Playwright)
 ```
 
 ## Easiest contributions: agents and topics

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Also sent as an HTTP header via _headers. Scripts and styles come only
+       from this site; 'wasm-unsafe-eval' allows compiling be.wasm, nothing else.
+       xterm.js injects <style> elements whose content depends on font and theme,
+       so styles need 'unsafe-inline'. Scripts stay locked to 'self'. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>Terminal</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="xterm.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="window">
+    <header class="titlebar">
+      <span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="title" id="title">~/work — zsh</span>
+      <label class="agent">
+        <span class="sr-only">Agent</span>
+        <select id="agent"></select>
+      </label>
+    </header>
+    <main id="terminal" aria-label="Terminal"></main>
+  </div>
+  <noscript>This page needs JavaScript and WebAssembly.</noscript>
+  <script src="xterm.js"></script>
+  <script src="wasm_exec.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

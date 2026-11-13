@@ -181,3 +181,17 @@ func TestSessionWriteErrors(t *testing.T) {
 		})
 	}
 }
+
+func TestInputAfterExitIsIgnored(t *testing.T) {
+	var out bytes.Buffer
+	s := newSession(t, &out)
+	if err := s.Start(); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Input([]byte("\x03abc")); err != nil {
+		t.Fatal(err)
+	}
+	if !s.Exited() || len(s.input) != 0 {
+		t.Fatalf("keys after Ctrl+C in the same chunk must be ignored: %q", string(s.input))
+	}
+}

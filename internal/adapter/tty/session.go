@@ -30,38 +30,63 @@ type Session struct {
 // Run starts the session and processes key chunks and frame ticks until the
 // session ends or keys is closed.
 func (s *Session) Run(keys <-chan []byte, ticks <-chan time.Time) error {
-	if err := s.emit(s.Engine.Start()); err != nil {
+	if err := s.Start(); err != nil {
 		return err
 	}
-	for s.Engine.State() != engine.StateExited {
+	for !s.Exited() {
 		select {
 		case chunk, ok := <-keys:
 			if !ok {
 				return s.emit(s.Engine.HandleKey(engine.KeyCtrlC))
 			}
-			for _, in := range Parse(chunk) {
-				if err := s.handle(in); err != nil {
-					return err
-				}
+			if err := s.Input(chunk); err != nil {
+				return err
 			}
 		case <-ticks:
-			if s.Width != nil {
-				s.Renderer.SetWidth(s.Width())
-			}
-			s.frame++
-			if s.Engine.State() == engine.StateRunning {
-				s.elapsed += FrameInterval
-			}
-			events := s.Engine.Tick(FrameInterval)
-			if len(events) == 0 && s.Engine.State() != engine.StateRunning {
-				continue // nothing changed; avoid redrawing an idle prompt
-			}
-			if err := s.emit(events); err != nil {
+			if err := s.Frame(); err != nil {
 				return err
 			}
 		}
 	}
 	return nil
+}
+
+// The methods below drive a session one step at a time. Run uses them with
+// real channels; the web frontend calls them from JavaScript callbacks.
+
+// Start draws the welcome screen and the live area.
+func (s *Session) Start() error { return s.emit(s.Engine.Start()) }
+
+// Exited reports whether the session has ended.
+func (s *Session) Exited() bool { return s.Engine.State() == engine.StateExited }
+
+// Input handles a chunk of raw key bytes.
+func (s *Session) Input(chunk []byte) error {
+	for _, in := range Parse(chunk) {
+		if s.Exited() {
+			return nil
+		}
+		if err := s.handle(in); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Frame advances fake time by one FrameInterval and redraws if needed.
+func (s *Session) Frame() error {
+	if s.Width != nil {
+		s.Renderer.SetWidth(s.Width())
+	}
+	s.frame++
+	if s.Engine.State() == engine.StateRunning {
+		s.elapsed += FrameInterval
+	}
+	events := s.Engine.Tick(FrameInterval)
+	if len(events) == 0 && s.Engine.State() != engine.StateRunning {
+		return nil // nothing changed; avoid redrawing an idle prompt
+	}
+	return s.emit(events)
 }
 
 func (s *Session) handle(in Input) error {

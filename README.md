@@ -29,10 +29,21 @@ Early development. See the [phases in the design doc](docs/DESIGN.md#phases).
 | `be kiro` | Kiwi CLI | ✅ |
 | `be grok` | Groan CLI | ✅ |
 | `be preview <agent>` | sample screen | ✅ |
-| Web playground | | Phase 5 |
+| Web version | all agents | ✅ (deploy in Phase 6) |
 
 Topics: `data`, `devops`, `engineering`, `frontend`, `security` (type `topics` in a session).
 Mix several with `run devops engineering frontend`: each task picks one of them.
+
+## Web version
+
+The same engine compiled to WebAssembly, in a browser terminal (xterm.js):
+
+```sh
+make serve    # builds web/dist and serves http://localhost:8080
+```
+
+Share a session with URL parameters: `?agent=gemini&topic=devops,frontend&seed=42`.
+Only these three parameters are read, and each is checked against an allowlist.
 
 ## Install
 

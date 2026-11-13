@@ -17,6 +17,7 @@ var shared = []string{
 	"internal/generator",
 	"internal/profile",
 	"internal/render",
+	"internal/scenario",
 	"content",
 }
 

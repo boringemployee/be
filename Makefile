@@ -1,20 +1,33 @@
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 LDFLAGS := -s -w -X github.com/boringemployee/be/internal/version.Version=$(VERSION)
 
-.PHONY: all cli web test cover fuzz golden lint clean
+.PHONY: all cli web serve e2e test cover fuzz golden lint clean
 
 all: lint test cover cli
 
 cli: ## Build the native CLI into bin/be
 	go build -trimpath -ldflags "$(LDFLAGS)" -o bin/be ./cmd/be
 
-web: ## Build the WebAssembly app into web/dist (Phase 5)
-	@echo "web build arrives in Phase 5"
+WEB_FILES := web/index.html web/main.js web/style.css web/favicon.svg web/_headers
+
+web: ## Build the static web app into web/dist
+	cd web && npm ci --ignore-scripts --no-audit --no-fund
+	mkdir -p web/dist
+	GOOS=js GOARCH=wasm go build -trimpath -ldflags "$(LDFLAGS)" -o web/dist/be.wasm ./cmd/wasm
+	cp "$$(go env GOROOT)/lib/wasm/wasm_exec.js" web/dist/
+	cp web/node_modules/@xterm/xterm/lib/xterm.js web/node_modules/@xterm/xterm/css/xterm.css web/dist/
+	cp $(WEB_FILES) web/dist/
+
+serve: web ## Serve web/dist on http://localhost:8080 with production headers
+	node tests/web/serve.mjs web/dist 8080
+
+e2e: web ## Browser tests: golden files and an interactive session
+	node tests/web/e2e.mjs
 
 test: ## Run all tests with the race detector
 	go test -race ./...
 
-SHARED := content internal/engine internal/generator internal/profile internal/render
+SHARED := content internal/engine internal/generator internal/profile internal/render internal/scenario
 
 cover: ## Run tests and require 100% coverage on shared packages
 	go test -coverprofile=coverage.out ./...
