@@ -1,0 +1,30 @@
+tasks:
+  - "Fix the flaky deploy step in {file}"
+  - "Speed up CI caching for {module}"
+  - "Run {test} on every pull request"
+  - "Split the {module} pipeline into parallel jobs"
+files:
+  - .github/workflows/deploy.yml
+  - .github/workflows/ci.yml
+  - .github/workflows/nightly.yml
+commands:
+  - actionlint
+  - make ci-check
+  - act -j build --dryrun
+logs:
+  - "no problems found"
+  - "cache hit: go-mod-deps"
+  - "checking {file}"
+  - "job build: success (2m 41s)"
+  - "job test: success (4m 03s)"
+edits:
+  - from: "timeout-minutes: 15"
+    to: "timeout-minutes: 30"
+  - to: "  cache: true"
+  - from: "runs-on: ubuntu-22.04"
+    to: "runs-on: ubuntu-24.04"
+  - from: "  retries: 1"
+    to: "  retries: 3"
+  - to: "concurrency: { group: deploy-${{ github.ref }}, cancel-in-progress: true }"
+  - from: "  node-version: 20"
+    to: "  node-version: 22"

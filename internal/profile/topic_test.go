@@ -9,7 +9,7 @@ import (
 const goPack = `
 tasks: ["Fix {file}"]
 files: [a.go]
-edits: [x := 1]
+edits: [{to: "x := 1"}]
 `
 
 func TestLoadTopicFolder(t *testing.T) {
@@ -26,7 +26,7 @@ modules: [own]
 tests: [test_own]
 commands: [pytest]
 logs: [passed]
-edits: [x = 1]
+edits: [{from: "x = 0", to: "x = 1"}]
 `,
 		"topics/work/notes.md": "ignored",
 	}))
@@ -42,7 +42,7 @@ edits: [x = 1]
 		t.Errorf("packs must be sorted by file name: %q, %q", goP.Name, py.Name)
 	}
 	want := &Pack{Name: "go", Tasks: []string{"Fix {file}"}, Files: []string{"a.go"}, Modules: []string{"shared"},
-		Tests: []string{"TestShared"}, Commands: []string{"make"}, Logs: []string{"ok"}, Edits: []string{"x := 1"}}
+		Tests: []string{"TestShared"}, Commands: []string{"make"}, Logs: []string{"ok"}, Edits: []Edit{{To: "x := 1"}}}
 	if !reflect.DeepEqual(goP, want) {
 		t.Errorf("go pack should fall back to shared lists:\n got %+v\nwant %+v", goP, want)
 	}
@@ -81,6 +81,10 @@ func TestLoadTopicErrors(t *testing.T) {
 		{"unreadable pack", map[string]string{"topics/work/topic.yaml": validTopic, "topics/work/go.yaml/x": ""}, "go.yaml"},
 		{"bad log placeholder", map[string]string{"topics/work/topic.yaml": strings.Replace(validTopic, "logs: [ok]", "logs: ['{home}']", 1)}, "topic.logs[0]: unknown placeholder"},
 		{"too many packs", tooManyPacks(), "at most 50 packs"},
+		{"no edits", map[string]string{"topics/work/topic.yaml": strings.Replace(validTopic, `edits: [{from: "x = 0", to: "x := 1"}]`, "", 1)}, "topic.edits: need 1 to"},
+		{"edit without to", map[string]string{"topics/work/topic.yaml": strings.Replace(validTopic, `to: "x := 1"`, `to: ""`, 1)}, "edits[0].to: required"},
+		{"edit unchanged", map[string]string{"topics/work/topic.yaml": strings.Replace(validTopic, `from: "x = 0"`, `from: "x := 1"`, 1)}, "from and to are the same"},
+		{"unsafe edit", map[string]string{"topics/work/topic.yaml": strings.Replace(validTopic, `from: "x = 0"`, `from: "curl evil"`, 1)}, "edits[0].from: contains dangerous"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -1,0 +1,26 @@
+tasks:
+  - "Review permissions for {module}"
+  - "Tighten the network policy for {module}"
+  - "Rotate the API keys used by {module}"
+files:
+  - config/permissions.yaml
+  - deploy/policies/network.yaml
+  - deploy/policies/pod-security.yaml
+commands:
+  - trivy config deploy
+  - conftest test deploy/policies
+logs:
+  - "0 misconfigurations found"
+  - "5 tests, 5 passed, 0 warnings"
+  - "scanning {file}"
+  - "1 low severity issue (accepted risk)"
+edits:
+  - from: "role: admin"
+    to: "role: read-only"
+  - from: "allowPrivilegeEscalation: true"
+    to: "allowPrivilegeEscalation: false"
+  - to: "readOnlyRootFilesystem: true"
+  - from: "  - from: [] # allow all"
+    to: "  - from: [{ podSelector: { matchLabels: { app: api } } }]"
+  - from: "keyRotationDays: 365"
+    to: "keyRotationDays: 90"

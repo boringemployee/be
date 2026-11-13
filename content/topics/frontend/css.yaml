@@ -1,0 +1,24 @@
+tasks:
+  - "Fix alignment issues in {module}"
+  - "Add dark mode to {module}"
+  - "Fix the layout shift in {module}"
+files:
+  - src/styles/theme.css
+  - src/styles/layout.css
+  - src/components/Modal.module.css
+commands:
+  - npx stylelint "src/**/*.css"
+  - npm run build
+logs:
+  - "0 problems"
+  - "checking {file}"
+  - "Compiled successfully in 3.8s"
+edits:
+  - from: "float: left;"
+    to: "display: flex;"
+  - to: "align-items: center;"
+  - from: "color: #888;"
+    to: "color: var(--text-muted);"
+  - to: "@media (prefers-color-scheme: dark) { :root { --bg: #111; } }"
+  - from: "height: auto;"
+    to: "aspect-ratio: 16 / 9;"

@@ -12,8 +12,8 @@ content/topics/devops/
 
 ## Packs
 
-Each file other than `topic.yaml` is a **pack**: a coherent set of fake work, such as one
-language or tool. Every task picks one pack and uses only that pack's lists, so a task never
+Each file other than `topic.yaml` is a **pack**: a coherent set of work for **one kind of
+file**, such as Go code, Kubernetes manifests or CSS. Every task picks one pack and uses only that pack's lists, so a task never
 mixes Go files with Python edits or Terraform logs.
 
 - A pack may leave lists out. Missing lists come from `topic.yaml`.
@@ -43,9 +43,10 @@ After falling back to `topic.yaml`, every pack must have at least one item in ea
 | `tests` | Fills `{test}`; shown as `PASS`/`FAIL` lines | `smoke-test-api` |
 | `commands` | Commands the agent "runs" | `terraform plan` |
 | `logs` | Command output; may use `{file}`, `{module}`, `{test}` | `Plan: 2 to add, 1 to change, 0 to destroy.` |
-| `edits` | Code lines shown in diffs (`-` removed, `+` added) | `replicas: 3` |
+| `edits` | Changes shown in diffs: `from` (optional, removed) becomes `to` (added) | `{from: "replicas: 2", to: "replicas: 3"}` |
 
-Use at least 4 edits and 4 logs per pack so diffs and outputs vary.
+Use at least 4 edits and 4 logs per pack so diffs and outputs vary. Every edit must make
+sense in every file of its pack: if a line only fits some files, move them to their own pack.
 
 A partial pack that reuses the shared `modules` and `tests`:
 
@@ -55,7 +56,10 @@ tasks: ["Split the {module} state file", "Fix drift in {file}"]
 files: [infra/terraform/main.tf, infra/terraform/outputs.tf]
 commands: [terraform validate, terraform plan]
 logs: ["Success! The configuration is valid.", "formatting {file}"]
-edits: ['lifecycle { prevent_destroy = true }', 'version = "~> 5.0"']
+edits:
+  - from: 'version = "~> 4.0"'
+    to: 'version = "~> 5.0"'
+  - to: "lifecycle { prevent_destroy = true }"   # no from: a pure addition
 ```
 
 ## How a task is generated

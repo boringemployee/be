@@ -1,0 +1,26 @@
+tasks:
+  - "Bump the base image for {module}"
+  - "Shrink the {module} image"
+  - "Run {module} as a non-root user"
+files:
+  - docker/api.Dockerfile
+  - docker/worker.Dockerfile
+  - docker/indexer.Dockerfile
+commands:
+  - docker build -t api:dev .
+  - hadolint docker/api.Dockerfile
+  - make image
+logs:
+  - "Successfully built image api:dev"
+  - "Step 7/12 : RUN make build"
+  - "image size: 84.2MB (was 312MB)"
+  - "checking {file}"
+edits:
+  - from: "FROM golang:1.26"
+    to: "FROM golang:1.27"
+  - from: "FROM debian:bookworm"
+    to: "FROM gcr.io/distroless/static-debian12"
+  - to: "USER nonroot:nonroot"
+  - from: "RUN go build -o /app ./cmd/server"
+    to: "RUN CGO_ENABLED=0 go build -trimpath -o /app ./cmd/server"
+  - to: "HEALTHCHECK CMD [\"/app\", \"healthcheck\"]"

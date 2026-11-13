@@ -173,12 +173,17 @@ func (r *Renderer) Event(ev engine.Event) string {
 		b.WriteString(r.result(fmt.Sprintf("Read %d lines", lineCount(ev.Text))))
 	case engine.EventEdit:
 		b.WriteString(r.tool(toolEdit, ev.Text))
-		for _, l := range ev.Lines {
-			code := green
+		for i, l := range ev.Lines {
+			code, sign := green, "+ "
 			if l[0] == '-' {
-				code = red
+				code, sign = red, "- "
 			}
-			b.WriteString(r.line("      ", "", "", code, l))
+			num := "    "
+			if i < len(ev.Numbers) {
+				num = fmt.Sprintf("%4d", ev.Numbers[i])
+			}
+			// "    1234 - text": 9 columns before the text.
+			b.WriteString("    " + paint(dim, num) + " " + paint(code, fit(sign+l[1:], r.width-9)) + NL)
 		}
 	case engine.EventCommand:
 		b.WriteString(r.tool(toolRun, ev.Text))

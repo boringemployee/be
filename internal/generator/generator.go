@@ -17,18 +17,19 @@ const (
 	StepStart   StepKind = iota // Text: task title
 	StepThink                   // Text: thinking word
 	StepRead                    // Text: file path
-	StepEdit                    // Text: file path, Lines: diff lines ("+"/"-" prefixed)
+	StepEdit                    // Text: file path, Lines: diff lines ("+"/"-" prefixed), Numbers: their line numbers
 	StepCommand                 // Text: command, Lines: output, OK: success
 	StepDone                    // Text: completion message
 )
 
 // Step is one fake action. Delay is how long it "takes" before the next step.
 type Step struct {
-	Kind  StepKind
-	Text  string
-	Lines []string
-	OK    bool
-	Delay time.Duration
+	Kind    StepKind
+	Text    string
+	Lines   []string
+	Numbers []int // line numbers for Lines, for edits
+	OK      bool
+	Delay   time.Duration
 }
 
 // Generator creates an endless stream of fake tasks.
@@ -92,19 +93,21 @@ func (g *Generator) think() Step {
 }
 
 func (g *Generator) edit(t *profile.Pack, file string) Step {
-	// Removed and added lines come from one shuffled pool, so a diff never
-	// removes and re-adds the same line. With one edit line, it is only added.
+	// One or two changes at increasing line numbers. Each change shows its
+	// old line (if any) directly followed by its new line, numbered alike.
 	order := g.rng.Perm(len(t.Edits))
-	removed := min(1+g.rng.IntN(2), len(order)-1)
-	added := min(1+g.rng.IntN(3), len(order)-removed)
+	line := 8 + g.rng.IntN(240)
 	var lines []string
-	for _, i := range order[:removed] {
-		lines = append(lines, "-"+t.Edits[i])
+	var numbers []int
+	for _, i := range order[:min(1+g.rng.IntN(2), len(order))] {
+		e := t.Edits[i]
+		if e.From != "" {
+			lines, numbers = append(lines, "-"+e.From), append(numbers, line)
+		}
+		lines, numbers = append(lines, "+"+e.To), append(numbers, line)
+		line += 4 + g.rng.IntN(40)
 	}
-	for _, i := range order[removed : removed+added] {
-		lines = append(lines, "+"+t.Edits[i])
-	}
-	return Step{Kind: StepEdit, Text: file, Lines: lines, Delay: g.between(800, 2000)}
+	return Step{Kind: StepEdit, Text: file, Lines: lines, Numbers: numbers, Delay: g.between(800, 2000)}
 }
 
 func (g *Generator) logs(t *profile.Pack, ok bool) []string {

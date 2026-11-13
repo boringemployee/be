@@ -172,7 +172,7 @@ var stepKinds = map[generator.StepKind]Kind{
 }
 
 func stepEvent(s generator.Step) Event {
-	return Event{Kind: stepKinds[s.Kind], Text: s.Text, Lines: s.Lines, OK: s.OK}
+	return Event{Kind: stepKinds[s.Kind], Text: s.Text, Lines: s.Lines, Numbers: s.Numbers, OK: s.OK}
 }
 
 func (e *Engine) help() []string {

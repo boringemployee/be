@@ -1,0 +1,27 @@
+tasks:
+  - "Backfill {module} for the last quarter"
+  - "Fix the timezone bug in {file}"
+  - "Add retries to the {module} job"
+files:
+  - pipelines/daily_revenue.py
+  - pipelines/user_events.py
+  - dags/nightly_etl.py
+commands:
+  - pytest tests/pipelines
+  - make backfill
+  - python -m pipelines.daily_revenue --dry-run
+logs:
+  - "rows processed: 1,284,551"
+  - "6 passed in 2.10s"
+  - "checking {file}"
+  - "freshness: OK (12 minutes)"
+edits:
+  - to: "df = df.drop_duplicates(subset=[\"order_id\"])"
+  - from: "assert len(df) > 0"
+    to: "assert df[\"revenue\"].notna().all()"
+  - from: "start = datetime.now()"
+    to: "start = datetime.now(timezone.utc)"
+  - from: "retries=0,"
+    to: "retries=3,"
+  - from: "schedule=\"@daily\","
+    to: "schedule=\"0 3 * * *\","

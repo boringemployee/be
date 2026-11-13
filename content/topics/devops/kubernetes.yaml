@@ -1,42 +1,33 @@
 tasks:
-  - "Fix the flaky deploy step in {file}"
-  - "Bump the base image for {module}"
   - "Add resource limits to the {module} deployment"
-  - "Speed up CI caching for {module}"
-  - "Rotate the staging certificates for {module}"
-  - "Investigate why {test} only fails on Fridays"
-  - "Migrate {module} alerts to the new dashboard"
+  - "Tune the autoscaler for {module}"
+  - "Add a readiness probe to {module}"
+  - "Fix the crash loop in {module} on startup"
 files:
-  - .github/workflows/deploy.yml
-  - infra/terraform/main.tf
-  - infra/terraform/variables.tf
   - deploy/k8s/api-deployment.yaml
+  - deploy/k8s/worker-deployment.yaml
   - deploy/k8s/worker-hpa.yaml
-  - docker/api.Dockerfile
-  - ops/alerts/latency.yaml
+  - deploy/k8s/search-service.yaml
 commands:
-  - terraform plan
-  - kubectl get pods -n staging
-  - docker build -t api:dev .
+  - kubectl diff -f deploy/k8s
   - helm lint charts/api
-  - make deploy-staging
+  - kubectl rollout status deploy/api -n staging
+  - kubectl get pods -n staging
 logs:
-  - "Plan: 2 to add, 1 to change, 0 to destroy."
   - "pod/api-7d9f8 1/1 Running"
-  - "Successfully built image api:dev"
-  - "Step 7/12 : RUN make build"
+  - "deployment \"api\" successfully rolled out"
+  - "1 chart(s) linted, 0 chart(s) failed"
+  - "checking {file}"
   - "rollout status: 3 of 3 updated replicas are available"
-  - "linting {file}"
-  - "cache hit: go-mod-deps"
-  - "warning: deprecated field in {file}"
 edits:
-  - "image: api:1.42.0"
-  - "replicas: 3"
-  - "  limits: { cpu: 500m, memory: 512Mi }"
-  - "timeout-minutes: 15"
-  - "retries: 3"
-  - "instance_type = \"t3.medium\""
-  - "min_replicas = 2"
-  - "  cache: true"
-  - "healthcheck: { interval: 10s }"
-  - "# TODO: ask platform team"
+  - from: "replicas: 2"
+    to: "replicas: 3"
+  - from: "  cpu: 250m"
+    to: "  cpu: 500m"
+  - from: "  memory: 256Mi"
+    to: "  memory: 512Mi"
+  - to: "readinessProbe: { httpGet: { path: /healthz, port: 8080 } }"
+  - from: "maxReplicas: 5"
+    to: "maxReplicas: 10"
+  - from: "image: api:1.41.2"
+    to: "image: api:1.42.0"

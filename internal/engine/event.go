@@ -13,7 +13,7 @@ const (
 	EventTaskStart             // Text: task title
 	EventThinking              // Text: thinking word; show a spinner until the next event
 	EventRead                  // Text: file path
-	EventEdit                  // Text: file path, Lines: diff lines
+	EventEdit                  // Text: file path, Lines: diff lines, Numbers: their line numbers
 	EventCommand               // Text: command, Lines: output, OK: success
 	EventTaskDone              // Text: completion message
 	EventStopped               // Text: message shown after Esc
@@ -35,10 +35,11 @@ func (k Kind) String() string {
 
 // Event is one thing for a frontend to display.
 type Event struct {
-	Kind  Kind
-	Text  string
-	Lines []string
-	OK    bool
+	Kind    Kind
+	Text    string
+	Lines   []string
+	Numbers []int
+	OK      bool
 }
 
 // Key is a special key press.

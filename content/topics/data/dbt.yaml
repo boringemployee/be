@@ -1,47 +1,31 @@
 tasks:
-  - "Backfill {module} for the last quarter"
   - "Fix the duplicate rows in {file}"
-  - "Speed up the {module} query"
+  - "Speed up the {module} model"
   - "Add a data quality check to {module}"
-  - "Explain why revenue doubled in {module}"
-  - "Make {test} stop timing out"
+  - "Make {test} pass again"
 files:
-  - pipelines/daily_revenue.py
-  - pipelines/user_events.py
   - models/marts/fct_orders.sql
+  - models/marts/fct_revenue.sql
   - models/staging/stg_payments.sql
-  - notebooks/churn_analysis.ipynb
-  - dags/nightly_etl.py
-modules:
-  - daily-revenue
-  - user-events
-  - churn-model
-  - orders-mart
-  - marketing-attribution
-tests:
-  - test_no_duplicate_orders
-  - test_revenue_not_null
-  - test_events_freshness
-  - test_churn_auc
+  - models/staging/stg_events.sql
 commands:
   - dbt run --select orders
   - dbt test
-  - pytest tests/pipelines
-  - make backfill
+  - dbt build --select +fct_revenue
 logs:
   - "Completed successfully: 14 models, 0 errors"
   - "Found 3 models, 12 tests, 2 sources"
-  - "rows processed: 1,284,551"
   - "checking {file}"
-  - "freshness: OK (12 minutes)"
-  - "warning: 2 rows with null customer_id (ignored)"
   - "query time: 4.2s (was 31.8s)"
+  - "warning: 2 rows with null customer_id"
 edits:
-  - "SELECT DISTINCT order_id"
-  - "WHERE created_at >= '2026-01-01'"
-  - "GROUP BY customer_id"
-  - "df = df.drop_duplicates(subset=['order_id'])"
-  - "COALESCE(amount, 0) AS amount"
-  - "LEFT JOIN payments USING (order_id)"
-  - "assert df['revenue'].notna().all()"
-  - "-- TODO: confirm with finance"
+  - from: "SELECT order_id,"
+    to: "SELECT DISTINCT order_id,"
+  - from: "WHERE created_at >= '2025-01-01'"
+    to: "WHERE created_at >= '2026-01-01'"
+  - from: "amount AS amount"
+    to: "COALESCE(amount, 0) AS amount"
+  - from: "JOIN payments USING (order_id)"
+    to: "LEFT JOIN payments USING (order_id)"
+  - to: "GROUP BY customer_id"
+  - to: "-- grain: one row per order"

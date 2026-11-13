@@ -57,7 +57,8 @@ func TestEvents(t *testing.T) {
 		{"read inline", profile.ToolsInline, engine.Event{Kind: engine.EventRead, Text: "a.go"}, "  → read a.go\r\n    └ Read "},
 		{"read bullet", profile.ToolsBullet, engine.Event{Kind: engine.EventRead, Text: "a.go"}, "  • Read a.go\r\n"},
 		{"read check", profile.ToolsCheck, engine.Event{Kind: engine.EventRead, Text: "a.go"}, "  ✓ ReadFile a.go\r\n"},
-		{"edit", profile.ToolsBoxed, engine.Event{Kind: engine.EventEdit, Text: "a.go", Lines: []string{"-old", "+new"}}, "  ● Update(a.go)\r\n      -old\r\n      +new\r\n"},
+		{"edit", profile.ToolsBoxed, engine.Event{Kind: engine.EventEdit, Text: "a.go", Lines: []string{"-old", "+new"}, Numbers: []int{42, 42}}, "  ● Update(a.go)\r\n      42 - old\r\n      42 + new\r\n"},
+		{"edit without numbers", profile.ToolsBoxed, engine.Event{Kind: engine.EventEdit, Text: "a.go", Lines: []string{"+new"}}, "  ● Update(a.go)\r\n         + new\r\n"},
 		{"edit bullet", profile.ToolsBullet, engine.Event{Kind: engine.EventEdit, Text: "a.go", Lines: []string{"+new"}}, "  • Edited a.go\r\n"},
 		{"command ok", profile.ToolsBoxed, engine.Event{Kind: engine.EventCommand, Text: "make", Lines: []string{"log", "PASS x"}, OK: true}, "  ● Run(make)\r\n      log\r\n      PASS x\r\n"},
 		{"command check", profile.ToolsCheck, engine.Event{Kind: engine.EventCommand, Text: "make", Lines: []string{"FAIL x"}}, "  ✓ Shell make\r\n      FAIL x\r\n"},
@@ -78,7 +79,7 @@ func TestEvents(t *testing.T) {
 func TestColors(t *testing.T) {
 	r := New(agent(profile.ToolsBoxed), 80)
 	edit := r.Event(engine.Event{Kind: engine.EventEdit, Text: "a.go", Lines: []string{"-old", "+new"}})
-	if !strings.Contains(edit, red+"-old") || !strings.Contains(edit, green+"+new") {
+	if !strings.Contains(edit, red+"- old") || !strings.Contains(edit, green+"+ new") {
 		t.Errorf("diff colors wrong: %q", edit)
 	}
 	ok := r.Event(engine.Event{Kind: engine.EventCommand, Text: "m", Lines: []string{"PASS"}, OK: true})

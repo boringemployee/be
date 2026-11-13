@@ -80,8 +80,12 @@ func Play(cat *profile.Catalog, sc Scenario) (events, ansi string, err error) {
 	record := func(list []engine.Event) {
 		for _, e := range list {
 			fmt.Fprintf(&ev, "%s %q", e.Kind, e.Text)
-			for _, l := range e.Lines {
-				fmt.Fprintf(&ev, "\n    %q", l)
+			for i, l := range e.Lines {
+				if i < len(e.Numbers) {
+					fmt.Fprintf(&ev, "\n    %d %q", e.Numbers[i], l)
+				} else {
+					fmt.Fprintf(&ev, "\n    %q", l)
+				}
 			}
 			if e.Kind == engine.EventCommand {
 				fmt.Fprintf(&ev, "\n    ok=%v", e.OK)

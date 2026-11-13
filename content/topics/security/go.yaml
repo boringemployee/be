@@ -1,0 +1,27 @@
+tasks:
+  - "Add input validation to {file}"
+  - "Add rate limiting to {module}"
+  - "Fix the finding reported by {test}"
+  - "Patch the vulnerable dependency in {module}"
+files:
+  - internal/auth/login.go
+  - internal/api/middleware.go
+  - internal/uploads/handler.go
+commands:
+  - govulncheck ./...
+  - gosec ./...
+  - go test ./internal/...
+logs:
+  - "No vulnerabilities found."
+  - "Issues: 0"
+  - "scanning {file}"
+  - "ok   internal/auth      0.512s"
+edits:
+  - to: "if !limiter.Allow(ip) { return ErrTooManyRequests }"
+  - to: "w.Header().Set(\"X-Content-Type-Options\", \"nosniff\")"
+  - from: "path := r.URL.Query().Get(\"file\")"
+    to: "path := filepath.Clean(r.URL.Query().Get(\"file\"))"
+  - from: "if token == expected {"
+    to: "if subtle.ConstantTimeCompare([]byte(token), []byte(expected)) == 1 {"
+  - from: "MaxAge: 0,"
+    to: "MaxAge: 3600, Secure: true, HttpOnly: true,"

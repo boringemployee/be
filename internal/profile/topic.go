@@ -20,7 +20,14 @@ type Pack struct {
 	Tests    []string `yaml:"tests"`
 	Commands []string `yaml:"commands"`
 	Logs     []string `yaml:"logs"`
-	Edits    []string `yaml:"edits"`
+	Edits    []Edit   `yaml:"edits"`
+}
+
+// Edit is one change shown in a diff: From is replaced by To. Without From it
+// is a pure addition.
+type Edit struct {
+	From string `yaml:"from"`
+	To   string `yaml:"to"`
 }
 
 // Topic is what "run <topic>" works on. It is a folder topics/<name>/ with a
@@ -45,7 +52,8 @@ const TopicFile = "topic.yaml"
 // MaxPacks caps the number of pack files in one topic.
 const MaxPacks = 50
 
-// lists returns a pack's lists in a fixed order with their YAML names.
+// lists returns a pack's string lists in a fixed order with their YAML
+// names. Edits are handled separately.
 func (p *Pack) lists() []struct {
 	name  string
 	items *[]string
@@ -55,7 +63,7 @@ func (p *Pack) lists() []struct {
 		items *[]string
 	}{
 		{"tasks", &p.Tasks}, {"files", &p.Files}, {"modules", &p.Modules}, {"tests", &p.Tests},
-		{"commands", &p.Commands}, {"logs", &p.Logs}, {"edits", &p.Edits},
+		{"commands", &p.Commands}, {"logs", &p.Logs},
 	}
 }
 
@@ -137,6 +145,9 @@ func resolve(p, base *Pack) *Pack {
 			*l.items = *baseLists[i].items
 		}
 	}
+	if len(out.Edits) == 0 {
+		out.Edits = base.Edits
+	}
 	return &out
 }
 
@@ -165,6 +176,16 @@ func (t *Topic) validate() error {
 	for _, p := range t.Packs {
 		for _, l := range p.lists() {
 			c.list(p.Name+"."+l.name, *l.items, 1)
+		}
+		if len(p.Edits) == 0 || len(p.Edits) > MaxItems {
+			c.fail("%s.edits: need 1 to %d items", p.Name, MaxItems)
+		}
+		for i, e := range p.Edits {
+			c.str(fmt.Sprintf("%s.edits[%d].from", p.Name, i), e.From, false)
+			c.str(fmt.Sprintf("%s.edits[%d].to", p.Name, i), e.To, true)
+			if e.From == e.To {
+				c.fail("%s.edits[%d]: from and to are the same", p.Name, i)
+			}
 		}
 		for i, task := range p.Tasks {
 			c.templates(fmt.Sprintf("%s.tasks[%d]", p.Name, i), task)

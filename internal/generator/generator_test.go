@@ -17,7 +17,7 @@ var (
 		Tests:    []string{"TestX"},
 		Commands: []string{"make test"},
 		Logs:     []string{"checking {file}", "ok", "lint: 0 issues", "compiling"},
-		Edits:    []string{"a", "b", "c", "d"},
+		Edits:    []profile.Edit{{From: "a", To: "a2"}, {To: "b"}, {From: "c", To: "c2"}, {From: "d", To: "d2"}},
 	}
 	topic = &profile.Topic{Packs: []*profile.Pack{pack}}
 )
@@ -61,15 +61,21 @@ func TestTaskShape(t *testing.T) {
 				}
 				reads[s.Text] = true
 			case StepEdit:
-				seen := map[string]bool{}
-				for _, l := range s.Lines {
+				if len(s.Numbers) != len(s.Lines) {
+					t.Fatalf("every diff line needs a line number: %v %v", s.Lines, s.Numbers)
+				}
+				for i, l := range s.Lines {
 					if l[0] != '+' && l[0] != '-' {
 						t.Fatalf("diff line %q has no +/- prefix", l)
 					}
-					if seen[l[1:]] {
-						t.Fatalf("diff repeats line %q: %v", l[1:], s.Lines)
+					// A removed line is always followed by its replacement
+					// on the same line number.
+					if l[0] == '-' && (i+1 == len(s.Lines) || s.Lines[i+1][0] != '+' || s.Numbers[i+1] != s.Numbers[i]) {
+						t.Fatalf("removed line %q is not followed by its replacement: %v", l, s.Lines)
 					}
-					seen[l[1:]] = true
+					if i > 0 && s.Numbers[i] < s.Numbers[i-1] {
+						t.Fatalf("line numbers must not go down: %v", s.Numbers)
+					}
 				}
 			case StepCommand:
 				seenLog := map[string]bool{}
@@ -99,7 +105,7 @@ func TestDistinctWithSingleFile(t *testing.T) {
 
 func TestEditWithSingleLine(t *testing.T) {
 	one := *pack
-	one.Edits = []string{"only"}
+	one.Edits = []profile.Edit{{To: "only"}}
 	s := New(1, agent).edit(&one, "a.go")
 	if !reflect.DeepEqual(s.Lines, []string{"+only"}) {
 		t.Fatalf("lines = %v", s.Lines)
@@ -108,9 +114,9 @@ func TestEditWithSingleLine(t *testing.T) {
 
 func TestTaskUsesOnePack(t *testing.T) {
 	goPack := &profile.Pack{Tasks: []string{"go task"}, Files: []string{"a.go"}, Modules: []string{"m"},
-		Tests: []string{"TestGo"}, Commands: []string{"go test"}, Logs: []string{"ok go"}, Edits: []string{"go1", "go2"}}
+		Tests: []string{"TestGo"}, Commands: []string{"go test"}, Logs: []string{"ok go"}, Edits: []profile.Edit{{To: "go1"}, {To: "go2"}}}
 	pyPack := &profile.Pack{Tasks: []string{"py task"}, Files: []string{"a.py"}, Modules: []string{"m"},
-		Tests: []string{"test_py"}, Commands: []string{"pytest"}, Logs: []string{"ok py"}, Edits: []string{"py1", "py2"}}
+		Tests: []string{"test_py"}, Commands: []string{"pytest"}, Logs: []string{"ok py"}, Edits: []profile.Edit{{To: "py1"}, {To: "py2"}}}
 	two := &profile.Topic{Packs: []*profile.Pack{goPack, pyPack}}
 	g := New(3, agent)
 	seen := map[string]bool{}

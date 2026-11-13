@@ -38,7 +38,7 @@ modules: [m]
 tests: [TestA]
 commands: [make test]
 logs: [ok]
-edits: [x := 1]
+edits: [{from: "x = 0", to: "x := 1"}]
 `
 
 func fsWith(files map[string]string) fstest.MapFS {
