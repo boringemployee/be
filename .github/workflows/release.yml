@@ -60,3 +60,23 @@ jobs:
               --generate-notes \
               "${files[@]}"
           fi
+
+      # "go install ...@latest" asks the Go module proxy, which caches the
+      # version list for a while. Asking for this exact version makes the proxy
+      # fetch it now, so @latest finds it right away. Retries cover the moment
+      # just after the tag is pushed.
+      - name: Make the version available to go install
+        env:
+          GOPROXY: https://proxy.golang.org
+          GOFLAGS: -mod=mod
+        run: |
+          module=$(go list -m)
+          for attempt in 1 2 3 4 5; do
+            if go list -m "${module}@${GITHUB_REF_NAME}"; then
+              exit 0
+            fi
+            echo "proxy does not have ${GITHUB_REF_NAME} yet (attempt ${attempt}); retrying in 30s"
+            sleep 30
+          done
+          echo "::error::proxy.golang.org did not return ${module}@${GITHUB_REF_NAME}"
+          exit 1
