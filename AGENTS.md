@@ -23,7 +23,7 @@ It is a parody: it never does real work.
 
 ```
 cmd/be  cmd/wasm  internal/{engine,generator,render,profile,adapter/{tty,wasm}}
-content/{agents,topics}  web/  tests/golden/  docs/
+content/{agents,topics/<name>}  web/  tests/golden/  docs/
 ```
 
 ## Guardrails (never break these)
