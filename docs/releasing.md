@@ -64,4 +64,9 @@ it ends with the `Co-Authored-By` trailer from AGENTS.md exactly once.
 
 The release workflow tests, builds archives for Linux, macOS and Windows (amd64, arm64),
 signs `checksums.txt` with cosign, attests build provenance and publishes a GitHub Release.
+
+You can also create the release from the GitHub web page (Releases > Draft a new release,
+with a new `v*` tag). The workflow then attaches the files to that release and keeps the
+title and notes you wrote. If a run fails, fix the cause and use **Re-run failed jobs**;
+uploading replaces files with the same name.
 Users verify releases as described in [SECURITY.md](../SECURITY.md#verifying-releases).
