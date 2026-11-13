@@ -47,20 +47,19 @@
   globalThis.beTerminal = term; // used by the browser tests to read the screen
   let started = false;
 
-  // Size the terminal to its container from the measured character cell.
+  // Size the terminal to its container. The cell size is measured from what
+  // xterm.js actually renders (font metrics make rows taller than fontSize),
+  // so every row, including the input box and footer, stays inside the window.
   function fit() {
-    const probe = document.createElement("span");
-    probe.textContent = "W".repeat(50);
-    probe.style.font = `${term.options.fontSize}px ${term.options.fontFamily}`;
-    probe.style.position = "absolute";
-    probe.style.visibility = "hidden";
-    document.body.append(probe);
-    const cellW = probe.getBoundingClientRect().width / 50;
-    probe.remove();
-    const cellH = term.options.fontSize * term.options.lineHeight;
+    const rendered = termEl.querySelector(".xterm-screen").getBoundingClientRect();
+    const cellW = rendered.width / term.cols;
+    const cellH = rendered.height / term.rows;
     const box = termEl.getBoundingClientRect();
-    const cols = Math.max(20, Math.floor((box.width - 16) / cellW));
-    const rows = Math.max(5, Math.floor((box.height - 12) / cellH));
+    const style = getComputedStyle(termEl);
+    const innerW = box.width - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+    const innerH = box.height - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+    const cols = Math.max(20, Math.floor(innerW / cellW) - 1); // keep room for the scrollbar
+    const rows = Math.max(5, Math.floor(innerH / cellH));
     term.resize(cols, rows);
     be.resize(cols);
     title.textContent = `${CWD} — ${agent} — ${cols}×${rows}`;

@@ -80,6 +80,19 @@ try {
   check(/Esc to stop/.test(text), "status line shows while running");
   await shot("web-running.png");
 
+  // Let output fill the screen several times over, then check that the whole
+  // terminal, including the live area at the bottom, is inside the window.
+  await page.waitForTimeout(20000);
+  const fits = await page.evaluate(() => {
+    const screenBox = document.querySelector(".xterm-screen").getBoundingClientRect();
+    const container = document.getElementById("terminal").getBoundingClientRect();
+    return screenBox.bottom <= container.bottom + 0.5 && screenBox.right <= container.right + 0.5;
+  });
+  check(fits, "every terminal row fits inside the window");
+  text = await screen();
+  check(text.includes("accept edits on") && text.split("\n").slice(-6).join("\n").includes("accept edits on"), "footer is still visible at the bottom after a long run");
+  await shot("web-long-run.png");
+
   await page.keyboard.press("Escape");
   await page.waitForTimeout(300);
   text = await screen();
