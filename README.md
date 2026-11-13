@@ -31,7 +31,7 @@ Early development. See the [phases in the design doc](docs/DESIGN.md#phases).
 ## Install
 
 ```sh
-go install github.com/boringemployee/be/cmd/cli@latest   # binary is named "cli"
+go install github.com/boringemployee/be/cmd/be@latest
 # or build from source:
 make cli && ./bin/be --help
 ```

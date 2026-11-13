@@ -6,7 +6,7 @@ LDFLAGS := -s -w -X github.com/boringemployee/be/internal/version.Version=$(VERS
 all: lint test cli
 
 cli: ## Build the native CLI into bin/be
-	go build -trimpath -ldflags "$(LDFLAGS)" -o bin/be ./cmd/cli
+	go build -trimpath -ldflags "$(LDFLAGS)" -o bin/be ./cmd/be
 
 web: ## Build the WebAssembly app into web/dist (Phase 5)
 	@echo "web build arrives in Phase 5"

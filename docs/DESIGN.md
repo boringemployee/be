@@ -30,7 +30,7 @@
 | `internal/adapter/tty`| Raw mode (`golang.org/x/term`), key parsing, stdout.          |
 | `internal/adapter/wasm`| `syscall/js` glue to xterm.js.                               |
 | `content/`            | Embedded YAML: `agents/`, `topics/`.                          |
-| `cmd/cli`, `cmd/wasm` | Entrypoints; only wiring.                                     |
+| `cmd/be`, `cmd/wasm` | Entrypoints; only wiring.                                     |
 
 ### Key decisions
 
