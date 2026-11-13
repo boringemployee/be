@@ -2,6 +2,8 @@
 
 > Look busy. Let a fake AI agent do the fake work.
 
+**Try it now in your browser: [be.boringemployee.com](https://be.boringemployee.com/)**, no install needed.
+
 `be` is a parody CLI (and soon a web playground) that pretends to be an AI coding agent.
 Start a session, give it a topic, and it will "think", "edit files" and "run tests" forever,
 while you stare thoughtfully at the screen.
@@ -36,16 +38,24 @@ Mix several with `run devops engineering frontend`: each task picks one of them.
 
 ## Web version
 
-The same engine compiled to WebAssembly, in a browser terminal (xterm.js):
+> **Try it in your browser: [be.boringemployee.com](https://be.boringemployee.com/)**
 
-```sh
-make serve    # builds web/dist and serves http://localhost:8080
+The same engine compiled to WebAssembly, in a browser terminal (xterm.js). On a first visit
+a **New session** dialog asks for an agent and optional topics. Starting writes the choice
+into the URL, so reloading or sharing the link skips the dialog:
+
+```
+https://be.boringemployee.com/?agent=gemini&topic=devops,frontend
 ```
 
-On a first visit a **New session** dialog asks for an agent and optional topics. Starting
-writes the choice into the URL (e.g. `?agent=gemini&topic=devops,frontend`), so reloading or
-sharing the link skips the dialog. `seed` can be added for a reproducible session. Only these
-three parameters are read, and each is checked against an allowlist.
+Add `seed` for a reproducible session. Only `agent`, `topic` and `seed` are read, and each is
+checked against an allowlist.
+
+To run it locally, build `web/dist` and serve it on http://localhost:8080:
+
+```sh
+make serve
+```
 
 ## Install
 
