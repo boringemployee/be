@@ -3,34 +3,63 @@ tasks:
   - "Add rate limiting to {module}"
   - "Fix the finding reported by {test}"
   - "Patch the vulnerable dependency in {module}"
+  - "Verify webhook signatures in {file}"
+  - "Set secure cookie flags in {module}"
+  - "Add security headers to every response from {module}"
+  - "Prevent SQL injection in {file}"
+  - "Limit upload size and content types in {module}"
 files:
   - internal/auth/login.go
   - internal/api/middleware.go
   - internal/uploads/handler.go
+  - internal/webhooks/verify.go
+  - internal/session/cookie.go
+  - internal/admin/search.go
 commands:
   - run: govulncheck ./...
     output:
       - "Scanning your code and 214 packages across 38 dependent modules for known vulnerabilities..."
       - "No vulnerabilities found."
     failure:
+      - "Scanning your code and 214 packages across 38 dependent modules for known vulnerabilities..."
       - "Vulnerability #1: GO-2026-3112"
+      - "    Excessive memory growth in HTTP/2 header parsing"
       - "    Found in: golang.org/x/net@v0.33.0"
+      - "    Fixed in: golang.org/x/net@v0.36.0"
       - "Your code is affected by 1 vulnerability from 1 module."
   - run: gosec ./...
     output:
       - "Summary:"
+      - "  Gosec  : 2.22.4"
       - "  Files  : 87"
+      - "  Lines  : 11204"
+      - "  Nosec  : 2"
       - "  Issues : 0"
     failure:
-      - "[{file}:61] - G304 (CWE-22): Potential file inclusion via variable"
-      - "  Issues : 1"
+      - "[{file}:61] - G304 (CWE-22): Potential file inclusion via variable (Confidence: HIGH, Severity: MEDIUM)"
+      - "[{file}:114] - G202 (CWE-89): SQL string concatenation (Confidence: HIGH, Severity: MEDIUM)"
+      - "  Issues : 2"
   - run: go test ./internal/...
     output:
       - "ok   example.com/app/internal/auth     0.512s"
       - "ok   example.com/app/internal/api      0.204s"
+      - "ok   example.com/app/internal/webhooks 0.118s"
     failure:
       - "--- FAIL: {test} (0.02s)"
+      - "    {file}:88: expected status 429, got 200"
       - "FAIL example.com/app/internal/auth   0.531s"
+  - run: go get golang.org/x/net@v0.36.0
+    output:
+      - "go: upgraded golang.org/x/net v0.33.0 => v0.36.0"
+      - "go: upgraded golang.org/x/text v0.21.0 => v0.22.0"
+  - run: semgrep scan --config auto --quiet
+    output:
+      - "Ran 312 rules on 87 files: 0 findings."
+    failure:
+      - "  {file}"
+      - "     go.lang.security.audit.net.cookie-missing-secure"
+      - "        Cookie is missing the Secure flag."
+      - "Ran 312 rules on 87 files: 1 finding."
 edits:
   - to: "if !limiter.Allow(ip) { return ErrTooManyRequests }"
   - to: "w.Header().Set(\"X-Content-Type-Options\", \"nosniff\")"
@@ -39,4 +68,13 @@ edits:
   - from: "if token == expected {"
     to: "if subtle.ConstantTimeCompare([]byte(token), []byte(expected)) == 1 {"
   - from: "MaxAge: 0,"
-    to: "MaxAge: 3600, Secure: true, HttpOnly: true,"
+    to: "MaxAge: 3600, Secure: true, HttpOnly: true, SameSite: http.SameSiteLaxMode,"
+  - from: "q := \"SELECT * FROM users WHERE name = '\" + name + \"'\""
+    to: "row := db.QueryRowContext(ctx, \"SELECT id, name FROM users WHERE name = $1\", name)"
+  - to: "r.Body = http.MaxBytesReader(w, r.Body, 10<<20)"
+  - to: "if !hmac.Equal(sig, mac.Sum(nil)) { return ErrBadSignature }"
+  - to: "w.Header().Set(\"Strict-Transport-Security\", \"max-age=63072000; includeSubDomains\")"
+  - from: "golang.org/x/net v0.33.0"
+    to: "golang.org/x/net v0.36.0"
+  - to: "if !allowedTypes[http.DetectContentType(head)] { return ErrUnsupportedType }"
+  - to: "session.RenewToken(ctx)"

@@ -3,25 +3,51 @@ tasks:
   - "Tune the autoscaler for {module}"
   - "Add a readiness probe to {module}"
   - "Fix the crash loop in {module} on startup"
+  - "Add a pod disruption budget for {module}"
+  - "Spread {module} replicas across zones"
+  - "Investigate the OOMKilled restarts in {module}"
+  - "Move {module} secrets out of {file}"
 files:
   - deploy/k8s/api-deployment.yaml
   - deploy/k8s/worker-deployment.yaml
   - deploy/k8s/worker-hpa.yaml
   - deploy/k8s/search-service.yaml
+  - deploy/k8s/api-pdb.yaml
+  - deploy/k8s/media-deployment.yaml
 commands:
   - run: kubectl diff -f deploy/k8s
     output:
-      - "diff -u -N /tmp/LIVE/apps.v1.Deployment.staging.api"
+      - "diff -u -N /tmp/LIVE/apps.v1.Deployment.staging.api /tmp/MERGED/apps.v1.Deployment.staging.api"
+      - "@@ -12,7 +12,7 @@"
       - "-  replicas: 2"
       - "+  replicas: 3"
-  - run: helm lint charts/api
+  - run: kubectl get pods -n staging -l app={module}
     output:
-      - "==> Linting charts/api"
-      - "1 chart(s) linted, 0 chart(s) failed"
+      - "NAME                        READY   STATUS    RESTARTS   AGE"
+      - "{module}-7d9f8c6b5-2xk4q    1/1     Running   0          14m"
+      - "{module}-7d9f8c6b5-8pl2w    1/1     Running   0          14m"
+      - "{module}-7d9f8c6b5-qz7rn    1/1     Running   0          13m"
     failure:
-      - "==> Linting charts/api"
-      - "[ERROR] templates/deployment.yaml: unable to parse YAML"
-      - "Error: 1 chart(s) linted, 1 chart(s) failed"
+      - "NAME                        READY   STATUS             RESTARTS      AGE"
+      - "{module}-7d9f8c6b5-2xk4q    0/1     CrashLoopBackOff   6 (41s ago)   9m"
+      - "{module}-7d9f8c6b5-8pl2w    1/1     Running            0             9m"
+  - run: kubectl describe pod -n staging -l app={module}
+    output:
+      - "Status:       Running"
+      - "    Last State:     Terminated"
+      - "      Reason:       OOMKilled"
+      - "      Exit Code:    137"
+      - "    Limits:"
+      - "      memory:  256Mi"
+  - run: kubectl logs deploy/{module} -n staging --tail=20
+    output:
+      - "level=INFO msg=\"server listening\" addr=:8080"
+      - "level=INFO msg=\"connected to database\" pool=10"
+      - "level=INFO msg=\"ready\""
+    failure:
+      - "level=INFO msg=\"server listening\" addr=:8080"
+      - "level=ERROR msg=\"connect database\" err=\"dial tcp: lookup postgres: no such host\""
+      - "level=ERROR msg=\"shutting down\" exit=1"
   - run: kubectl rollout status deploy/api -n staging
     output:
       - "Waiting for deployment \"api\" rollout to finish: 2 of 3 updated replicas are available..."
@@ -29,6 +55,12 @@ commands:
     failure:
       - "Waiting for deployment \"api\" rollout to finish: 1 of 3 updated replicas are available..."
       - "error: deployment \"api\" exceeded its progress deadline"
+  - run: kubectl top pods -n staging
+    output:
+      - "NAME                        CPU(cores)   MEMORY(bytes)"
+      - "api-7d9f8c6b5-2xk4q         112m         201Mi"
+      - "worker-5c8b7f9d4-mm2tz      348m         488Mi"
+      - "search-6f7a9b2c1-xw9pd      61m          743Mi"
 edits:
   - from: "replicas: 2"
     to: "replicas: 3"
@@ -36,8 +68,17 @@ edits:
     to: "  cpu: 500m"
   - from: "  memory: 256Mi"
     to: "  memory: 512Mi"
-  - to: "readinessProbe: { httpGet: { path: /healthz, port: 8080 } }"
+  - to: "readinessProbe: { httpGet: { path: /healthz, port: 8080 }, periodSeconds: 5 }"
   - from: "maxReplicas: 5"
     to: "maxReplicas: 10"
   - from: "image: api:1.41.2"
     to: "image: api:1.42.0"
+  - to: "minAvailable: 2"
+  - to: "topologySpreadConstraints: [{ maxSkew: 1, topologyKey: topology.kubernetes.io/zone, whenUnsatisfiable: ScheduleAnyway }]"
+  - from: "  averageUtilization: 80"
+    to: "  averageUtilization: 65"
+  - from: "  value: \"hunter2\""
+    to: "  valueFrom: { secretKeyRef: { name: api-secrets, key: db-password } }"
+  - to: "startupProbe: { httpGet: { path: /healthz, port: 8080 }, failureThreshold: 30 }"
+  - from: "terminationGracePeriodSeconds: 10"
+    to: "terminationGracePeriodSeconds: 45"

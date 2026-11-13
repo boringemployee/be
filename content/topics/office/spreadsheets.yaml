@@ -1,0 +1,75 @@
+tasks:
+  - "Fix the #REF! errors in {file}"
+  - "Replace the VLOOKUPs in {file} with XLOOKUP"
+  - "Rebuild the pivot table in the {module} workbook"
+  - "Add data validation to the input columns in {file}"
+  - "Clean up duplicate rows in the {module} sheet"
+  - "Link the {module} summary tab to the monthly tabs"
+  - "Add conditional formatting for overdue items in {file}"
+  - "Fix the circular reference in the {module} model"
+  - "Make the {module} workbook recalculate faster"
+files:
+  - finance/Q4_budget.xlsx
+  - sales/2027_forecast.xlsx
+  - ops/vendor_tracker.xlsx
+  - people/hiring_plan.xlsx
+  - finance/opex_by_department.xlsx
+  - sales/pipeline_by_region.xlsx
+commands:
+  - run: python scripts/check_workbook.py {file}
+    output:
+      - "loading {file} (6 sheets, 14,208 cells with formulas)"
+      - "checking formulas... ok"
+      - "checking named ranges... ok (12 ranges)"
+      - "checking external links... none"
+      - "0 errors, 0 warnings"
+    failure:
+      - "loading {file} (6 sheets, 14,208 cells with formulas)"
+      - "Summary!D14: #REF! (refers to deleted sheet 'Mar')"
+      - "Summary!D15: #REF! (refers to deleted sheet 'Mar')"
+      - "Forecast!B42: circular reference via Forecast!F42"
+      - "3 errors, 1 warning"
+  - run: python scripts/recalc.py {file} --report
+    output:
+      - "recalculating 14,208 formulas..."
+      - "volatile functions: 0 (was 316)"
+      - "full recalculation: 0.84s (was 6.12s)"
+      - "saved {file}"
+  - run: python scripts/compare_totals.py {file} --against last_month
+    output:
+      - "sheet       last month     this month     delta"
+      - "Revenue     1,284,551.20   1,312,804.75   +2.2%"
+      - "Opex          842,110.00     839,442.10   -0.3%"
+      - "Headcount           148            151      +3"
+      - "totals reconcile"
+    failure:
+      - "sheet       last month     this month     delta"
+      - "Revenue     1,284,551.20   1,312,804.75   +2.2%"
+      - "Opex          842,110.00   1,684,220.00  +100.0%"
+      - "mismatch: Opex looks double counted (rows 40-58 appear twice)"
+  - run: python scripts/refresh_pivots.py {file}
+    output:
+      - "refreshing 3 pivot tables in {file}"
+      - "  Summary!A3   by region x quarter   ok"
+      - "  Pipeline!H2  by owner x stage      ok"
+      - "  Opex!A1      by department         ok"
+edits:
+  - from: "=VLOOKUP(A2,Rates!A:B,2,FALSE)"
+    to: "=XLOOKUP(A2,Rates!A:A,Rates!B:B,0)"
+  - from: "=SUM(Jan!D14,Feb!D14,#REF!)"
+    to: "=SUM(Jan:Dec!D14)"
+  - from: "=IF(C5>0,C5/B5,0)"
+    to: "=IFERROR(C5/B5,0)"
+  - from: "=INDIRECT(\"Sheet\"&A1&\"!B2\")"
+    to: "=INDEX(Monthly!B:B,MATCH(A1,Monthly!A:A,0))"
+  - from: "=SUMIF(B:B,\"East\",D:D)"
+    to: "=SUMIFS(Pipeline[Amount],Pipeline[Region],\"East\",Pipeline[Stage],\"Closed\")"
+  - to: "=UNIQUE(FILTER(Vendors[Name],Vendors[Active]=TRUE))"
+  - from: "=TODAY()-E2"
+    to: "=NETWORKDAYS(E2,$B$1)"
+  - to: "Data validation: list = Lists!$A$2:$A$9"
+  - to: "Conditional format: =AND($F2<TODAY(),$G2<>\"Done\") -> red fill"
+  - from: "=B5*1.08"
+    to: "=B5*(1+Assumptions!$C$3)"
+  - from: "=OFFSET(A1,0,0,COUNTA(A:A),1)"
+    to: "=Pipeline[Amount]"

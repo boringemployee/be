@@ -1,0 +1,75 @@
+tasks:
+  - "Rewrite the {module} guide for new hires"
+  - "Fix the broken links in {file}"
+  - "Add a troubleshooting section to {file}"
+  - "Write the release notes for version 3.9"
+  - "Turn the {module} wiki page into a runbook"
+  - "Document the decision behind {module} in an ADR"
+  - "Update the screenshots and commands in {file}"
+  - "Make the code samples in {file} copy-pasteable"
+files:
+  - docs/getting-started.md
+  - docs/deploy-guide.md
+  - docs/runbooks/payments.md
+  - docs/adr/0021-event-bus.md
+  - docs/architecture/overview.md
+  - CHANGELOG.md
+  - CONTRIBUTING.md
+commands:
+  - run: npx markdownlint-cli2 "docs/**/*.md"
+    output:
+      - "Linting: 64 file(s)"
+      - "Summary: 0 error(s)"
+    failure:
+      - "Linting: 64 file(s)"
+      - "{file}:14 MD001/heading-increment Heading levels should only increment by one level at a time"
+      - "{file}:52 MD040/fenced-code-language Fenced code blocks should have a language specified"
+      - "Summary: 2 error(s)"
+  - run: lychee docs --offline
+    output:
+      - "🔍 412 Total ✅ 412 OK 🚫 0 Errors"
+    failure:
+      - "[ERROR] {file}: file not found: docs/setup/local-env.md"
+      - "[ERROR] {file}: anchor not found: #configure-the-cli"
+      - "🔍 412 Total ✅ 410 OK 🚫 2 Errors"
+  - run: npx cspell "docs/**/*.md"
+    output:
+      - "CSpell: Files checked: 64, Issues found: 0 in 0 files."
+    failure:
+      - "{file}:31:18 - Unknown word (recieve)"
+      - "{file}:77:4 - Unknown word (idempotancy)"
+      - "CSpell: Files checked: 64, Issues found: 2 in 1 file."
+  - run: vale docs
+    output:
+      - "✔ 0 errors, 0 warnings and 0 suggestions in 64 files."
+    failure:
+      - " {file}"
+      - " 12:1   warning  Try to avoid using first-person plural like 'we'.  Style.We"
+      - " 40:22  error    Use 'select' instead of 'click on'.                 Style.Terms"
+      - "✖ 1 error, 1 warning and 0 suggestions in 64 files."
+  - run: npm run docs:build
+    output:
+      - "building 64 pages..."
+      - "✓ generated search index (1,842 entries)"
+      - "✓ build complete in 6.3s"
+edits:
+  - from: "## Setup"
+    to: "## Set up your local environment"
+  - from: "Click on **Deploy**."
+    to: "Select **Deploy**."
+  - from: "See [here](../setup/local-env.md)."
+    to: "See [Local environment](../getting-started.md#local-environment)."
+  - to: "## Troubleshooting"
+  - to: "If the deploy hangs at \"waiting for rollout\", check the readiness probe first."
+  - from: "```"
+    to: "```bash"
+  - from: "You will recieve an email."
+    to: "You will receive an email."
+  - to: "> **Note:** This step needs the `deployer` role."
+  - from: "Status: Proposed"
+    to: "Status: Accepted"
+  - to: "## Consequences"
+  - to: "### Fixed"
+  - to: "- Payment retries no longer create duplicate invoices."
+  - from: "$ make deploy ENV=prod"
+    to: "make deploy ENV=staging"

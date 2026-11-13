@@ -4,44 +4,87 @@ tasks:
   - "Replace print debugging in {file} with logging"
   - "Make {module} async"
   - "Reduce memory usage in {file}"
+  - "Migrate {module} to Pydantic v2"
+  - "Add pagination to the endpoints in {file}"
+  - "Replace the hand-rolled retry loop in {module}"
+  - "Raise test coverage of {module} above 90%"
+  - "Fix the N+1 query in {file}"
+  - "Move settings in {module} to environment variables"
 files:
   - app/services/billing.py
   - app/api/routes.py
   - app/models/user.py
   - app/workers/emailer.py
   - tests/test_billing.py
+  - app/services/reports.py
+  - app/api/deps.py
+  - app/core/settings.py
+  - app/repositories/orders.py
+  - app/workers/scheduler.py
 modules:
   - billing
   - routes
   - emailer
   - user-model
+  - reports
+  - settings
+  - orders-repo
 tests:
   - test_invoice_rounding
   - test_user_signup
   - test_email_retry
   - test_routes_auth
+  - test_report_pagination
+  - test_orders_query_count
+  - test_settings_from_env
 commands:
   - run: pytest -q
     output:
-      - "........................................ [ 95%]"
-      - ".. [100%]"
-      - "42 passed in 3.21s"
+      - "........................................ [ 45%]"
+      - "........................................ [ 90%]"
+      - "......... [100%]"
+      - "89 passed in 6.21s"
     failure:
-      - "......F...................................... [100%]"
+      - "......F......................................... [ 54%]"
+      - "........................................ [100%]"
+      - "=================================== FAILURES ==================================="
+      - "_____________________________ {test} _____________________________"
+      - "E       assert Decimal('10.01') == Decimal('10.00')"
       - "FAILED tests/test_billing.py::{test} - AssertionError"
-      - "1 failed, 41 passed in 3.40s"
+      - "1 failed, 88 passed in 6.40s"
+  - run: pytest --cov=app --cov-report=term-missing -q
+    output:
+      - "89 passed in 7.84s"
+      - "Name                         Stmts   Miss  Cover"
+      - "app/services/billing.py        142      4    97%"
+      - "app/api/routes.py              211     12    94%"
+      - "TOTAL                         2318     97    96%"
   - run: ruff check .
     output:
       - "All checks passed!"
     failure:
       - "{file}:14:1: F401 [*] `os` imported but unused"
-      - "Found 1 error."
+      - "{file}:88:5: B006 Do not use mutable data structures for argument defaults"
+      - "Found 2 errors."
+      - "[*] 1 fixable with the `--fix` option."
+  - run: ruff format --check .
+    output:
+      - "64 files already formatted"
+    failure:
+      - "Would reformat: {file}"
+      - "1 file would be reformatted, 63 files already formatted"
   - run: mypy app
     output:
       - "Success: no issues found in 37 source files"
     failure:
       - "{file}:52: error: Missing return statement  [return]"
-      - "Found 1 error in 1 file (checked 37 source files)"
+      - "{file}:71: error: Item \"None\" of \"Optional[User]\" has no attribute \"email\"  [union-attr]"
+      - "Found 2 errors in 1 file (checked 37 source files)"
+  - run: pytest -k {test} -x -vv
+    output:
+      - "collected 89 items / 88 deselected / 1 selected"
+      - "tests/test_billing.py::{test} PASSED                         [100%]"
+      - "1 passed, 88 deselected in 0.41s"
 edits:
   - from: "def total(self):"
     to: "def total(self) -> Decimal:"
@@ -57,3 +100,17 @@ edits:
     to: "except (TimeoutError, ConnectionError):"
   - from: "time.sleep(1)"
     to: "await asyncio.sleep(backoff)"
+  - from: "def __init__(self, items=[]):"
+    to: "def __init__(self, items: list[Item] | None = None):"
+  - from: "orders = session.query(Order).all()"
+    to: "orders = session.query(Order).options(selectinload(Order.lines)).all()"
+  - from: "class Config:"
+    to: "model_config = ConfigDict(from_attributes=True)"
+  - from: "return round(amount, 2)"
+    to: "return amount.quantize(Decimal(\"0.01\"), rounding=ROUND_HALF_UP)"
+  - from: "DEBUG = True"
+    to: "DEBUG = os.getenv(\"APP_DEBUG\", \"false\") == \"true\""
+  - to: "logger = logging.getLogger(__name__)"
+  - from: "def list_orders(db):"
+    to: "def list_orders(db: Session, limit: int = 50, offset: int = 0) -> list[Order]:"
+  - to: "    .limit(limit).offset(offset)"

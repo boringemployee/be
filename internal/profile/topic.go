@@ -207,6 +207,7 @@ func (t *Topic) validate() error {
 		for i, cmd := range p.Commands {
 			field := fmt.Sprintf("%s.commands[%d]", p.Name, i)
 			c.str(field+".run", cmd.Run, true)
+			c.templates(field+".run", cmd.Run)
 			c.outputLines(field+".output", cmd.Output, 0) // many tools print nothing on success
 			c.outputLines(field+".failure", cmd.Failure, 0)
 		}

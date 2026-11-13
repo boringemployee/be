@@ -1,0 +1,50 @@
+tasks:
+  - "Align every title in {file} to the master layout"
+  - "Cut the {module} deck down to 12 slides"
+  - "Replace the screenshots in {file} with live charts"
+  - "Add speaker notes to {file}"
+  - "Fix the inconsistent fonts in {file}"
+  - "Update the {module} deck with the latest numbers"
+files:
+  - decks/board_update_Q4.pptx
+  - decks/all_hands_november.pptx
+  - decks/sales_kickoff_2027.pptx
+  - decks/roadmap_review.pptx
+commands:
+  - run: python scripts/check_deck.py {file}
+    output:
+      - "loading {file} (18 slides, 1 master, 7 layouts)"
+      - "fonts: 2 families (from theme)"
+      - "titles aligned to layout: 18/18"
+      - "speaker notes: 18/18"
+      - "0 issues"
+    failure:
+      - "loading {file} (24 slides, 1 master, 7 layouts)"
+      - "fonts: 5 families (3 not in theme)"
+      - "slide 7: title moved 0.4in off the layout placeholder"
+      - "slide 12: image stretched (aspect ratio 1.91 vs 1.78)"
+      - "speaker notes: 9/24"
+      - "4 issues"
+  - run: python scripts/export_deck.py {file} --pdf
+    output:
+      - "exporting 18 slides"
+      - "embedding fonts... ok"
+      - "wrote build/deck.pdf (4.2 MB)"
+  - run: python scripts/update_charts.py {file} --from sales/pipeline_by_region.xlsx
+    output:
+      - "slide 4: chart 'Pipeline by region' updated (4 series)"
+      - "slide 6: chart 'Win rate' updated (1 series)"
+      - "slide 9: table 'Top deals' updated (10 rows)"
+edits:
+  - from: "Font: Comic Neue, 28pt"
+    to: "Font: Theme heading, 32pt"
+  - from: "Title position: 0.9in, 0.3in"
+    to: "Title position: layout placeholder"
+  - to: "Speaker notes: Lead with the 2.2% growth, then explain the Opex correction."
+  - from: "Q3 numbers (draft)"
+    to: "Q4 results"
+  - from: "Image: screenshot_pipeline.png"
+    to: "Chart: linked to pipeline_by_region.xlsx, Summary!A3"
+  - from: "Slides 14-19: appendix tables"
+    to: "Appendix: moved to a separate handout"
+  - to: "Footer: Confidential, internal use only"

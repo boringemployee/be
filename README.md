@@ -33,7 +33,7 @@ Early development. See the [phases in the design doc](docs/DESIGN.md#phases).
 | `be preview <agent>` | sample screen | ✅ |
 | Web version | all agents | ✅ |
 
-Topics: `data`, `devops`, `engineering`, `frontend`, `security` (type `topics` in a session).
+Topics: `data`, `devops`, `docs`, `engineering`, `finance`, `frontend`, `office`, `qa`, `security` (type `topics` in a session).
 Mix several with `run devops engineering frontend`: each task picks one of them.
 
 ## Web version

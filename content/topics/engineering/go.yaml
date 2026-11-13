@@ -7,6 +7,12 @@ tasks:
   - "Add missing error handling in {file}"
   - "Split {file} into smaller functions"
   - "Make {test} deterministic"
+  - "Propagate context cancellation through {module}"
+  - "Fix the data race reported in {file}"
+  - "Investigate the goroutine leak in {module} and add a regression test"
+  - "Move {module} configuration to environment variables"
+  - "Add structured logging to {file}"
+  - "Close the connection pool cleanly when {module} shuts down"
 files:
   - internal/auth/session.go
   - internal/cache/lru.go
@@ -16,6 +22,12 @@ files:
   - api/handlers/users.go
   - cmd/server/main.go
   - internal/storage/postgres.go
+  - internal/notify/email.go
+  - internal/ratelimit/bucket.go
+  - internal/search/indexer.go
+  - api/middleware/tracing.go
+  - internal/billing/tax.go
+  - internal/storage/migrations.go
 modules:
   - auth
   - cache
@@ -23,6 +35,9 @@ modules:
   - queue-worker
   - config-loader
   - storage
+  - notify
+  - ratelimit
+  - search
 tests:
   - TestSessionExpiry
   - TestLRUEviction
@@ -30,16 +45,36 @@ tests:
   - TestWorkerShutdown
   - TestConfigOverrides
   - TestUserPagination
+  - TestTaxRegions
+  - TestBucketRefill
+  - TestIndexerBatchFlush
+  - TestMigrationsIdempotent
 commands:
   - run: go test ./...
     output:
       - "ok   example.com/app/internal/{module}   0.412s"
       - "ok   example.com/app/internal/cache       0.087s"
+      - "ok   example.com/app/internal/queue       1.204s"
       - "ok   example.com/app/pkg/config            0.031s"
+      - "?    example.com/app/cmd/server            [no test files]"
     failure:
       - "--- FAIL: {test} (0.31s)"
       - "    {file}:128: got 2 items, want 3"
+      - "FAIL"
       - "FAIL example.com/app/internal/{module}   0.433s"
+      - "ok   example.com/app/internal/cache       0.089s"
+      - "FAIL"
+  - run: go test -race -count=1 ./internal/{module}/...
+    output:
+      - "ok   example.com/app/internal/{module}   2.881s"
+    failure:
+      - "WARNING: DATA RACE"
+      - "Write at 0x00c0001a4018 by goroutine 23:"
+      - "  example.com/app/internal/{module}.(*Worker).flush()"
+      - "      {file}:204 +0x6c"
+      - "--- FAIL: {test} (0.42s)"
+      - "    testing.go:1490: race detected during execution of test"
+      - "FAIL example.com/app/internal/{module}   3.017s"
   - run: go vet ./...
     output: []
     failure:
@@ -50,9 +85,31 @@ commands:
       - "0 issues."
     failure:
       - "{file}:91:15: Error return value is not checked (errcheck)"
-      - "1 issues:"
+      - "{file}:143:2: ineffectual assignment to err (ineffassign)"
+      - "2 issues:"
       - "* errcheck: 1"
+      - "* ineffassign: 1"
   - run: go build ./...
+    output: []
+    failure:
+      - "# example.com/app/internal/{module}"
+      - "{file}:38:9: undefined: retryPolicy"
+  - run: go test -run {test} -count=20 ./internal/{module}
+    output:
+      - "ok   example.com/app/internal/{module}   6.204s"
+    failure:
+      - "--- FAIL: {test} (0.05s)"
+      - "    {file}:77: timed out waiting for flush"
+      - "FAIL example.com/app/internal/{module}   6.488s"
+  - run: go test -bench=. -benchmem ./internal/{module}
+    output:
+      - "goos: linux"
+      - "goarch: amd64"
+      - "BenchmarkEncode-8     1204512     982.4 ns/op     256 B/op     3 allocs/op"
+      - "BenchmarkDecode-8      884210    1355 ns/op       512 B/op     6 allocs/op"
+      - "PASS"
+      - "ok   example.com/app/internal/{module}   4.110s"
+  - run: go mod tidy
     output: []
 edits:
   - from: "return nil, err"
@@ -75,3 +132,20 @@ edits:
     to: "slog.Error(\"refresh failed\", \"err\", err)"
   - from: "func (s *Store) Get(id string) (*User, error) {"
     to: "func (s *Store) Get(ctx context.Context, id string) (*User, error) {"
+  - from: "rows, err := db.Query(q)"
+    to: "rows, err := db.QueryContext(ctx, q)"
+  - to: "defer rows.Close()"
+  - from: "go w.flush()"
+    to: "w.wg.Add(1)"
+  - to: "go func() { defer w.wg.Done(); w.flush(ctx) }()"
+  - from: "if err == sql.ErrNoRows {"
+    to: "if errors.Is(err, sql.ErrNoRows) {"
+  - from: "count++"
+    to: "count.Add(1)"
+  - from: "var count int"
+    to: "var count atomic.Int64"
+  - to: "t.Parallel()"
+  - from: "srv.ListenAndServe()"
+    to: "if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {"
+  - from: "port := \"8080\""
+    to: "port := cmp.Or(os.Getenv(\"PORT\"), \"8080\")"

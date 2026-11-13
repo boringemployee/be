@@ -2,19 +2,44 @@ tasks:
   - "Fix alignment issues in {module}"
   - "Add dark mode to {module}"
   - "Fix the layout shift in {module}"
+  - "Make {module} responsive on small screens"
+  - "Replace hard-coded colors in {file} with design tokens"
+  - "Fix the overflowing table in {module} on mobile"
+  - "Respect reduced motion preferences in {file}"
+  - "Clean up unused selectors in {file}"
 files:
   - src/styles/theme.css
   - src/styles/layout.css
   - src/components/Modal.module.css
+  - src/styles/tokens.css
+  - src/components/Navbar.module.css
+  - src/components/Table.module.css
+  - src/pages/pricing.module.css
 commands:
   - run: npx stylelint "src/**/*.css"
     output: []
     failure:
       - "{file}"
       - "  12:3  ✖  Unexpected unknown property \"colour\"  property-no-unknown"
+      - "  48:5  ✖  Expected \"#FFF\" to be \"#fff\"  color-hex-case"
+      - "✖ 2 problems (2 errors, 0 warnings)"
   - run: npm run build
     output:
-      - "✓ Compiled successfully in 3.8s"
+      - "vite v7.1.3 building for production..."
+      - "✓ 412 modules transformed."
+      - "dist/assets/index-4f2a91c8.css    38.21 kB │ gzip:  7.94 kB"
+      - "dist/assets/index-b81d0e2a.js    214.66 kB │ gzip: 68.40 kB"
+      - "✓ built in 3.84s"
+  - run: npx playwright test visual.spec.ts
+    output:
+      - "Running 12 tests using 4 workers"
+      - "  12 passed (18.4s)"
+    failure:
+      - "Running 12 tests using 4 workers"
+      - "  1) [chromium] › visual.spec.ts:21:5 › {module} › matches snapshot"
+      - "    Error: Screenshot comparison failed: 1823 pixels (ratio 0.01) are different."
+      - "  1 failed"
+      - "  11 passed (19.2s)"
 edits:
   - from: "float: left;"
     to: "display: flex;"
@@ -24,3 +49,16 @@ edits:
   - to: "@media (prefers-color-scheme: dark) { :root { --bg: #111; } }"
   - from: "height: auto;"
     to: "aspect-ratio: 16 / 9;"
+  - from: "width: 960px;"
+    to: "width: min(100%, 960px);"
+  - to: "@media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }"
+  - from: "background: #ffffff;"
+    to: "background: var(--surface);"
+  - to: "@media (prefers-reduced-motion: reduce) { * { animation: none; } }"
+  - from: "overflow: hidden;"
+    to: "overflow-x: auto;"
+  - from: "margin-left: 12px; margin-right: 12px;"
+    to: "margin-inline: 12px;"
+  - from: "font-size: 14px;"
+    to: "font-size: 0.875rem;"
+  - to: "gap: var(--space-3);"

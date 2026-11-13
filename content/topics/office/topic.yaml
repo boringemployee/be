@@ -1,0 +1,15 @@
+# Topic: run office. Spreadsheets, documents and slide decks. Product names
+# never appear in the UI; only file names and generic terms do.
+description: Spreadsheets, documents and slide decks
+modules:
+  - quarterly-budget
+  - sales-forecast
+  - board-update
+  - hiring-plan
+  - vendor-tracker
+  - team-roadmap
+tests:
+  - formula-check
+  - link-check
+  - style-check
+  - accessibility-check

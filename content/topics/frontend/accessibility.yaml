@@ -1,0 +1,45 @@
+tasks:
+  - "Fix the color contrast issues in {module}"
+  - "Make {module} fully keyboard navigable"
+  - "Add focus management to {file}"
+  - "Fix the axe violations reported by {test}"
+  - "Label every form field in {file}"
+  - "Announce {module} updates to screen readers"
+files:
+  - src/components/Dialog.tsx
+  - src/components/Dropdown.tsx
+  - src/components/Tabs.tsx
+  - src/components/forms/SignupForm.tsx
+  - src/components/Toast.tsx
+commands:
+  - run: npx playwright test {test}
+    output:
+      - "Running 16 tests using 4 workers"
+      - "  16 passed (14.9s)"
+    failure:
+      - "Running 16 tests using 4 workers"
+      - "  1) [chromium] › {test}:18:3 › {module} has no a11y violations"
+      - "    color-contrast: Elements must meet minimum color contrast ratio thresholds (2 nodes)"
+      - "    label: Form elements must have labels (1 node)"
+      - "  1 failed"
+      - "  15 passed (15.6s)"
+  - run: npx eslint src --rule "jsx-a11y/*"
+    output: []
+    failure:
+      - "{file}"
+      - "  22:5  error  Visible, non-interactive elements with click handlers must have a key listener  jsx-a11y/click-events-have-key-events"
+      - "✖ 1 problem (1 error, 0 warnings)"
+edits:
+  - from: "<input type=\"email\" placeholder=\"Email\" />"
+    to: "<label htmlFor=\"email\">Email</label><input id=\"email\" type=\"email\" />"
+  - from: "color: #9a9a9a;"
+    to: "color: #6b6b6b;"
+  - to: "<div role=\"status\" aria-live=\"polite\">{message}</div>"
+  - from: "<div className=\"tab\" onClick={select}>"
+    to: "<button role=\"tab\" aria-selected={active} onClick={select}>"
+  - to: "useEffect(() => { if (open) closeRef.current?.focus(); }, [open]);"
+  - from: "<img src={logo} />"
+    to: "<img src={logo} alt=\"\" />"
+  - to: "onKeyDown={e => e.key === \"Escape\" && onClose()}"
+  - from: "outline: none;"
+    to: "outline: 2px solid var(--focus-ring);"

@@ -3,20 +3,36 @@ tasks:
   - "Fix hydration warning in {file}"
   - "Reduce bundle size of {module}"
   - "Make {test} less flaky"
+  - "Add loading and error states to {module}"
+  - "Memoize the expensive list rendering in {file}"
+  - "Move {module} data fetching to a custom hook"
+  - "Add form validation to {file}"
+  - "Fix the stale closure bug in {file}"
 files:
   - src/components/Button.tsx
   - src/components/Modal.tsx
   - src/pages/checkout.tsx
   - src/hooks/useCart.ts
+  - src/components/SearchResults.tsx
+  - src/components/AccountMenu.tsx
+  - src/hooks/useDebounce.ts
+  - src/pages/settings/profile.tsx
+  - src/components/forms/AddressForm.tsx
 commands:
   - run: npm test
     output:
       - " PASS  src/components/Button.test.tsx"
       - " PASS  src/components/Modal.test.tsx"
+      - " PASS  src/hooks/useCart.test.ts"
+      - "Test Suites: 24 passed, 24 total"
       - "Tests:       128 passed, 128 total"
+      - "Time:        7.42 s"
     failure:
       - " FAIL  src/components/{test}"
       - "  ● Modal › closes on escape"
+      - "    expect(element).not.toBeInTheDocument()"
+      - "    expected document not to contain element, found <div role=\"dialog\">"
+      - "Test Suites: 1 failed, 23 passed, 24 total"
       - "Tests:       1 failed, 127 passed, 128 total"
   - run: npm run lint
     output:
@@ -24,6 +40,8 @@ commands:
     failure:
       - "{file}"
       - "  42:7  warning  React Hook useEffect has a missing dependency  react-hooks/exhaustive-deps"
+      - "  67:11 error    Each child in a list should have a unique key  react/jsx-key"
+      - "✖ 2 problems (1 error, 1 warning)"
   - run: npx tsc --noEmit
     output: []
     failure:
@@ -31,7 +49,21 @@ commands:
   - run: npm run build
     output:
       - "✓ Compiled successfully in 4.1s"
+      - "Route (app)                    Size     First Load JS"
+      - "┌ ○ /                          5.2 kB          187 kB"
+      - "├ ○ /checkout                  12.4 kB         194 kB"
+      - "└ ○ /settings/profile          3.1 kB          185 kB"
       - "First Load JS shared by all   182 kB"
+  - run: npx playwright test {test}
+    output:
+      - "Running 8 tests using 4 workers"
+      - "  8 passed (11.2s)"
+    failure:
+      - "Running 8 tests using 4 workers"
+      - "  1) [webkit] › {test}:34:3 › submits the order"
+      - "    Error: Timed out 5000ms waiting for expect(locator).toBeVisible()"
+      - "  1 failed"
+      - "  7 passed (16.8s)"
 edits:
   - from: "<button onClick={close}>"
     to: "<button onClick={close} aria-label=\"Close dialog\">"
@@ -43,3 +75,17 @@ edits:
     to: "export default memo(Button);"
   - from: "import _ from \"lodash\";"
     to: "import debounce from \"lodash/debounce\";"
+  - from: "{items.map(item => <Row item={item} />)}"
+    to: "{items.map(item => <Row key={item.id} item={item} />)}"
+  - from: "const total = items.reduce((s, i) => s + i.price, 0);"
+    to: "const total = useMemo(() => items.reduce((s, i) => s + i.price, 0), [items]);"
+  - to: "if (isLoading) return <Spinner label=\"Loading results\" />;"
+  - to: "if (error) return <ErrorState onRetry={refetch} />;"
+  - from: "const date = new Date().toLocaleString();"
+    to: "const date = useClientDate();"
+  - from: "<div onClick={toggle}>"
+    to: "<button type=\"button\" onClick={toggle} aria-expanded={open}>"
+  - from: "setCount(count + 1);"
+    to: "setCount(c => c + 1);"
+  - from: "const Chart = require(\"./Chart\");"
+    to: "const Chart = lazy(() => import(\"./Chart\"));"

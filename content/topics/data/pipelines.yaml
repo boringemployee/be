@@ -2,23 +2,63 @@ tasks:
   - "Backfill {module} for the last quarter"
   - "Fix the timezone bug in {file}"
   - "Add retries to the {module} job"
+  - "Make the {module} job idempotent"
+  - "Cut the runtime of {module} below 20 minutes"
+  - "Alert the on-call channel when {module} misses its SLA"
+  - "Validate the input schema of {module}"
+  - "Write {module} output as partitioned Parquet"
 files:
   - pipelines/daily_revenue.py
   - pipelines/user_events.py
   - dags/nightly_etl.py
+  - pipelines/inventory_snapshot.py
+  - pipelines/common/io.py
+  - dags/hourly_events.py
+  - pipelines/schemas/orders.py
 commands:
   - run: pytest tests/pipelines
     output:
-      - "...... [100%]"
-      - "6 passed in 2.10s"
+      - "collected 24 items"
+      - "tests/pipelines/test_daily_revenue.py ........ [ 33%]"
+      - "tests/pipelines/test_user_events.py ........... [ 79%]"
+      - "tests/pipelines/test_io.py ..... [100%]"
+      - "24 passed in 4.10s"
     failure:
-      - ".....F [100%]"
+      - "tests/pipelines/test_daily_revenue.py ...F.... [ 33%]"
+      - "E   AssertionError: expected 92 partitions, got 91"
       - "FAILED tests/pipelines/test_daily_revenue.py::{test}"
-      - "1 failed, 5 passed in 2.38s"
+      - "1 failed, 23 passed in 4.38s"
   - run: python -m pipelines.daily_revenue --dry-run
     output:
       - "reading source: orders (1,284,551 rows)"
+      - "reading source: refunds (18,204 rows)"
+      - "joined: 1,284,551 rows, 0 dropped"
       - "dry run: would write 92 partitions"
+  - run: python -m pipelines.{module} --start 2026-07-01 --end 2026-09-30
+    output:
+      - "backfill {module}: 92 days queued"
+      - "[ 25%] 2026-07-23 done (14,811 rows)"
+      - "[ 50%] 2026-08-15 done (15,207 rows)"
+      - "[ 75%] 2026-09-07 done (16,034 rows)"
+      - "[100%] 2026-09-30 done (16,912 rows)"
+      - "backfill complete in 11m42s"
+    failure:
+      - "backfill {module}: 92 days queued"
+      - "[ 25%] 2026-07-23 done (14,811 rows)"
+      - "ERROR 2026-08-02: schema mismatch on column 'currency' (expected string, got null)"
+      - "backfill stopped after 33 of 92 days"
+  - run: airflow dags test nightly_etl 2026-11-12
+    output:
+      - "Running task extract_orders... success"
+      - "Running task transform_revenue... success"
+      - "Running task load_warehouse... success"
+      - "Running task check_freshness... success"
+      - "DagRun Finished: dag_id=nightly_etl, state=success"
+    failure:
+      - "Running task extract_orders... success"
+      - "Running task transform_revenue... failed"
+      - "  KeyError: 'region'"
+      - "DagRun Finished: dag_id=nightly_etl, state=failed"
 edits:
   - to: "df = df.drop_duplicates(subset=[\"order_id\"])"
   - from: "assert len(df) > 0"
@@ -29,3 +69,14 @@ edits:
     to: "retries=3,"
   - from: "schedule=\"@daily\","
     to: "schedule=\"0 3 * * *\","
+  - to: "retry_delay=timedelta(minutes=5),"
+  - to: "sla=timedelta(hours=2),"
+  - from: "df.to_csv(out_path)"
+    to: "df.to_parquet(out_path, partition_cols=[\"event_date\"])"
+  - from: "mode=\"append\""
+    to: "mode=\"overwrite\", partition_overwrite=True"
+  - from: "region = row[\"region\"]"
+    to: "region = row.get(\"region\", \"unknown\")"
+  - to: "OrdersSchema.validate(df, lazy=True)"
+  - from: "for row in rows:"
+    to: "for batch in chunked(rows, 10_000):"

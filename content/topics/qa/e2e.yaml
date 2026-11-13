@@ -1,0 +1,60 @@
+tasks:
+  - "Stabilize the flaky {test} suite"
+  - "Add end-to-end coverage for {module}"
+  - "Replace fixed waits in {file} with proper assertions"
+  - "Run {test} against all supported browsers"
+  - "Move {module} test data to fixtures"
+  - "Add visual regression checks for {module}"
+  - "Quarantine the failing cases in {test} and open tickets"
+files:
+  - e2e/checkout.spec.ts
+  - e2e/signup.spec.ts
+  - e2e/search.spec.ts
+  - e2e/fixtures/users.ts
+  - e2e/pages/CheckoutPage.ts
+  - e2e/support/helpers.ts
+commands:
+  - run: npx playwright test {test} --project=chromium
+    output:
+      - "Running 18 tests using 4 workers"
+      - "  18 passed (24.6s)"
+    failure:
+      - "Running 18 tests using 4 workers"
+      - "  1) [chromium] › {test}:52:3 › {module} › applies a discount code"
+      - "    Error: expect(locator).toHaveText(expected)"
+      - "    Expected string: \"$89.10\""
+      - "    Received string: \"$99.00\""
+      - "  1 failed"
+      - "  17 passed (26.1s)"
+  - run: npx playwright test --repeat-each=10 {test}
+    output:
+      - "Running 180 tests using 4 workers"
+      - "  180 passed (3.9m)"
+    failure:
+      - "Running 180 tests using 4 workers"
+      - "  3 flaky"
+      - "    [chromium] › {test}:31:3 › shows the confirmation email banner"
+      - "  177 passed (4.1m)"
+  - run: npx playwright test --project=firefox --project=webkit
+    output:
+      - "Running 96 tests using 4 workers"
+      - "  96 passed (1.6m)"
+  - run: npx playwright show-report --list
+    output:
+      - "checkout.spec.ts   18 passed   0 failed   0 flaky"
+      - "signup.spec.ts     12 passed   0 failed   1 flaky"
+      - "search.spec.ts     21 passed   0 failed   0 flaky"
+edits:
+  - from: "await page.waitForTimeout(3000);"
+    to: "await expect(page.getByRole(\"alert\")).toBeVisible();"
+  - from: "await page.click(\"#submit-btn\");"
+    to: "await page.getByRole(\"button\", { name: \"Place order\" }).click();"
+  - to: "test.describe.configure({ retries: 2 });"
+  - from: "const email = \"test@example.com\";"
+    to: "const email = users.newCustomer().email;"
+  - to: "await expect(page).toHaveScreenshot(\"checkout-summary.png\");"
+  - from: "test(\"shows the confirmation email banner\", async ({ page }) => {"
+    to: "test.fixme(\"shows the confirmation email banner\", async ({ page }) => {"
+  - to: "await page.route(\"**/api/rates\", route => route.fulfill({ json: rates }));"
+  - from: "expect(await total.textContent()).toBe(\"$89.10\");"
+    to: "await expect(total).toHaveText(\"$89.10\");"

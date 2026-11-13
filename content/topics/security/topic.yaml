@@ -6,8 +6,12 @@ modules:
   - payments-api
   - admin-portal
   - file-uploads
+  - webhooks
+  - session-store
 tests:
   - TestLoginRateLimit
   - TestCSRFProtection
   - TestPathTraversal
   - dependency-audit
+  - TestWebhookSignature
+  - TestSessionFixation

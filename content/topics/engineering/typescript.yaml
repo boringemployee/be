@@ -1,0 +1,77 @@
+tasks:
+  - "Enable strict mode in {module} and fix the errors"
+  - "Replace callbacks with async/await in {file}"
+  - "Add request validation to {file}"
+  - "Fix the unhandled promise rejection in {module}"
+  - "Fix flaky test {test}"
+  - "Remove the any types from {file}"
+  - "Add graceful shutdown to {module}"
+  - "Upgrade {module} to the latest Node LTS"
+files:
+  - src/server/app.ts
+  - src/server/routes/orders.ts
+  - src/server/routes/users.ts
+  - src/lib/db.ts
+  - src/lib/queue.ts
+  - src/jobs/sendDigest.ts
+  - src/config/env.ts
+  - src/services/payments.ts
+modules:
+  - orders-api
+  - users-api
+  - payments
+  - digest-job
+  - queue
+tests:
+  - orders.test.ts
+  - users.test.ts
+  - payments.test.ts
+  - queue.test.ts
+commands:
+  - run: npx vitest run
+    output:
+      - " ✓ src/server/routes/orders.test.ts (14 tests) 182ms"
+      - " ✓ src/server/routes/users.test.ts (9 tests) 96ms"
+      - " ✓ src/services/payments.test.ts (21 tests) 240ms"
+      - " Test Files  6 passed (6)"
+      - "      Tests  73 passed (73)"
+      - "   Duration  2.14s"
+    failure:
+      - " ❯ src/server/routes/{test} (14 tests | 1 failed) 201ms"
+      - "   × returns 404 for unknown order"
+      - " AssertionError: expected 500 to be 404"
+      - " Test Files  1 failed | 5 passed (6)"
+      - "      Tests  1 failed | 72 passed (73)"
+  - run: npx tsc --noEmit
+    output: []
+    failure:
+      - "{file}:42:17 - error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'."
+      - "{file}:88:5 - error TS7006: Parameter 'req' implicitly has an 'any' type."
+      - "Found 2 errors in the same file, starting at: {file}:42"
+  - run: npx eslint src
+    output: []
+    failure:
+      - "{file}"
+      - "  31:3  error  Promises must be awaited  @typescript-eslint/no-floating-promises"
+      - "✖ 1 problem (1 error, 0 warnings)"
+  - run: npm run build
+    output:
+      - "> api@3.8.0 build"
+      - "> tsc -p tsconfig.build.json"
+edits:
+  - from: "\"strict\": false,"
+    to: "\"strict\": true,"
+  - from: "function getUser(id, cb) {"
+    to: "async function getUser(id: string): Promise<User> {"
+  - from: "const body: any = req.body;"
+    to: "const body = OrderInput.parse(req.body);"
+  - to: "process.on(\"SIGTERM\", () => server.close(() => db.end()));"
+  - from: "queue.publish(msg);"
+    to: "await queue.publish(msg);"
+  - from: "const port = process.env.PORT;"
+    to: "const port = Number(process.env.PORT ?? 3000);"
+  - from: "catch (e) {"
+    to: "catch (e: unknown) {"
+  - to: "if (!order) return res.status(404).json({ error: \"order not found\" });"
+  - from: "\"engines\": { \"node\": \">=20\" },"
+    to: "\"engines\": { \"node\": \">=22\" },"

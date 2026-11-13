@@ -8,8 +8,12 @@ modules:
   - search-indexer
   - auth-service
   - nightly-batch
+  - notifications
+  - media-processor
 tests:
   - smoke-test-api
   - health-check-worker
   - canary-checkout
   - load-test-search
+  - synthetic-login
+  - rollback-drill

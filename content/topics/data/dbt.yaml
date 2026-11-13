@@ -3,20 +3,33 @@ tasks:
   - "Speed up the {module} model"
   - "Add a data quality check to {module}"
   - "Make {test} pass again"
+  - "Convert {module} to an incremental model"
+  - "Document every column in {file}"
+  - "Reconcile {module} totals with the finance report"
+  - "Rename the legacy columns in {file} without breaking downstream models"
 files:
   - models/marts/fct_orders.sql
   - models/marts/fct_revenue.sql
   - models/staging/stg_payments.sql
   - models/staging/stg_events.sql
+  - models/marts/dim_customers.sql
+  - models/intermediate/int_order_lines.sql
+  - models/marts/fct_subscriptions.sql
 commands:
   - run: dbt run --select orders
     output:
-      - "Found 14 models, 32 tests, 2 sources"
+      - "Running with dbt=1.10.4"
+      - "Found 14 models, 32 tests, 2 sources, 0 exposures"
+      - "Concurrency: 8 threads (target='dev')"
+      - "1 of 1 START sql table model analytics.fct_orders ........ [RUN]"
       - "1 of 1 OK created sql table model analytics.fct_orders ... [SELECT 1284551 in 4.21s]"
       - "Completed successfully"
     failure:
+      - "Found 14 models, 32 tests, 2 sources, 0 exposures"
       - "1 of 1 ERROR creating sql table model analytics.fct_orders ... [ERROR in 0.84s]"
       - "Database Error in model fct_orders (models/marts/fct_orders.sql)"
+      - "  column \"order_total\" does not exist"
+      - "Done. PASS=0 WARN=0 ERROR=1 SKIP=0 TOTAL=1"
   - run: dbt test --select {module}
     output:
       - "Found 14 models, 32 tests, 2 sources"
@@ -24,7 +37,29 @@ commands:
     failure:
       - "Failure in test {test}"
       - "  Got 3 results, configured to fail if != 0"
+      - "  compiled code at target/compiled/analytics/tests/{test}.sql"
       - "Done. PASS=11 WARN=0 ERROR=1 SKIP=0 TOTAL=12"
+  - run: dbt build --select +{module}
+    output:
+      - "Found 14 models, 32 tests, 2 sources"
+      - "1 of 6 OK created sql view model analytics.stg_payments ..... [CREATE VIEW in 0.41s]"
+      - "2 of 6 OK created sql view model analytics.stg_events ....... [CREATE VIEW in 0.38s]"
+      - "3 of 6 OK created sql table model analytics.int_order_lines . [SELECT 4120988 in 9.82s]"
+      - "6 of 6 PASS {test} ............................................ [PASS in 1.12s]"
+      - "Done. PASS=6 WARN=0 ERROR=0 SKIP=0 TOTAL=6"
+  - run: sqlfluff lint {file}
+    output:
+      - "All Finished!"
+    failure:
+      - "== [{file}] FAIL"
+      - "L:  14 | P:   5 | AM04 | Query produces an unknown number of result columns."
+      - "L:  27 | P:  12 | RF02 | Unqualified reference \"amount\" found in select with more than one referenced table."
+      - "All Finished!"
+  - run: dbt docs generate
+    output:
+      - "Found 14 models, 32 tests, 2 sources"
+      - "Building catalog"
+      - "Catalog written to target/catalog.json"
 edits:
   - from: "SELECT order_id,"
     to: "SELECT DISTINCT order_id,"
@@ -36,3 +71,14 @@ edits:
     to: "LEFT JOIN payments USING (order_id)"
   - to: "GROUP BY customer_id"
   - to: "-- grain: one row per order"
+  - to: "{{ config(materialized='incremental', unique_key='order_id') }}"
+  - to: "{% if is_incremental() %} WHERE updated_at > (SELECT MAX(updated_at) FROM {{ this }}) {% endif %}"
+  - from: "SELECT *"
+    to: "SELECT order_id, customer_id, amount, created_at"
+  - from: "o.total AS order_total"
+    to: "o.total_amount AS order_total"
+  - to: "QUALIFY ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY updated_at DESC) = 1"
+  - from: "CAST(created_at AS DATE)"
+    to: "DATE(created_at AT TIME ZONE 'UTC')"
+  - to: "      - not_null"
+  - to: "      - unique"

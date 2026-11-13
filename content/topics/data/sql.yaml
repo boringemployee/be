@@ -1,0 +1,50 @@
+tasks:
+  - "Add the missing index behind the slow {module} query"
+  - "Rewrite the {module} report query to avoid a full scan"
+  - "Write a migration to backfill {module} columns"
+  - "Fix the deadlock between {module} writers"
+  - "Partition the {module} table by month"
+files:
+  - db/migrations/0142_add_orders_index.sql
+  - db/migrations/0143_partition_events.sql
+  - db/queries/revenue_by_region.sql
+  - db/queries/active_subscriptions.sql
+  - db/migrations/0144_backfill_currency.sql
+commands:
+  - run: psql analytics -f db/queries/explain_revenue_by_region.sql
+    output:
+      - "Hash Join  (cost=1204.55..48211.90 rows=91822 width=48) (actual time=12.4..184.2 rows=90114 loops=1)"
+      - "  ->  Index Scan using orders_created_at_idx on orders  (actual time=0.03..61.8 rows=90114 loops=1)"
+      - "Planning Time: 0.812 ms"
+      - "Execution Time: 191.447 ms"
+    failure:
+      - "Hash Join  (cost=1204.55..412811.90 rows=91822 width=48) (actual time=12.4..4881.2 rows=90114 loops=1)"
+      - "  ->  Seq Scan on orders  (actual time=0.02..4210.6 rows=1284551 loops=1)"
+      - "        Filter: (created_at >= '2026-07-01')"
+      - "        Rows Removed by Filter: 1194437"
+      - "Execution Time: 4903.118 ms"
+  - run: make migrate-up
+    output:
+      - "applying 0142_add_orders_index.sql ... ok (8.4s)"
+      - "applying 0143_partition_events.sql ... ok (21.7s)"
+      - "database is at version 143"
+    failure:
+      - "applying 0142_add_orders_index.sql ... ok (8.4s)"
+      - "applying 0143_partition_events.sql ... failed"
+      - "ERROR:  deadlock detected"
+      - "DETAIL:  Process 48211 waits for ShareLock on transaction 9912284"
+  - run: sqlfluff lint db/queries
+    output:
+      - "All Finished!"
+edits:
+  - to: "CREATE INDEX CONCURRENTLY orders_created_at_idx ON orders (created_at);"
+  - from: "WHERE DATE(created_at) >= '2026-07-01'"
+    to: "WHERE created_at >= '2026-07-01'"
+  - to: "CREATE TABLE events_2026_11 PARTITION OF events FOR VALUES FROM ('2026-11-01') TO ('2026-12-01');"
+  - from: "SELECT * FROM subscriptions"
+    to: "SELECT id, customer_id, status, renews_at FROM subscriptions"
+  - to: "UPDATE orders SET currency = 'USD' WHERE currency IS NULL AND id BETWEEN $1 AND $2;"
+  - from: "LOCK TABLE orders;"
+    to: "SET lock_timeout = '5s';"
+  - from: "NOT IN (SELECT customer_id FROM churned)"
+    to: "NOT EXISTS (SELECT 1 FROM churned c WHERE c.customer_id = o.customer_id)"

@@ -2,10 +2,15 @@ tasks:
   - "Review permissions for {module}"
   - "Tighten the network policy for {module}"
   - "Rotate the API keys used by {module}"
+  - "Drop unneeded Linux capabilities from {module}"
+  - "Restrict egress traffic from {module}"
+  - "Enforce the restricted pod security standard for {module}"
 files:
   - config/permissions.yaml
   - deploy/policies/network.yaml
   - deploy/policies/pod-security.yaml
+  - deploy/policies/egress.yaml
+  - config/rbac/admin-role.yaml
 commands:
   - run: trivy config deploy
     output:
@@ -14,12 +19,27 @@ commands:
       - "{file} (kubernetes)"
       - "Tests: 41 (SUCCESSES: 40, FAILURES: 1)"
       - "HIGH: Container should not be privileged"
+      - "  KSV017: Privileged containers share namespaces with the host system"
   - run: conftest test deploy/policies
     output:
       - "5 tests, 5 passed, 0 warnings, 0 failures, 0 exceptions"
     failure:
       - "FAIL - {file} - network policy allows all ingress"
       - "5 tests, 4 passed, 0 warnings, 1 failure, 0 exceptions"
+  - run: kubectl auth can-i --list --as=system:serviceaccount:staging:{module}
+    output:
+      - "Resources         Non-Resource URLs   Resource Names   Verbs"
+      - "configmaps        []                  []               [get list watch]"
+      - "secrets           []                  [api-secrets]    [get]"
+    failure:
+      - "Resources         Non-Resource URLs   Resource Names   Verbs"
+      - "*.*               []                  []               [*]"
+  - run: kube-bench run --targets node
+    output:
+      - "== Summary node =="
+      - "21 checks PASS"
+      - "0 checks FAIL"
+      - "2 checks WARN"
 edits:
   - from: "role: admin"
     to: "role: read-only"
@@ -30,3 +50,11 @@ edits:
     to: "  - from: [{ podSelector: { matchLabels: { app: api } } }]"
   - from: "keyRotationDays: 365"
     to: "keyRotationDays: 90"
+  - to: "capabilities: { drop: [\"ALL\"] }"
+  - from: "privileged: true"
+    to: "privileged: false"
+  - to: "pod-security.kubernetes.io/enforce: restricted"
+  - from: "  verbs: [\"*\"]"
+    to: "  verbs: [\"get\", \"list\", \"watch\"]"
+  - to: "policyTypes: [Ingress, Egress]"
+  - to: "seccompProfile: { type: RuntimeDefault }"
