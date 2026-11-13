@@ -37,7 +37,7 @@ commands:
     failure:
       - "Failure in test {test}"
       - "  Got 3 results, configured to fail if != 0"
-      - "  compiled code at target/compiled/analytics/tests/{test}.sql"
+      - "  See target/run_results.json for the failing rows"
       - "Done. PASS=11 WARN=0 ERROR=1 SKIP=0 TOTAL=12"
   - run: dbt build --select +{module}
     output:

@@ -48,3 +48,16 @@ func TestCheckText(t *testing.T) {
 		}
 	}
 }
+
+func TestGiveaways(t *testing.T) {
+	for _, s := range []string{"Fake mode on", "I only pretend to work", "a parody", "look busy", "Pretending"} {
+		if !Giveaways.MatchString(s) {
+			t.Errorf("%q should be flagged", s)
+		}
+	}
+	for _, s := range []string{"boringemployee", "Faker library", "Session ended."} {
+		if Giveaways.MatchString(s) {
+			t.Errorf("%q should not be flagged", s)
+		}
+	}
+}

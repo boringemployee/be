@@ -22,6 +22,10 @@ var (
 	base64RE = regexp.MustCompile(`[A-Za-z0-9+/=_-]{40,}`)
 	pipeRE   = regexp.MustCompile(`\|\s*(sudo\s+)?(sh|bash|zsh|fish|python[0-9.]*|perl|ruby|node|pwsh|powershell)\b`)
 
+	// Giveaways must never appear in anything the UI shows: sessions should
+	// look like real agent output.
+	Giveaways = regexp.MustCompile(`(?i)\b(fake|faking|pretend\w*|parod\w*|joke|look(ing)? busy|not real|boring)\b`)
+
 	dangerous = []string{
 		"rm -rf", "rm -fr", "sudo ", "mkfs", "dd if=", ":(){", "chmod 777", "chmod -r 777",
 		"curl ", "wget ", "invoke-webrequest", "iwr ", "nc -e", "/dev/tcp", "> /dev/sd",

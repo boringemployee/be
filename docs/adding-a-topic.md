@@ -112,5 +112,10 @@ make golden && make test
   piping into a shell or interpreter, `base64 -d`, and similar.
 - No URLs, IP addresses (use host names or plain words), encoded blobs or control characters.
 - Unknown placeholders and unknown fields fail; packs cannot have a `description`.
+- Each pack needs at least 3 tasks, 3 files and 4 edits.
+- No giveaway words ("fake", "pretend", "parody", ...) and no real AI tool, model or office
+  app names (use file names and generic words instead).
+- Lines are checked again after placeholders are filled, so a long `{test}` name can still
+  make a line too long or look like an encoded blob.
 - Keep it office-safe and realistic: it should read like real work, with no giveaway words
   such as "fake" or "pretend" (the golden tests check this).

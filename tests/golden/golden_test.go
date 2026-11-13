@@ -8,7 +8,6 @@ import (
 	"flag"
 	"os"
 	"path/filepath"
-	"regexp"
 	"testing"
 
 	"github.com/boringemployee/be/content"
@@ -30,13 +29,9 @@ func TestGolden(t *testing.T) {
 	}
 }
 
-// giveaways must never appear in anything the UI shows: sessions should look
-// like real agent output.
-var giveaways = regexp.MustCompile(`(?i)\b(fake|faking|pretend\w*|parod\w*|joke|look(ing)? busy|not real|boring)\b`)
-
 func check(t *testing.T, name, got string) {
 	t.Helper()
-	if m := giveaways.FindString(got); m != "" {
+	if m := profile.Giveaways.FindString(got); m != "" {
 		t.Errorf("%s: UI text contains the giveaway word %q", name, m)
 	}
 	path := filepath.Join("testdata", name)
@@ -55,18 +50,5 @@ func check(t *testing.T, name, got string) {
 	}
 	if string(want) != got {
 		t.Errorf("%s differs from golden file; run make golden and review the diff", name)
-	}
-}
-
-func TestGiveawayPattern(t *testing.T) {
-	for _, s := range []string{"Fake mode on", "I only pretend to work", "a parody", "look busy", "Pretending"} {
-		if !giveaways.MatchString(s) {
-			t.Errorf("%q should be flagged", s)
-		}
-	}
-	for _, s := range []string{"boringemployee", "Faker library", "Session ended."} {
-		if giveaways.MatchString(s) {
-			t.Errorf("%q should not be flagged", s)
-		}
 	}
 }
