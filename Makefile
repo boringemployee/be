@@ -17,6 +17,7 @@ web: ## Build the static web app into web/dist
 	cp "$$(go env GOROOT)/lib/wasm/wasm_exec.js" web/dist/
 	cp web/node_modules/@xterm/xterm/lib/xterm.js web/node_modules/@xterm/xterm/css/xterm.css web/dist/
 	cp $(WEB_FILES) web/dist/
+	cp install.sh web/dist/install.sh
 
 serve: web ## Serve web/dist on http://localhost:8080 with production headers
 	node tests/web/serve.mjs web/dist 8080

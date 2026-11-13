@@ -9,3 +9,7 @@
 
 /*.wasm
   Content-Type: application/wasm
+
+# Shown as text when opened in a browser, so people can read it before running it.
+/install.sh
+  Content-Type: text/plain; charset=utf-8

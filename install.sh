@@ -1,8 +1,8 @@
 #!/bin/sh
 # Installs be. Read it before running it; it is short on purpose.
 #
-#   curl -fsSL https://raw.githubusercontent.com/boringemployee/be/main/install.sh | sh
-#   curl -fsSL https://raw.githubusercontent.com/boringemployee/be/main/install.sh | sh -s -- v0.1.0
+#   curl -fsSL https://be.boringemployee.com/install.sh | sh
+#   curl -fsSL https://be.boringemployee.com/install.sh | sh -s -- v0.1.0
 #
 # With Go 1.21 or newer installed, it runs "go install". Otherwise it downloads
 # the release archive for this OS and CPU, checks its SHA-256 against the

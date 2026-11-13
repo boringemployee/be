@@ -52,29 +52,31 @@ three parameters are read, and each is checked against an allowlist.
 Install the latest version on Linux or macOS:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/boringemployee/be/main/install.sh | sh
+curl -fsSL https://be.boringemployee.com/install.sh | sh
 ```
 
 With Go 1.21+ installed it runs `go install`; otherwise it downloads the release for your OS
 and CPU, verifies its checksum (and signature, if `cosign` is installed) and installs `be`
-into `~/.local/bin`. [Read the script](install.sh) first; it is short.
+into `~/.local/bin`. [Read the script](https://be.boringemployee.com/install.sh) first; it is short.
+The same script is also available from GitHub:
+`https://raw.githubusercontent.com/boringemployee/be/main/install.sh`.
 
 Install a specific version:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/boringemployee/be/main/install.sh | sh -s -- v0.1.0
+curl -fsSL https://be.boringemployee.com/install.sh | sh -s -- v0.1.0
 ```
 
 Download the release binary even when Go is installed:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/boringemployee/be/main/install.sh | BE_METHOD=binary sh
+curl -fsSL https://be.boringemployee.com/install.sh | BE_METHOD=binary sh
 ```
 
 Install into another folder, such as `/usr/local/bin`:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/boringemployee/be/main/install.sh | BE_INSTALL_DIR=/usr/local/bin sudo -E sh
+curl -fsSL https://be.boringemployee.com/install.sh | BE_INSTALL_DIR=/usr/local/bin sudo -E sh
 ```
 
 Install with Go directly:
