@@ -1,0 +1,39 @@
+
+ [38;2;144;70;255m  ▄██▄ [0m   [1mWelcome to Kiwi CLI [0m[2mv1.3.0[0m
+ [38;2;144;70;255m ██◉██▶[0m   [2mSpec-driven development[0m
+ [38;2;144;70;255m ▀███▀ [0m   [2mUsing model: Clawed Sunnet 4.5-ish[0m
+ [38;2;144;70;255m  ▌ ▌  [0m   [2m~[0m
+
+ [38;2;144;70;255m▎[0m [1mDid you know?[0m
+ [38;2;144;70;255m▎[0m [2mYou can run <topic> to generate specs, steering docs and tasks for a[0m
+ [38;2;144;70;255m▎[0m [2mfeature.[0m
+
+ [2m/help all commands  ·  esc stop  ·  ctrl+c exit[0m
+
+[2m> help[0m
+  Commands:
+    run <topic>   work on tasks for a topic
+    run a b c     work across several topics
+    topics        list topics
+    help          show this help
+    exit          leave the session
+  Keys:
+    Esc           stop the current task
+    Ctrl+C        exit
+[2m> topics[0m
+  Topics:
+    sample         Fixed topic for rendering tests
+[2m> run[0m
+  [31m✗[0m [31musage: run <topic> [topic...][0m
+  Topics:
+    sample         Fixed topic for rendering tests
+[2m> run nope[0m
+  [31m✗[0m [31munknown topic "nope"[0m
+  Topics:
+    sample         Fixed topic for rendering tests
+[2m> hello[0m
+  Start a task with: run <topic>
+  Type 'topics' to list topics or 'help' for commands.
+[2m> exit[0m
+
+[2mSession ended.[0m

@@ -1,0 +1,35 @@
+# A small, fixed topic for the render stage golden files. Keep it stable:
+# changing it rewrites every file in testdata/render.
+description: Fixed topic for rendering tests
+tasks:
+  - "Fix the retry logic in {module}"
+  - "Make {test} pass again"
+  - "Add error handling to {file}"
+files:
+  - internal/queue/worker.go
+  - internal/queue/retry.go
+  - internal/queue/worker_test.go
+modules:
+  - queue
+  - billing
+tests:
+  - TestRetryBackoff
+  - TestWorkerShutdown
+commands:
+  - run: go test ./internal/{module}/...
+    output:
+      - "ok   example.com/app/internal/{module}   0.412s"
+    failure:
+      - "--- FAIL: {test} (0.31s)"
+      - "    {file}:128: got 2 retries, want 3"
+      - "FAIL example.com/app/internal/{module}   0.433s"
+  - run: go vet ./...
+    output: []
+edits:
+  - from: "return err"
+    to: "return fmt.Errorf(\"process job: %w\", err)"
+  - from: "retries := 0"
+    to: "retries := 3"
+  - to: "defer cancel()"
+  - from: "time.Sleep(time.Second)"
+    to: "backoff = min(backoff*2, maxBackoff)"

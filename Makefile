@@ -1,7 +1,7 @@
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 LDFLAGS := -s -w -X github.com/boringemployee/be/internal/version.Version=$(VERSION)
 
-.PHONY: all cli web serve e2e dist install-test test cover fuzz golden lint clean
+.PHONY: all cli web serve e2e dist install-test test cover fuzz golden golden-render golden-content lint clean
 
 all: lint test cover cli
 
@@ -61,8 +61,13 @@ fuzz: ## Run each fuzz test briefly
 	go test -run='^$$' -fuzz=FuzzParse -fuzztime=30s ./internal/profile
 	go test -run='^$$' -fuzz=FuzzHandleLine -fuzztime=30s ./internal/engine
 
-golden: ## Regenerate golden files; review the diff before committing
-	go test ./tests/golden -update
+golden: golden-render golden-content ## Regenerate all golden files; review the diff before committing
+
+golden-render: ## Regenerate render golden files (engine, renderer, agents)
+	go test ./tests/golden -run '^TestGoldenRender$$' -update
+
+golden-content: ## Regenerate content golden files (shipped topics)
+	go test ./tests/golden -run '^TestGoldenContent$$' -update
 
 lint: ## Vet and check formatting
 	go vet ./...

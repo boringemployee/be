@@ -39,11 +39,12 @@ are dropped.
 ## 4. Test and record golden files
 
 ```sh
-make golden   # records myagent_preview.ansi, commands and one topic run
+make golden   # records preview, commands and a run in render/, and a mixed run in content/
 make test
 ```
 
-Review the new files in `tests/golden/testdata/`; the `.events` files are readable text.
+Review the new files in `tests/golden/testdata/render/` and `content/`; the `.events` files
+are readable text.
 
 ## Rules (CI enforces them)
 

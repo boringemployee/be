@@ -103,8 +103,11 @@ repeat forever, and the same `--seed` always produces the same sequence.
 go run ./cmd/be preview claude mytopic
 go run ./cmd/be preview claude mytopic --seed 7   # other seeds show other packs
 go run ./cmd/be claude                            # then: run mytopic
-make golden && make test
+make golden-content && make test
 ```
+
+Topic changes only touch `tests/golden/testdata/content/`. Review the `.events` diff of your
+topic; it is readable text. The `*_mixed_seed42.ansi` files also change and can be skimmed.
 
 ## Rules (CI enforces them)
 
