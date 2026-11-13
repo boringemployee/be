@@ -83,7 +83,11 @@ commands:
 
 - `output` may be empty: many tools print nothing when everything is fine.
 - Only commands with `failure` lines ever fail; a failed run is followed by a fix and a rerun.
+- `run`, `output` and `failure` may use `{file}`, `{module}` and `{test}`, e.g.
+  `run: hadolint {file}`.
 - `{file}` is the file the task edited, so errors point at the changed code.
+- Each task picks one module and one test, so its title, commands and output all name the
+  same ones.
 - At most 8 lines each. Copy the format of real output; that is what makes it convincing.
 
 ## How a task is generated
