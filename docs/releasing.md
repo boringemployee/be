@@ -12,7 +12,7 @@ Project settings (Workers & Pages > your project > Settings > Build):
 | --- | --- |
 | Production branch | `main` |
 | Framework preset | None |
-| Build command | `go test ./... && make web` |
+| Build command | `make web` |
 | Build output directory | `web/dist` |
 | Root directory | *(empty)* |
 
@@ -23,9 +23,29 @@ Environment variables (Settings > Variables and Secrets, for Production and Prev
 | `GOTOOLCHAIN` | `auto` | Lets the build image's Go download Go 1.27, as `go.mod` requires |
 | `NODE_VERSION` | `22` | Node.js for `npm ci` (xterm.js) |
 
-The build command runs the Go tests, including golden files (without the race detector, which
-needs a C compiler; GitHub CI runs that), before building, so a failing test fails the deploy. Security
+Cloudflare only builds; it does not test. Tests are enforced before anything reaches
+`main` (see below), so every commit Cloudflare deploys has already passed CI. Security
 headers, including the CSP, come from `web/_headers`, which is copied into `web/dist`.
+
+## Protecting main
+
+`main` only changes through pull requests that pass CI. One-time setup in GitHub,
+**Settings > Rules > Rulesets > New ruleset > New branch ruleset**:
+
+| Setting | Value |
+| --- | --- |
+| Ruleset name | `protect-main` |
+| Enforcement status | Active |
+| Bypass list | *(empty, so the rules apply to admins too)* |
+| Target branches | Add target > Include default branch |
+| Restrict deletions | on |
+| Block force pushes | on |
+| Require a pull request before merging | on; required approvals: 1 if you have reviewers, otherwise 0; require review from Code Owners if approvals > 0 |
+| Require status checks to pass | on; "Require branches to be up to date before merging" on |
+| Status checks | `Go (lint, tests, coverage, fuzz, vulnerabilities)` and `Web (WebAssembly build and browser tests)` (source: GitHub Actions) |
+
+Direct pushes to `main` are then rejected; every change, including documentation and
+AGENTS.md, goes through a pull request.
 
 ## CLI releases
 
