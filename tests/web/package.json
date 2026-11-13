@@ -3,6 +3,6 @@
   "private": true,
   "description": "Browser tests for the web build (make e2e). Not shipped.",
   "devDependencies": {
-    "playwright": "1.63.0"
+    "playwright": "1.65.0"
   }
 }
