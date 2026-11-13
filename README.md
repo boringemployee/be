@@ -29,7 +29,7 @@ Early development. See the [phases in the design doc](docs/DESIGN.md#phases).
 | `be kiro` | Kiwi CLI | ✅ |
 | `be grok` | Groan CLI | ✅ |
 | `be preview <agent>` | sample screen | ✅ |
-| Web version | all agents | ✅ (deploy in Phase 6) |
+| Web version | all agents | ✅ |
 
 Topics: `data`, `devops`, `engineering`, `frontend`, `security` (type `topics` in a session).
 Mix several with `run devops engineering frontend`: each task picks one of them.
@@ -55,7 +55,9 @@ go install github.com/boringemployee/be/cmd/be@latest
 make cli && ./bin/be --help
 ```
 
-Signed release binaries will be published from Phase 6.
+Or download a binary for Linux, macOS or Windows from
+[Releases](https://github.com/boringemployee/be/releases). Releases are signed; see
+[SECURITY.md](SECURITY.md#verifying-releases) to verify them.
 
 ## Contributing
 

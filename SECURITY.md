@@ -25,5 +25,28 @@ Only the latest release is supported.
 
 ## Verifying releases
 
-From Phase 6, release binaries come with `checksums.txt`, a cosign signature, and GitHub
-build provenance. Instructions will be added here with the first release.
+Releases are built by GitHub Actions from a tagged commit, never by hand. Each release has
+`checksums.txt`, a keyless cosign signature for it, and GitHub build provenance for every
+archive.
+
+```sh
+# 1. The checksums file was signed by this repository's release workflow.
+cosign verify-blob checksums.txt \
+  --bundle checksums.txt.sigstore.json \
+  --certificate-identity-regexp '^https://github.com/boringemployee/be/\.github/workflows/release\.yml@refs/tags/v' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+
+# 2. Your archive matches the signed checksums.
+sha256sum --ignore-missing -c checksums.txt
+
+# 3. Optional: provenance shows which commit and workflow built it.
+gh attestation verify be_v1.2.3_linux_amd64.tar.gz --repo boringemployee/be
+```
+
+## How the pipeline is protected
+
+- Actions are pinned to commit SHAs; workflows default to read-only permissions and never
+  use `pull_request_target` (a test in `internal/guard` enforces this).
+- Releases run in the `release` environment; the web deploy runs in `cloudflare-pages`,
+  which holds the only secrets and is limited to the `main` branch.
+- Dependabot proposes dependency updates weekly; CI and code owner review apply to each.

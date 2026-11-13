@@ -78,4 +78,4 @@ app with a strict CSP.
    - 4a. Layout blocks, `be preview`, layout reference. ✅
    - 4b. Codex, Gemini, Kiro and Grok parodies as YAML only; more topics; guides. ✅
 5. **Web (v0.3)**: WASM build, xterm.js page, shared golden tests. ✅
-6. **CI/CD**: tests, coverage gate, signed releases, Cloudflare Pages deploy.
+6. **CI/CD**: tests, coverage gate, signed releases, Cloudflare Pages deploy. ✅

@@ -1,7 +1,7 @@
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 LDFLAGS := -s -w -X github.com/boringemployee/be/internal/version.Version=$(VERSION)
 
-.PHONY: all cli web serve e2e test cover fuzz golden lint clean
+.PHONY: all cli web serve e2e dist test cover fuzz golden lint clean
 
 all: lint test cover cli
 
@@ -22,7 +22,23 @@ serve: web ## Serve web/dist on http://localhost:8080 with production headers
 	node tests/web/serve.mjs web/dist 8080
 
 e2e: web ## Browser tests: golden files and an interactive session
+	cd tests/web && npm ci --ignore-scripts --no-audit --no-fund
 	node tests/web/e2e.mjs
+
+PLATFORMS := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64 windows/arm64
+
+dist: ## Build release archives and checksums.txt into dist/
+	mkdir -p dist
+	set -e; for p in $(PLATFORMS); do \
+		os=$${p%/*}; arch=$${p#*/}; name=be_$(VERSION)_$${os}_$${arch}; ext=; \
+		[ $$os = windows ] && ext=.exe; \
+		mkdir -p dist/$$name; \
+		CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch go build -trimpath -ldflags "$(LDFLAGS)" -o dist/$$name/be$$ext ./cmd/be; \
+		cp LICENSE README.md dist/$$name/; \
+		if [ $$os = windows ]; then (cd dist && zip -qr $$name.zip $$name); \
+		else tar -C dist -czf dist/$$name.tar.gz $$name; fi; \
+	done
+	cd dist && sha256sum *.tar.gz *.zip > checksums.txt
 
 test: ## Run all tests with the race detector
 	go test -race ./...
@@ -48,4 +64,4 @@ lint: ## Vet and check formatting
 	@test -z "$$(gofmt -l .)" || (gofmt -l . && exit 1)
 
 clean: ## Remove build output
-	rm -rf bin web/dist coverage.out
+	rm -rf bin dist web/dist coverage.out
