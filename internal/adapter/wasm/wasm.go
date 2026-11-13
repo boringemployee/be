@@ -118,11 +118,11 @@ func (a *app) resize(_ js.Value, args []js.Value) any {
 	return nil
 }
 
-// recordings() returns every golden recording as [{file, content}], so a
+// recordings() returns the content stage golden recordings as [{file, content}], so a
 // browser test can compare the web build with the golden files.
 func (a *app) recordings(js.Value, []js.Value) any {
 	var out []any
-	for _, r := range scenario.Recordings(a.cat) {
+	for _, r := range scenario.ContentRecordings(a.cat) {
 		out = append(out, map[string]any{"file": r.File, "content": r.Content})
 	}
 	return js.ValueOf(out)

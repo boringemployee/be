@@ -38,35 +38,48 @@ type Recording struct {
 // PreviewCwd is the folder shown in recorded previews.
 const PreviewCwd = "~/work/project"
 
-// All returns every scenario. It covers every agent and every topic without
-// recording every combination: agents change how events look and topics change
-// which events happen, so each agent runs the first topic, each topic runs the
-// first agent, and one run mixes all topics.
-func All(cat *profile.Catalog) []Scenario {
-	run := func(agent, name, topics string) Scenario {
-		return Scenario{
-			Agent: agent, Name: name, Seed: 42, Width: 80,
-			Actions: []Action{
-				{Line: "run " + topics},
-				{Ticks: 90 * time.Second},
-				{Key: engine.KeyEsc},
-				{Key: engine.KeyCtrlC},
-			},
-		}
+// run is a session that works on topics for 90 seconds, then stops and exits.
+func run(agent, name, topics string) Scenario {
+	return Scenario{
+		Agent: agent, Name: name, Seed: 42, Width: 80,
+		Actions: []Action{
+			{Line: "run " + topics},
+			{Ticks: 90 * time.Second},
+			{Key: engine.KeyEsc},
+			{Key: engine.KeyCtrlC},
+		},
 	}
+}
+
+// Render returns the scenarios that check how each agent looks and behaves:
+// built-in commands and a run of the first topic. Recorded with a small fixed
+// topic, they only change when the engine, the renderer or an agent changes.
+func Render(cat *profile.Catalog) []Scenario {
+	var out []Scenario
+	for _, agent := range cat.AgentNames() {
+		out = append(out,
+			Scenario{
+				Agent: agent, Name: "commands", Seed: 1, Width: 80,
+				Actions: []Action{{Line: "help"}, {Line: "topics"}, {Line: "run"}, {Line: "run nope"}, {Line: "hello"}, {Line: "exit"}},
+			},
+			run(agent, cat.TopicNames()[0], cat.TopicNames()[0]),
+		)
+	}
+	return out
+}
+
+// Content returns the scenarios that check the shipped content: each topic
+// with the first agent, and each agent working across all topics.
+func Content(cat *profile.Catalog) []Scenario {
 	agents, topics := cat.AgentNames(), cat.TopicNames()
 	var out []Scenario
-	for _, agent := range agents {
-		out = append(out, Scenario{
-			Agent: agent, Name: "commands", Seed: 1, Width: 80,
-			Actions: []Action{{Line: "help"}, {Line: "topics"}, {Line: "run"}, {Line: "run nope"}, {Line: "hello"}, {Line: "exit"}},
-		})
-		out = append(out, run(agent, topics[0], topics[0]))
-	}
-	for _, topic := range topics[1:] {
+	for _, topic := range topics {
 		out = append(out, run(agents[0], topic, topic))
 	}
-	return append(out, run(agents[0], "mixed", strings.Join(topics, " ")))
+	for _, agent := range agents {
+		out = append(out, run(agent, "mixed", strings.Join(topics, " ")))
+	}
+	return out
 }
 
 // Play runs a scenario and returns its event log and rendered output.
@@ -110,21 +123,40 @@ func Play(cat *profile.Catalog, sc Scenario) (events, ansi string, err error) {
 	return ev.String(), out.String(), nil
 }
 
-// Recordings returns the content of every golden file: the event log and
-// rendered output of each scenario, and a preview of each agent. Agent names
-// come from cat itself, so playing them cannot fail.
-func Recordings(cat *profile.Catalog) []Recording {
+// file is the base name of a scenario's golden files.
+func file(sc Scenario) string { return fmt.Sprintf("%s_%s_seed%d", sc.Agent, sc.Name, sc.Seed) }
+
+// RenderRecordings returns the render stage golden files: the event log and
+// rendered output of each Render scenario, and a preview of each agent. Agent
+// names come from cat itself, so playing them cannot fail.
+func RenderRecordings(cat *profile.Catalog) []Recording {
 	var out []Recording
-	for _, sc := range All(cat) {
+	for _, sc := range Render(cat) {
 		events, ansi, _ := Play(cat, sc)
-		base := fmt.Sprintf("%s_%s_seed%d", sc.Agent, sc.Name, sc.Seed)
-		out = append(out, Recording{base + ".events", events}, Recording{base + ".ansi", ansi})
+		out = append(out, Recording{file(sc) + ".events", events}, Recording{file(sc) + ".ansi", ansi})
 	}
 	for _, agent := range cat.AgentNames() {
 		eng, _ := engine.New(cat, agent, 42)
 		r := render.New(eng.Agent(), 80)
 		r.SetCwd(PreviewCwd)
 		out = append(out, Recording{agent + "_preview.ansi", r.Preview(eng, cat.TopicNames()[0])})
+	}
+	return out
+}
+
+// ContentRecordings returns the content stage golden files. Topic runs keep
+// only the readable event log, so content diffs are easy to review; mixed
+// runs keep the rendered output, so the web build can prove it matches the
+// CLI byte for byte for every agent.
+func ContentRecordings(cat *profile.Catalog) []Recording {
+	var out []Recording
+	for _, sc := range Content(cat) {
+		events, ansi, _ := Play(cat, sc)
+		if sc.Name == "mixed" {
+			out = append(out, Recording{file(sc) + ".ansi", ansi})
+		} else {
+			out = append(out, Recording{file(sc) + ".events", events})
+		}
 	}
 	return out
 }

@@ -19,31 +19,40 @@ func catalog(t *testing.T) *profile.Catalog {
 
 func TestRecordings(t *testing.T) {
 	cat := catalog(t)
-	recs := Recordings(cat)
-	want := len(All(cat))*2 + len(cat.AgentNames())
-	if len(recs) != want {
-		t.Fatalf("got %d recordings, want %d", len(recs), want)
-	}
-	files := map[string]bool{}
-	for _, r := range recs {
-		if files[r.File] {
-			t.Errorf("duplicate file %s", r.File)
+	agents, topics := len(cat.AgentNames()), len(cat.TopicNames())
+	for _, tc := range []struct {
+		name string
+		recs []Recording
+		want int
+		has  []string
+	}{
+		{"render", RenderRecordings(cat), agents * 5, []string{"claude_commands_seed1.events", "claude_data_seed42.ansi", "gemini_preview.ansi"}},
+		{"content", ContentRecordings(cat), topics + agents, []string{"claude_qa_seed42.events", "codex_mixed_seed42.ansi"}},
+	} {
+		if len(tc.recs) != tc.want {
+			t.Errorf("%s: got %d recordings, want %d", tc.name, len(tc.recs), tc.want)
 		}
-		files[r.File] = true
-		if r.Content == "" {
-			t.Errorf("%s is empty", r.File)
+		files := map[string]bool{}
+		for _, r := range tc.recs {
+			if files[r.File] {
+				t.Errorf("%s: duplicate file %s", tc.name, r.File)
+			}
+			files[r.File] = true
+			if r.Content == "" {
+				t.Errorf("%s: %s is empty", tc.name, r.File)
+			}
 		}
-	}
-	for _, f := range []string{"claude_commands_seed1.events", "claude_mixed_seed42.ansi", "gemini_preview.ansi"} {
-		if !files[f] {
-			t.Errorf("missing %s", f)
+		for _, f := range tc.has {
+			if !files[f] {
+				t.Errorf("%s: missing %s", tc.name, f)
+			}
 		}
 	}
 }
 
 func TestPlayDeterministic(t *testing.T) {
 	cat := catalog(t)
-	sc := All(cat)[1]
+	sc := Render(cat)[1]
 	e1, a1, _ := Play(cat, sc)
 	e2, a2, _ := Play(cat, sc)
 	if e1 != e2 || a1 != a2 {

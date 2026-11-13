@@ -51,8 +51,11 @@ content/{agents,topics/<name>}  web/  tests/golden/  docs/
 
 - Shared packages require **100% coverage**; CI fails below it.
 - Use a fake clock, never real sleeps. Use table-driven, property, and fuzz tests.
-- Golden files in `tests/golden/` are the source of truth; CLI and web must match them.
-  Update them only intentionally with `make golden`.
+- Golden files in `tests/golden/testdata/` are the source of truth, in two stages:
+  `render/` (agents with a fixed test topic; changes only with engine, renderer or agents)
+  and `content/` (shipped topics; the web build must match these byte for byte).
+  Update them only intentionally with `make golden-render`, `make golden-content` or
+  `make golden` for both.
 - Run `make test` before every commit.
 
 ## Commits

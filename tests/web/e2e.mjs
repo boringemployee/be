@@ -1,6 +1,6 @@
 // Browser tests for the web build (run with: make e2e).
 //
-// 1. The WebAssembly build reproduces every golden file byte for byte, which
+// 1. The WebAssembly build reproduces every content golden file byte for byte, which
 //    proves the CLI and the web share identical behavior.
 // 2. An interactive session works: run, Esc, Ctrl+C and restart.
 // 3. Share URL parameters are allowlisted.
@@ -16,7 +16,7 @@ import { serve } from "./serve.mjs";
 // require() finds a globally installed Playwright, which ESM import does not.
 const { chromium } = createRequire(import.meta.url)("playwright");
 
-const GOLDEN = "tests/golden/testdata";
+const GOLDEN = "tests/golden/testdata/content";
 const shots = process.env.SCREENSHOT_DIR;
 let failures = 0;
 

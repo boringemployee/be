@@ -1,0 +1,28 @@
+
+ [38;2;144;70;255m  ▄██▄ [0m   [1mWelcome to Kiwi CLI [0m[2mv1.3.0[0m
+ [38;2;144;70;255m ██◉██▶[0m   [2mSpec-driven development[0m
+ [38;2;144;70;255m ▀███▀ [0m   [2mUsing model: Clawed Sunnet 4.5-ish[0m
+ [38;2;144;70;255m  ▌ ▌  [0m   [2m~/work/project[0m
+
+ [38;2;144;70;255m▎[0m [1mDid you know?[0m
+ [38;2;144;70;255m▎[0m [2mYou can run <topic> to generate specs, steering docs and tasks for a[0m
+ [38;2;144;70;255m▎[0m [2mfeature.[0m
+
+ [2m/help all commands  ·  esc stop  ·  ctrl+c exit[0m
+
+[2m> run sample[0m
+
+[38;2;144;70;255m●[0m [1mAdd error handling to internal/queue/worker_test.go[0m
+  [38;2;144;70;255m→[0m read internal/queue/worker_test.go
+    [2m└[0m [2mRead 88 lines[0m
+  [38;2;144;70;255m→[0m edit internal/queue/worker_test.go
+    [2m 196[0m [32m+ defer cancel()[0m
+    [2m 233[0m [31m- time.Sleep(time.Second)[0m
+    [2m 233[0m [32m+ backoff = min(backoff*2, maxBackoff)[0m
+  [38;2;144;70;255m→[0m run go test ./internal/billing/...
+      [32mok   example.com/app/internal/billing   0.412s[0m
+[32m●[0m Task complete. Requirements met, design updated, specs in sync.
+
+                                                                               
+[2m───────────────────────────────────────────────────────────────────────────────[0m
+[38;2;144;70;255m>[0m 
