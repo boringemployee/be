@@ -1,0 +1,30 @@
+# Parody profile. Inspired by the general feel of agent CLIs; no real logos or text.
+name: claude
+title: Claude-ish Code (parody)
+banner:
+  - "╭──────────────────────────────────────────╮"
+  - "│ * Welcome to Claude-ish Code             │"
+  - "│   Definitely working. Please don't look. │"
+  - "╰──────────────────────────────────────────╯"
+prompt: "> "
+accent: "#D97757"
+spinner: ["◐", "◓", "◑", "◒"]
+thinking_words:
+  - Pondering
+  - Ruminating
+  - Percolating
+  - Noodling
+  - Synthesizing
+  - Overthinking
+  - Cogitating
+  - Marinating
+  - Contemplating the codebase
+  - Consulting the rubber duck
+layout: boxed
+greeting: "Type 'run <topic>' to look busy, or 'help' for commands."
+done_messages:
+  - "Done. All tests pass. I also tidied up a few things nobody asked about."
+  - "Finished. The change is small, focused, and suspiciously elegant."
+  - "Complete. I left the code slightly better than I found it."
+  - "All set. Moving on to the next item before anyone notices."
+stopped_message: "Interrupted. What should I do instead?"

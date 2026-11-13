@@ -1,0 +1,61 @@
+name: engineering
+description: Refactors, bug fixes and flaky tests
+tasks:
+  - "Refactor {module} to remove a circular import"
+  - "Fix flaky test {test}"
+  - "Add retry with backoff to {module}"
+  - "Reduce allocations in {file}"
+  - "Replace deprecated API calls in {module}"
+  - "Add missing error handling in {file}"
+  - "Split {file} into smaller functions"
+  - "Make {test} deterministic"
+files:
+  - internal/auth/session.go
+  - internal/cache/lru.go
+  - internal/billing/invoice.go
+  - internal/queue/worker.go
+  - pkg/config/loader.go
+  - api/handlers/users.go
+  - cmd/server/main.go
+  - internal/storage/postgres.go
+modules:
+  - auth
+  - cache
+  - billing
+  - queue-worker
+  - config-loader
+  - storage
+tests:
+  - TestSessionExpiry
+  - TestLRUEviction
+  - TestInvoiceRounding
+  - TestWorkerShutdown
+  - TestConfigOverrides
+  - TestUserPagination
+commands:
+  - go test ./...
+  - go vet ./...
+  - make build
+  - make lint
+logs:
+  - "ok   internal/auth      0.412s"
+  - "ok   internal/cache     0.087s"
+  - "ok   pkg/config         0.031s"
+  - "--- checking {file}"
+  - "compiling 42 packages"
+  - "lint: 0 issues"
+  - "coverage: 87.3% of statements"
+  - "warning: unused variable in {file} (ignored)"
+edits:
+  - "if err != nil {"
+  - "    return nil, fmt.Errorf(\"load config: %w\", err)"
+  - "ctx, cancel := context.WithTimeout(ctx, 5*time.Second)"
+  - "defer cancel()"
+  - "for i := range items {"
+  - "mu.Lock()"
+  - "defer mu.Unlock()"
+  - "cache.Set(key, value, ttl)"
+  - "return result, nil"
+  - "// TODO: revisit after the reorg"
+  - "backoff := min(backoff*2, maxBackoff)"
+  - "select { case <-ctx.Done(): return ctx.Err() }"
