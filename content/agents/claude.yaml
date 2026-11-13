@@ -1,20 +1,32 @@
-# Parody profile. Mimics the layout of agent CLIs with original art and wording.
+# Parody of a terminal coding agent. Mimics the layout with original art and wording.
 name: claude
 title: Clock Code
 version: v0.4.2
-mascot:
-  - " ▄▀▀▀▄ "
-  - "█  █▄ █"
-  - " ▀▄▄▄▀ "
-header:
-  - "Magnum Opus 5 (1M context) with low effort · Boring Pro"
-  - "{cwd}"
-notice:
-  - "Fake mode is now Clock Code's default permission mode."
-  - "Fake mode lets Clock Code skip every tool call. Nothing runs, nothing changes, and the progress keeps moving anyway."
-  - "Type 'run <topic>' to look busy, or 'help' for commands."
-prompt: "❯ "
 accent: "#D97757"
+
+welcome:
+  - header:
+      art:
+        - " ▄▀▀▀▄ "
+        - "█  █▄ █"
+        - " ▀▄▄▄▀ "
+      lines:
+        - "{title} {version}"
+        - "Magnum Opus 5 (1M context) with low effort · Boring Pro"
+        - "{cwd}"
+  - notice:
+      - "Fake mode is now {title}'s default permission mode."
+      - "Fake mode lets {title} skip every tool call. Nothing runs, nothing changes, and the progress keeps moving anyway."
+      - "Type 'run <topic>' to look busy, or 'help' for commands."
+
+live:
+  - status: { idle: "○ low · /effort" }
+  - input: { style: ruled, marker: "❯" }
+  - footer:
+      highlight: "▸▸ fake mode on"
+      left: "(shift+tab does nothing) · esc to stop"
+
+tools: boxed
 spinner: ["◐", "◓", "◑", "◒"]
 thinking_words:
   - Pondering
@@ -27,10 +39,6 @@ thinking_words:
   - Marinating
   - Contemplating the codebase
   - Consulting the rubber duck
-layout: boxed
-status_right: "○ low · /effort"
-footer_mode: "▸▸ fake mode on"
-footer_hint: "(shift+tab does nothing) · esc to stop"
 done_messages:
   - "Done. All tests pass. I also tidied up a few things nobody asked about."
   - "Finished. The change is small, focused, and suspiciously elegant."

@@ -45,10 +45,10 @@ func (e *Engine) Agent() *profile.Agent { return e.agent }
 
 // Start returns the welcome screen and first prompt.
 func (e *Engine) Start() []Event {
-	return []Event{{Kind: EventWelcome, Text: e.agent.Title, Lines: e.agent.Notice}, e.prompt()}
+	return []Event{{Kind: EventWelcome, Text: e.agent.Title}, e.prompt()}
 }
 
-func (e *Engine) prompt() Event { return Event{Kind: EventPrompt, Text: e.agent.Prompt} }
+func (e *Engine) prompt() Event { return Event{Kind: EventPrompt, Text: e.agent.InputBlock().Marker} }
 
 // HandleKey reacts to Esc (stop the task) and Ctrl+C (exit).
 func (e *Engine) HandleKey(k Key) []Event {

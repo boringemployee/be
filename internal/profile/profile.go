@@ -17,36 +17,21 @@ import (
 	"go.yaml.in/yaml/v3"
 )
 
-// Layout names the ways an agent can present tool calls.
-type Layout string
-
-// Supported layouts.
-const (
-	LayoutBoxed  Layout = "boxed"
-	LayoutInline Layout = "inline"
-)
-
 // Agent describes how a fake agent looks and talks.
 type Agent struct {
 	Name    string `yaml:"name"`
 	Title   string `yaml:"title"`
 	Version string `yaml:"version"`
-	// Mascot is a small original pixel-art icon shown left of the header.
-	Mascot []string `yaml:"mascot"`
-	// Header lines appear under "Title Version"; {cwd} is the current folder.
-	Header []string `yaml:"header"`
-	// Notice is a highlighted block under the header; the first line is bold.
-	Notice         []string `yaml:"notice"`
-	Prompt         string   `yaml:"prompt"`
-	Accent         string   `yaml:"accent"`
-	Spinner        []string `yaml:"spinner"`
-	ThinkingWords  []string `yaml:"thinking_words"`
-	Layout         Layout   `yaml:"layout"`
-	StatusRight    string   `yaml:"status_right"`
-	FooterMode     string   `yaml:"footer_mode"`
-	FooterHint     string   `yaml:"footer_hint"`
-	DoneMessages   []string `yaml:"done_messages"`
-	StoppedMessage string   `yaml:"stopped_message"`
+	Accent  string `yaml:"accent"`
+	// Welcome is drawn once at the start; Live is the area redrawn under
+	// the output (status, input, footer).
+	Welcome        []Block   `yaml:"welcome"`
+	Live           []Block   `yaml:"live"`
+	Tools          ToolStyle `yaml:"tools"`
+	Spinner        []string  `yaml:"spinner"`
+	ThinkingWords  []string  `yaml:"thinking_words"`
+	DoneMessages   []string  `yaml:"done_messages"`
+	StoppedMessage string    `yaml:"stopped_message"`
 }
 
 // Topic describes the fake work done by "run <topic>".
@@ -205,28 +190,12 @@ func (a *Agent) validate() error {
 	if !versionRE.MatchString(a.Version) {
 		c.fail("version: %q must look like v1.2.3", a.Version)
 	}
-	c.listMax("mascot", a.Mascot, 0, 6)
-	c.listMax("header", a.Header, 0, 4)
-	for i, h := range a.Header {
-		for _, m := range placeholderRE.FindAllStringSubmatch(h, -1) {
-			if m[1] != "cwd" {
-				c.fail("header[%d]: unknown placeholder {%s}", i, m[1])
-			}
-		}
-	}
-	c.listMax("notice", a.Notice, 1, 6)
-	c.str("prompt", a.Prompt, true)
 	if !colorRE.MatchString(a.Accent) {
 		c.fail("accent: %q must be a #rrggbb color", a.Accent)
 	}
+	c.layout(a)
 	c.list("spinner", a.Spinner, 1)
 	c.list("thinking_words", a.ThinkingWords, 1)
-	if a.Layout != LayoutBoxed && a.Layout != LayoutInline {
-		c.fail("layout: %q must be %q or %q", a.Layout, LayoutBoxed, LayoutInline)
-	}
-	c.str("status_right", a.StatusRight, false)
-	c.str("footer_mode", a.FooterMode, false)
-	c.str("footer_hint", a.FooterHint, false)
 	c.list("done_messages", a.DoneMessages, 1)
 	c.str("stopped_message", a.StoppedMessage, true)
 	return errors.Join(c.errs...)

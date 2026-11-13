@@ -40,6 +40,10 @@
   golden files compare CLI and web byte for byte.
 - **`x/term` instead of a TUI framework.** Agent CLIs are mostly scrolling text with a live
   line at the bottom; a full-screen framework adds dependencies without benefit.
+- **Layouts are data.** Each agent's look is a list of blocks in YAML (header, banner, card,
+  notice, list, text, rule; status, input, footer) interpreted by `internal/render`. A new
+  agent needs no Go code; a new block type is written once and reusable by every agent.
+  See [layout.md](layout.md).
 - **Deterministic runs** from a seed and a fake clock: reproducible tests and share URLs
   (`?agent=claude&topic=engineering&seed=42`).
 
@@ -70,6 +74,8 @@ app with a strict CSP.
 1. **Foundation**: module, Makefile, docs, templates. ✅
 2. **Core engine**: engine, generator, profile, first YAML, 100% coverage. ✅
 3. **Renderer + CLI (v0.1)**: `be claude`, `run engineering`, golden tests. ✅
-4. **More agents and topics (v0.2)**: codex, kiro, more topics, contributor guides.
+4. **More agents and topics (v0.2)**
+   - 4a. Layout blocks, `be preview`, layout reference. ✅
+   - 4b. Codex, Gemini, Kiro and Grok parodies as YAML only; more topics; guides.
 5. **Web (v0.3)**: WASM build, xterm.js page, shared golden tests.
 6. **CI/CD**: tests, coverage gate, signed releases, Cloudflare Pages deploy.

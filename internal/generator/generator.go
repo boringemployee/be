@@ -99,8 +99,9 @@ func (g *Generator) edit(t *profile.Topic, file string) Step {
 
 func (g *Generator) logs(t *profile.Topic, ok bool) []string {
 	var lines []string
-	for range 2 + g.rng.IntN(3) {
-		lines = append(lines, g.fill(pick(g, t.Logs), t, pick(g, t.Files)))
+	order := g.rng.Perm(len(t.Logs))
+	for _, i := range order[:min(2+g.rng.IntN(3), len(order))] {
+		lines = append(lines, g.fill(t.Logs[i], t, pick(g, t.Files)))
 	}
 	if ok {
 		return append(lines, "PASS "+pick(g, t.Tests))

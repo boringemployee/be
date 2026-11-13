@@ -17,7 +17,8 @@ make web    # build the web playground (from Phase 5)
 ## Easiest contributions: agents and topics
 
 A new agent or topic is **one YAML file** in `content/`, with no Go code needed.
-Guides arrive with Phase 4:
+Agent layouts are described in [docs/layout.md](docs/layout.md); check yours with
+`go run ./cmd/be preview <agent>`. More guides arrive with Phase 4b:
 
 - `docs/adding-an-agent.md`
 - `docs/adding-a-topic.md`

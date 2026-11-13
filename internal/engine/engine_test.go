@@ -45,7 +45,7 @@ func TestStart(t *testing.T) {
 	if got := kinds(ev); !reflect.DeepEqual(got, []Kind{EventWelcome, EventPrompt}) {
 		t.Fatalf("Start kinds = %v", got)
 	}
-	if ev[0].Text != e.Agent().Title || len(ev[0].Lines) != len(e.Agent().Notice) {
+	if ev[0].Text != e.Agent().Title || ev[1].Text != "❯" {
 		t.Errorf("welcome = %+v", ev[0])
 	}
 }

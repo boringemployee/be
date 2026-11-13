@@ -3,15 +3,10 @@
 // It is the only package allowed to produce escape sequences. Both the CLI and
 // the web frontend print its output unchanged, so they look identical.
 //
-// Output has two parts: permanent lines produced by Event, which scroll up,
-// and a live area produced by Live, which sits below them and is redrawn in
-// place:
-//
-//	◐ Pondering… (3s · Esc to stop)      or      right-aligned status
-//	─────────────────────────────────────
-//	❯ typed input█
-//	─────────────────────────────────────
-//	  ▸▸ mode · hints
+// The look of each agent comes from its layout in YAML: a list of welcome
+// blocks drawn once, and live blocks (status, input, footer, rules) drawn
+// under the output and redrawn in place. This package interprets those blocks;
+// adding an agent needs no Go code.
 package render
 
 import (
@@ -42,20 +37,18 @@ const (
 // MinWidth is the narrowest width the renderer lays out for.
 const MinWidth = 20
 
-// liveInputRow is the row of the input line within the live area (0-based).
-const liveInputRow = 2
-
 // Renderer formats events for one agent at a given terminal width.
 type Renderer struct {
-	agent  *profile.Agent
-	accent string
-	width  int
-	cwd    string
+	agent    *profile.Agent
+	accent   string
+	width    int
+	cwd      string
+	inputRow int // row of the input line in the last live area drawn
 }
 
 // New returns a renderer for agent at width columns.
 func New(agent *profile.Agent, width int) *Renderer {
-	r := &Renderer{agent: agent, accent: accentCode(agent.Accent), cwd: "~"}
+	r := &Renderer{agent: agent, accent: colorCode(agent.Accent), cwd: "~"}
 	r.SetWidth(width)
 	return r
 }
@@ -63,18 +56,24 @@ func New(agent *profile.Agent, width int) *Renderer {
 // SetWidth updates the terminal width; lines longer than it are truncated.
 func (r *Renderer) SetWidth(width int) { r.width = max(width, MinWidth) }
 
-// SetCwd sets the folder shown in the header. It is display-only and is
-// sanitized like user input.
+// SetCwd sets the folder shown by {cwd}. It is display-only and is sanitized
+// like user input.
 func (r *Renderer) SetCwd(cwd string) {
 	if cwd = engine.Sanitize(cwd); cwd != "" {
 		r.cwd = cwd
 	}
 }
 
-// accentCode converts a validated #rrggbb color into a 24-bit foreground code.
-func accentCode(hex string) string {
+// rgb parses a validated #rrggbb color.
+func rgb(hex string) (int, int, int) {
 	v, _ := strconv.ParseUint(strings.TrimPrefix(hex, "#"), 16, 32)
-	return fmt.Sprintf("\x1b[38;2;%d;%d;%dm", v>>16&0xff, v>>8&0xff, v&0xff)
+	return int(v >> 16 & 0xff), int(v >> 8 & 0xff), int(v & 0xff)
+}
+
+// colorCode converts a validated #rrggbb color into a 24-bit foreground code.
+func colorCode(hex string) string {
+	cr, cg, cb := rgb(hex)
+	return fmt.Sprintf("\x1b[38;2;%d;%d;%dm", cr, cg, cb)
 }
 
 func paint(code, s string) string {
@@ -94,8 +93,7 @@ func fit(s string, n int) string {
 	if n <= 0 {
 		return ""
 	}
-	runes := []rune(s)
-	return string(runes[:n-1]) + "…"
+	return string([]rune(s)[:n-1]) + "…"
 }
 
 // wrap splits s into lines of at most n characters at spaces. Words longer
@@ -117,6 +115,28 @@ func wrap(s string, n int) []string {
 	return append(lines, fit(cur, n))
 }
 
+// expand fills {title}, {version} and {cwd}.
+func (r *Renderer) expand(s string) string {
+	return strings.NewReplacer("{title}", r.agent.Title, "{version}", r.agent.Version, "{cwd}", r.cwd).Replace(s)
+}
+
+// text expands a layout string, fits it to room and paints it with code. When
+// it fits, {version} is shown dim, like the version next to a product name.
+func (r *Renderer) text(s, code string, room int) string {
+	full := r.expand(s)
+	if width(full) > room || !strings.Contains(s, "{version}") {
+		return paint(code, fit(full, room))
+	}
+	var b strings.Builder
+	for i, part := range strings.Split(s, "{version}") {
+		if i > 0 {
+			b.WriteString(paint(dim, r.agent.Version))
+		}
+		b.WriteString(paint(code, r.expand(part)))
+	}
+	return b.String()
+}
+
 // line formats one output line: indent, optional colored marker, then text
 // fitted to the remaining width.
 func (r *Renderer) line(indent, marker, markerCode, textCode, text string) string {
@@ -132,13 +152,14 @@ func (r *Renderer) line(indent, marker, markerCode, textCode, text string) strin
 // thinking, only change the live area and return "".
 func (r *Renderer) Event(ev engine.Event) string {
 	var b strings.Builder
-	boxed := r.agent.Layout == profile.LayoutBoxed
 	switch ev.Kind {
 	case engine.EventWelcome:
-		b.WriteString(r.header())
-		b.WriteString(r.notice(ev.Lines))
+		b.WriteString(NL)
+		for _, blk := range r.agent.Welcome {
+			b.WriteString(r.block(blk) + NL)
+		}
 	case engine.EventEcho:
-		b.WriteString(r.line("", "", "", dim, r.agent.Prompt+ev.Text))
+		b.WriteString(r.line("", "", "", dim, r.marker()+" "+ev.Text))
 	case engine.EventNotice:
 		for _, l := range ev.Lines {
 			b.WriteString(r.line("  ", "", "", "", l))
@@ -148,10 +169,10 @@ func (r *Renderer) Event(ev engine.Event) string {
 	case engine.EventTaskStart:
 		b.WriteString(NL + r.line("", "●", r.accent, bold, ev.Text))
 	case engine.EventRead:
-		b.WriteString(r.tool(boxed, "Read", ev.Text))
-		b.WriteString(r.line("    ", "⎿", dim, dim, fmt.Sprintf("Read %d lines", lineCount(ev.Text))))
+		b.WriteString(r.tool(toolRead, ev.Text))
+		b.WriteString(r.result(fmt.Sprintf("Read %d lines", lineCount(ev.Text))))
 	case engine.EventEdit:
-		b.WriteString(r.tool(boxed, "Update", ev.Text))
+		b.WriteString(r.tool(toolEdit, ev.Text))
 		for _, l := range ev.Lines {
 			code := green
 			if l[0] == '-' {
@@ -160,7 +181,7 @@ func (r *Renderer) Event(ev engine.Event) string {
 			b.WriteString(r.line("      ", "", "", code, l))
 		}
 	case engine.EventCommand:
-		b.WriteString(r.tool(boxed, "Run", ev.Text))
+		b.WriteString(r.tool(toolRun, ev.Text))
 		for i, l := range ev.Lines {
 			code := dim
 			if i == len(ev.Lines)-1 {
@@ -181,43 +202,135 @@ func (r *Renderer) Event(ev engine.Event) string {
 	return b.String()
 }
 
-// header draws the mascot on the left and "Title version" plus the header
-// lines on the right.
-func (r *Renderer) header() string {
-	a := r.agent
+// marker returns the input marker, e.g. "❯".
+func (r *Renderer) marker() string { return r.agent.InputBlock().Marker }
+
+// block draws one welcome block.
+func (r *Renderer) block(b profile.Block) string {
+	switch {
+	case b.Header != nil:
+		return r.header(b.Header)
+	case b.Banner != nil:
+		return r.banner(b.Banner)
+	case b.Card != nil:
+		return r.card(*b.Card)
+	case b.Notice != nil:
+		return r.notice(*b.Notice)
+	case b.List != nil:
+		return r.list(b.List)
+	case b.Text != nil:
+		var s strings.Builder
+		for _, l := range *b.Text {
+			s.WriteString(" " + r.text(l, dim, r.width-2) + NL)
+		}
+		return s.String()
+	default: // rule
+		return r.rule() + NL
+	}
+}
+
+func (r *Renderer) rule() string { return paint(dim, strings.Repeat("─", r.width-1)) }
+
+// header draws art on the left and lines on the right; the first line is
+// bold and the rest dim.
+func (r *Renderer) header(h *profile.Header) string {
 	art := 0
-	for _, m := range a.Mascot {
-		art = max(art, width(m))
+	for _, a := range h.Art {
+		art = max(art, width(a))
 	}
 	gap := 0
 	if art > 0 {
 		gap = 3
 	}
-	room := r.width - 1 - art - gap
-	right := []string{paint(bold, fit(a.Title, room)) + paint(dim, fit(" "+a.Version, room-width(a.Title)))}
-	for _, h := range a.Header {
-		right = append(right, paint(dim, fit(strings.ReplaceAll(h, "{cwd}", r.cwd), room)))
-	}
+	room := r.width - 2 - art - gap
 	var b strings.Builder
-	b.WriteString(NL)
-	for i := range max(len(a.Mascot), len(right)) {
+	for i := range max(len(h.Art), len(h.Lines)) {
 		b.WriteString(" ")
 		if art > 0 {
-			m := ""
-			if i < len(a.Mascot) {
-				m = a.Mascot[i]
+			a := ""
+			if i < len(h.Art) {
+				a = h.Art[i]
 			}
-			b.WriteString(paint(r.accent, m) + strings.Repeat(" ", art-width(m)+gap))
+			b.WriteString(paint(r.accent, a) + strings.Repeat(" ", art-width(a)+gap))
 		}
-		if i < len(right) {
-			b.WriteString(right[i])
+		if i < len(h.Lines) {
+			code := dim
+			if i == 0 {
+				code = bold
+			}
+			b.WriteString(r.text(h.Lines[i], code, room))
 		}
 		b.WriteString(NL)
 	}
-	return b.String() + NL
+	return b.String()
 }
 
-// notice draws a block with an accent bar; the first line is bold.
+// banner draws block letters with a left-to-right color gradient.
+func (r *Renderer) banner(bn *profile.Banner) string {
+	rows := bannerRows(bn.Text)
+	cols := width(rows[0])
+	stops := bn.Gradient
+	if len(stops) == 0 {
+		stops = []string{r.agent.Accent}
+	}
+	var b strings.Builder
+	for _, row := range rows {
+		b.WriteString(" ")
+		for i, ch := range []rune(row) {
+			if i >= r.width-2 {
+				break
+			}
+			if ch == ' ' {
+				b.WriteRune(ch)
+				continue
+			}
+			b.WriteString(paint(gradient(stops, i, cols), string(ch)))
+		}
+		b.WriteString(NL)
+	}
+	return b.String()
+}
+
+// gradient returns the color code for column i of n across stops.
+func gradient(stops []string, i, n int) string {
+	if len(stops) == 1 || n < 2 {
+		return colorCode(stops[0])
+	}
+	pos := float64(i) / float64(n-1) * float64(len(stops)-1)
+	seg := min(int(pos), len(stops)-2)
+	t := pos - float64(seg)
+	r1, g1, b1 := rgb(stops[seg])
+	r2, g2, b2 := rgb(stops[seg+1])
+	mix := func(a, b int) int { return a + int(float64(b-a)*t+0.5) }
+	return fmt.Sprintf("\x1b[38;2;%d;%d;%dm", mix(r1, r2), mix(g1, g2), mix(b1, b2))
+}
+
+// card draws lines in a rounded box; the first line is bold.
+func (r *Renderer) card(lines []string) string {
+	inner := 0
+	for _, l := range lines {
+		inner = max(inner, width(r.expand(l)))
+	}
+	inner = min(inner, r.width-6)
+	edge := func(left, right string) string {
+		return " " + paint(r.accent, left+strings.Repeat("─", inner+2)+right) + NL
+	}
+	var b strings.Builder
+	b.WriteString(edge("╭", "╮"))
+	for i, l := range lines {
+		code := ""
+		if i == 0 {
+			code = bold
+		}
+		body := r.text(l, code, inner)
+		body += strings.Repeat(" ", inner-width(fit(r.expand(l), inner)))
+		b.WriteString(" " + paint(r.accent, "│") + " " + body + " " + paint(r.accent, "│") + NL)
+	}
+	b.WriteString(edge("╰", "╯"))
+	return b.String()
+}
+
+// notice draws lines with an accent bar; the first line is bold.
 func (r *Renderer) notice(lines []string) string {
 	var b strings.Builder
 	for i, l := range lines {
@@ -225,19 +338,62 @@ func (r *Renderer) notice(lines []string) string {
 		if i == 0 {
 			code = bold
 		}
-		for _, w := range wrap(l, r.width-4) {
+		for _, w := range wrap(r.expand(l), r.width-4) {
 			b.WriteString(" " + paint(r.accent, "▎") + " " + paint(code, w) + NL)
 		}
 	}
-	return b.String() + NL
+	return b.String()
 }
 
-// tool formats a tool call header in the agent's layout.
-func (r *Renderer) tool(boxed bool, name, arg string) string {
-	if boxed {
-		return r.line("  ", "●", r.accent, "", name+"("+arg+")")
+// list draws an optional bold title and bullet or numbered items.
+func (r *Renderer) list(l *profile.List) string {
+	var b strings.Builder
+	if l.Title != "" {
+		b.WriteString(" " + r.text(l.Title, bold, r.width-2) + NL)
 	}
-	return r.line("  ", "→", r.accent, "", strings.ToLower(name)+" "+arg)
+	for i, item := range l.Items {
+		mark := "•"
+		if l.Numbered {
+			mark = strconv.Itoa(i+1) + "."
+		}
+		room := r.width - 4 - width(mark)
+		b.WriteString(" " + mark + " " + r.text(item, "", room) + NL)
+	}
+	return b.String()
+}
+
+// Tool call styles, indexed by tool kind.
+type toolKind int
+
+const (
+	toolRead toolKind = iota
+	toolEdit
+	toolRun
+)
+
+var toolStyles = map[profile.ToolStyle]struct {
+	marker, format, result string
+	names                  [3]string
+}{
+	profile.ToolsBoxed:  {"●", "%s(%s)", "⎿", [3]string{"Read", "Update", "Run"}},
+	profile.ToolsInline: {"→", "%s %s", "└", [3]string{"read", "edit", "run"}},
+	profile.ToolsBullet: {"•", "%s %s", "└", [3]string{"Read", "Edited", "Ran"}},
+	profile.ToolsCheck:  {"✓", "%s %s", "└", [3]string{"ReadFile", "Edit", "Shell"}},
+}
+
+// tool formats a tool call header in the agent's style.
+func (r *Renderer) tool(k toolKind, arg string) string {
+	st := toolStyles[r.agent.Tools]
+	code := r.accent
+	if r.agent.Tools == profile.ToolsCheck {
+		code = green
+	}
+	return r.line("  ", st.marker, code, "", fmt.Sprintf(st.format, st.names[k], arg))
+}
+
+// result formats the dim line under a tool call.
+func (r *Renderer) result(text string) string {
+	return r.line("    ", toolStyles[r.agent.Tools].result, dim, dim, text)
 }
 
 // lineCount derives a stable, plausible file length from its path.
@@ -256,54 +412,157 @@ type LiveState struct {
 	Input   string
 }
 
-// Live returns the live area and leaves the cursor at the end of the input,
-// ready for ClearLive. It starts at the beginning of an empty line.
-func (r *Renderer) Live(s LiveState) string {
-	a := r.agent
-	var b strings.Builder
-
-	if s.Running {
-		spin := a.Spinner[s.Frame%len(a.Spinner)]
-		text := fmt.Sprintf("%s… (%ds · Esc to stop)", s.Word, int(s.Elapsed/time.Second))
-		b.WriteString(r.line("", spin, r.accent, dim, text))
-	} else {
-		status := fit(a.StatusRight, r.width-1)
-		b.WriteString(strings.Repeat(" ", r.width-1-width(status)) + paint(dim, status) + NL)
-	}
-
-	rule := paint(dim, strings.Repeat("─", r.width-1)) + NL
-	marker := a.Prompt
-	room := r.width - 1 - width(marker)
-	input := s.Input
-	if runes := []rune(input); len(runes) > room {
-		input = "…" + string(runes[len(runes)-room+1:])
-	}
-	b.WriteString(rule)
-	b.WriteString(paint(r.accent, marker) + input + NL)
-	b.WriteString(rule)
-
-	footer := ""
-	if a.FooterMode != "" {
-		footer = paint(yellow, fit(a.FooterMode, r.width-3))
-	}
-	if hint := fit(a.FooterHint, r.width-3-width(a.FooterMode)-1); hint != "" {
-		if footer != "" {
-			footer += " "
-		}
-		footer += paint(dim, hint)
-	}
-	b.WriteString("  " + footer)
-
-	// Move back up to the input line and place the cursor after the text.
-	fmt.Fprintf(&b, "\x1b[%dA\r", 4-liveInputRow)
-	if col := width(marker) + width(input); col > 0 {
-		fmt.Fprintf(&b, "\x1b[%dC", col)
-	}
-	return b.String()
+// LiveArea returns the live area rows without moving the cursor. Use it for
+// static output such as previews.
+func (r *Renderer) LiveArea(s LiveState) string {
+	rows, _, _ := r.live(s)
+	return strings.Join(rows, NL)
 }
 
-// ClearLive erases a live area drawn by Live, leaving the cursor where it
-// started so permanent output can be written there.
+// Live returns the live area and leaves the cursor at the end of the input,
+// ready for ClearLive. It must start at the beginning of an empty line.
+func (r *Renderer) Live(s LiveState) string {
+	rows, row, col := r.live(s)
+	r.inputRow = row
+	out := strings.Join(rows, NL)
+	if up := len(rows) - 1 - row; up > 0 {
+		out += fmt.Sprintf("\x1b[%dA", up)
+	}
+	out += "\r"
+	if col > 0 {
+		out += fmt.Sprintf("\x1b[%dC", col)
+	}
+	return out
+}
+
+// ClearLive erases the live area drawn by the last Live call, leaving the
+// cursor where it started so permanent output can be written there.
 func (r *Renderer) ClearLive() string {
-	return fmt.Sprintf("\x1b[%dA\r\x1b[J", liveInputRow)
+	if r.inputRow > 0 {
+		return fmt.Sprintf("\x1b[%dA\r\x1b[J", r.inputRow)
+	}
+	return "\r\x1b[J"
+}
+
+// live builds the live area rows and returns them with the input row and
+// the cursor column on it.
+func (r *Renderer) live(s LiveState) (rows []string, inputRow, col int) {
+	full := r.width - 1
+	for _, b := range r.agent.Live {
+		switch {
+		case b.Status != nil:
+			if s.Running {
+				spin := r.agent.Spinner[s.Frame%len(r.agent.Spinner)]
+				text := fmt.Sprintf("%s… (%ds · Esc to stop)", s.Word, int(s.Elapsed/time.Second))
+				rows = append(rows, strings.TrimSuffix(r.line("", spin, r.accent, dim, text), NL))
+			} else {
+				idle := fit(r.expand(b.Status.Idle), full)
+				rows = append(rows, strings.Repeat(" ", full-width(idle))+paint(dim, idle))
+			}
+		case b.Rule != nil:
+			rows = append(rows, r.rule())
+		case b.Footer != nil:
+			rows = append(rows, r.footer(b.Footer))
+		default: // input
+			var lines []string
+			lines, inputRow, col = r.input(b.Input, s.Input)
+			inputRow += len(rows)
+			rows = append(rows, lines...)
+		}
+	}
+	return rows, inputRow, col
+}
+
+// input draws the input in its style and returns the rows, the row and the
+// cursor column of the text.
+func (r *Renderer) input(in *profile.Input, typed string) ([]string, int, int) {
+	inset := 0
+	if in.Style == profile.InputBoxed {
+		inset = 4 // "│ " and " │"
+	}
+	prefix := in.Marker + " "
+	room := r.width - 1 - inset - width(prefix)
+	shown := typed
+	if runes := []rune(typed); len(runes) > room {
+		shown = "…" + string(runes[len(runes)-room+1:])
+	}
+	body := paint(r.accent, in.Marker) + " " + shown
+	if typed == "" && in.Placeholder != "" {
+		body += paint(dim, fit(r.expand(in.Placeholder), room))
+	}
+	col := width(prefix) + width(shown)
+
+	switch in.Style {
+	case profile.InputRuled:
+		return []string{r.rule(), body, r.rule()}, 1, col
+	case profile.InputBoxed:
+		inner := r.width - 3
+		used := width(prefix) + width(shown)
+		if typed == "" && in.Placeholder != "" {
+			used += width(fit(r.expand(in.Placeholder), room))
+		}
+		line := paint(r.accent, "│") + " " + body + strings.Repeat(" ", max(inner-2-used, 0)) + " " + paint(r.accent, "│")
+		top := paint(r.accent, "╭"+strings.Repeat("─", inner)+"╮")
+		bottom := paint(r.accent, "╰"+strings.Repeat("─", inner)+"╯")
+		return []string{top, line, bottom}, 1, col + 2
+	default: // bare
+		return []string{body}, 0, col
+	}
+}
+
+// footer lays out highlight+left, center and right segments on one line,
+// dropping segments that do not fit.
+func (r *Renderer) footer(f *profile.Footer) string {
+	full := r.width - 1
+	left, leftW := "  ", 2
+	if f.Highlight != "" {
+		h := fit(r.expand(f.Highlight), full-leftW)
+		left += paint(yellow, h)
+		leftW += width(h)
+	}
+	if f.Left != "" {
+		sep := ""
+		if f.Highlight != "" {
+			sep = " "
+		}
+		l := fit(r.expand(f.Left), full-leftW-width(sep))
+		left += sep + paint(dim, l)
+		leftW += width(sep) + width(l)
+	}
+	out, used := left, leftW
+	if f.Center != "" {
+		c := r.expand(f.Center)
+		if pos := (full - width(c)) / 2; pos > used {
+			out += strings.Repeat(" ", pos-used) + paint(dim, c)
+			used = pos + width(c)
+		}
+	}
+	if f.Right != "" {
+		rt := r.expand(f.Right)
+		if pos := full - width(rt); pos > used {
+			out += strings.Repeat(" ", pos-used) + paint(dim, rt)
+		}
+	}
+	return out
+}
+
+// Preview renders a static sample: the welcome screen, one complete task on
+// topic, and the idle live area. It is used by "be preview" and golden tests.
+func (r *Renderer) Preview(e *engine.Engine, topic string) string {
+	var b strings.Builder
+	emit := func(events []engine.Event) bool {
+		done := false
+		for _, ev := range events {
+			b.WriteString(r.Event(ev))
+			done = done || ev.Kind == engine.EventTaskDone
+		}
+		return done
+	}
+	emit(e.Start())
+	emit(e.HandleLine("run " + topic))
+	for e.State() == engine.StateRunning && !emit(e.Tick(100*time.Millisecond)) {
+	}
+	e.HandleKey(engine.KeyEsc)
+	b.WriteString(NL + r.LiveArea(LiveState{}) + NL)
+	return b.String()
 }

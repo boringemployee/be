@@ -113,6 +113,26 @@ func TestGolden(t *testing.T) {
 	}
 }
 
+// TestPreviews records "be preview" for every agent, so a new agent YAML is
+// covered by a golden file as soon as it is added.
+func TestPreviews(t *testing.T) {
+	cat, err := profile.Load(content.FS)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, agent := range cat.AgentNames() {
+		t.Run(agent, func(t *testing.T) {
+			eng, err := engine.New(cat, agent, 42)
+			if err != nil {
+				t.Fatal(err)
+			}
+			r := render.New(eng.Agent(), 80)
+			r.SetCwd("~/work/project")
+			check(t, agent+"_preview.ansi", r.Preview(eng, cat.TopicNames()[0]))
+		})
+	}
+}
+
 func check(t *testing.T, name, got string) {
 	t.Helper()
 	path := filepath.Join("testdata", name)

@@ -36,6 +36,11 @@ func TestRun(t *testing.T) {
 		{"bad flag", []string{"--nope"}, 2, "", "flag provided but not defined"},
 		{"too many", []string{"claude", "codex"}, 2, "", "too many arguments"},
 		{"session", []string{"claude", "--seed", "42"}, 0, "", ""},
+		{"preview", []string{"preview", "claude"}, 0, "Clock Code", ""},
+		{"preview topic", []string{"preview", "claude", "engineering", "--seed", "3"}, 0, "run engineering", ""},
+		{"preview no agent", []string{"preview"}, 2, "", "usage: be preview"},
+		{"preview bad agent", []string{"preview", "nope"}, 2, "", "unknown agent"},
+		{"preview bad topic", []string{"preview", "claude", "nope"}, 2, "", "unknown topic"},
 		{"session error", []string{"--seed=13", "claude"}, 1, "", "boom"},
 	}
 	for _, tt := range tests {

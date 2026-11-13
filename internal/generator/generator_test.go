@@ -16,7 +16,7 @@ var (
 		Modules:  []string{"mod"},
 		Tests:    []string{"TestX"},
 		Commands: []string{"make test"},
-		Logs:     []string{"checking {file}"},
+		Logs:     []string{"checking {file}", "ok", "lint: 0 issues", "compiling"},
 		Edits:    []string{"a", "b", "c", "d"},
 	}
 )
@@ -71,6 +71,13 @@ func TestTaskShape(t *testing.T) {
 					seen[l[1:]] = true
 				}
 			case StepCommand:
+				seenLog := map[string]bool{}
+				for _, l := range s.Lines[:len(s.Lines)-1] {
+					if seenLog[l] {
+						t.Fatalf("command output repeats %q", l)
+					}
+					seenLog[l] = true
+				}
 				if !s.OK {
 					sawFailure = true
 				}

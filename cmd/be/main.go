@@ -24,6 +24,8 @@ const usage = `be - look busy with a fake AI coding agent
 
 Usage:
   be <agent> [--seed N]   start a fake agent session
+  be preview <agent> [topic]
+                          print a sample screen (for checking agent YAML)
   be --version            print the version
   be --help               show this help
 
@@ -85,6 +87,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 	case len(positional) == 0 || positional[0] == "help":
 		fmt.Fprint(stdout, help)
 		return 0
+	case positional[0] == "preview":
+		return preview(cat, positional[1:], *seed, stdout, stderr)
 	case len(positional) > 1:
 		fmt.Fprintf(stderr, "be: too many arguments\n\n%s", help)
 		return 2
@@ -100,6 +104,39 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	return 0
+}
+
+// preview prints a static sample screen for an agent: be preview <agent> [topic].
+func preview(cat *profile.Catalog, args []string, seed uint64, stdout, stderr io.Writer) int {
+	if len(args) < 1 || len(args) > 2 {
+		fmt.Fprintln(stderr, "be: usage: be preview <agent> [topic]")
+		return 2
+	}
+	topic := cat.TopicNames()[0]
+	if len(args) == 2 {
+		topic = args[1]
+	}
+	if _, ok := cat.Topics[topic]; !ok {
+		fmt.Fprintf(stderr, "be: unknown topic %q (available: %s)\n", topic, strings.Join(cat.TopicNames(), ", "))
+		return 2
+	}
+	eng, err := engine.New(cat, args[0], seed)
+	if err != nil {
+		fmt.Fprintf(stderr, "be: %v\n", err)
+		return 2
+	}
+	r := render.New(eng.Agent(), terminalWidth())
+	r.SetCwd(displayDir())
+	fmt.Fprint(stdout, r.Preview(eng, topic))
+	return 0
+}
+
+// terminalWidth returns the width of stdout, or 80 when it is not a terminal.
+func terminalWidth() int {
+	if w, _, err := term.GetSize(int(os.Stdout.Fd())); err == nil && w > 0 {
+		return w
+	}
+	return 80
 }
 
 // displayDir returns the current folder with the home folder shortened to
@@ -127,12 +164,7 @@ func interactive(eng *engine.Engine, _ options) error {
 	}
 	defer term.Restore(in, old)
 
-	width := func() int {
-		if w, _, err := term.GetSize(out); err == nil && w > 0 {
-			return w
-		}
-		return 80
-	}
+	width := terminalWidth
 	keys := make(chan []byte)
 	go func() {
 		defer close(keys)
