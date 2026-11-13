@@ -133,3 +133,16 @@ func TestTaskUsesOnePack(t *testing.T) {
 		t.Errorf("both packs should be used: %v", seen)
 	}
 }
+
+func TestNextSingleTopicSpendsNoDraw(t *testing.T) {
+	// Passing one topic must give the same tasks as before multi-topic runs
+	// existed, so seeded sessions stay stable.
+	a, b := New(9, agent), New(9, agent)
+	if !reflect.DeepEqual(a.Next(topic), b.task(pick(b, topic.Packs))) {
+		t.Fatal("single-topic Next must not draw a topic")
+	}
+	other := &profile.Topic{Packs: []*profile.Pack{pack}}
+	if steps := New(9, agent).Next(topic, other); len(steps) == 0 {
+		t.Fatal("multi-topic Next returned no steps")
+	}
+}

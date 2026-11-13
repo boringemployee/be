@@ -50,9 +50,14 @@ func (g *Generator) between(min, max int) time.Duration {
 	return time.Duration(min+g.rng.IntN(max-min)) * time.Millisecond
 }
 
-// Next returns the steps of a new fake task on topic, using one of its packs
-// so the task's files, edits and logs belong together.
-func (g *Generator) Next(t *profile.Topic) []Step {
+// Next returns the steps of a new fake task on one of topics, using one of
+// that topic's packs so the task's files, edits and logs belong together.
+// With a single topic no random draw is spent choosing it.
+func (g *Generator) Next(topics ...*profile.Topic) []Step {
+	t := topics[0]
+	if len(topics) > 1 {
+		t = pick(g, topics)
+	}
 	return g.task(pick(g, t.Packs))
 }
 

@@ -14,6 +14,9 @@ import (
 	"github.com/boringemployee/be/internal/profile"
 )
 
+// MaxRunTopics caps how many topics one run can mix.
+const MaxRunTopics = 10
+
 // MaxInputLen caps how much of a typed line is kept.
 const MaxInputLen = 200
 
@@ -23,7 +26,7 @@ type Engine struct {
 	agent   *profile.Agent
 	gen     *generator.Generator
 	state   State
-	topic   *profile.Topic
+	running []*profile.Topic // topics of the current run
 	queue   []generator.Step
 	wait    time.Duration
 }
@@ -60,7 +63,7 @@ func (e *Engine) HandleKey(k Key) []Event {
 		return e.exit()
 	case KeyEsc:
 		if e.state == StateRunning {
-			e.state, e.topic, e.queue, e.wait = StateIdle, nil, nil, 0
+			e.state, e.running, e.queue, e.wait = StateIdle, nil, nil, 0
 			return []Event{{Kind: EventStopped, Text: e.agent.StoppedMessage}, e.prompt()}
 		}
 	}
@@ -105,14 +108,33 @@ func (e *Engine) HandleLine(line string) []Event {
 }
 
 func (e *Engine) run(args []string) []Event {
-	if len(args) != 1 {
-		return []Event{{Kind: EventError, Text: "usage: run <topic>"}, {Kind: EventNotice, Lines: e.topics()}, e.prompt()}
+	fail := func(msg string) []Event {
+		return []Event{{Kind: EventError, Text: msg}, {Kind: EventNotice, Lines: e.topics()}, e.prompt()}
 	}
-	t, ok := e.catalog.Topics[strings.ToLower(args[0])]
-	if !ok {
-		return []Event{{Kind: EventError, Text: fmt.Sprintf("unknown topic %q", args[0])}, {Kind: EventNotice, Lines: e.topics()}, e.prompt()}
+	if len(args) == 0 {
+		return fail("usage: run <topic> [topic...]")
 	}
-	e.state, e.topic, e.queue = StateRunning, t, nil
+	if len(args) > MaxRunTopics {
+		return fail(fmt.Sprintf("too many topics (at most %d)", MaxRunTopics))
+	}
+	var topics []*profile.Topic
+	var unknown []string
+	seen := map[string]bool{}
+	for _, arg := range args {
+		name := strings.ToLower(arg)
+		t, ok := e.catalog.Topics[name]
+		switch {
+		case !ok:
+			unknown = append(unknown, fmt.Sprintf("%q", arg))
+		case !seen[name]:
+			seen[name] = true
+			topics = append(topics, t)
+		}
+	}
+	if len(unknown) > 0 {
+		return fail("unknown topic " + strings.Join(unknown, ", "))
+	}
+	e.state, e.running, e.queue = StateRunning, topics, nil
 	return []Event{e.advance()}
 }
 
@@ -132,7 +154,7 @@ func (e *Engine) Tick(dt time.Duration) []Event {
 // advance emits the next step, refilling the queue with a new task forever.
 func (e *Engine) advance() Event {
 	if len(e.queue) == 0 {
-		e.queue = e.gen.Next(e.topic)
+		e.queue = e.gen.Next(e.running...)
 	}
 	s := e.queue[0]
 	e.queue = e.queue[1:]
@@ -157,6 +179,7 @@ func (e *Engine) help() []string {
 	return []string{
 		"Commands:",
 		"  run <topic>   pretend to work on a topic, forever",
+		"  run a b c     mix several topics",
 		"  topics        list topics",
 		"  help          show this help",
 		"  exit          leave the session",

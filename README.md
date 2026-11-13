@@ -32,6 +32,7 @@ Early development. See the [phases in the design doc](docs/DESIGN.md#phases).
 | Web playground | | Phase 5 |
 
 Topics: `data`, `devops`, `engineering`, `frontend`, `security` (type `topics` in a session).
+Mix several with `run devops engineering frontend`: each task picks one of them.
 
 ## Install
 

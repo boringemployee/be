@@ -63,7 +63,9 @@ func TestCommands(t *testing.T) {
 		{"topics", []Kind{EventEcho, EventNotice, EventPrompt}, "engineering", StateIdle},
 		{"make me a sandwich", []Kind{EventEcho, EventNotice, EventPrompt}, "pretend", StateIdle},
 		{"run", []Kind{EventEcho, EventError, EventNotice, EventPrompt}, "usage", StateIdle},
-		{"run a b", []Kind{EventEcho, EventError, EventNotice, EventPrompt}, "usage", StateIdle},
+		{"run engineering nope other", []Kind{EventEcho, EventError, EventNotice, EventPrompt}, `unknown topic "nope", "other"`, StateIdle},
+		{"run a b c d e f g h i j k", []Kind{EventEcho, EventError, EventNotice, EventPrompt}, "too many topics", StateIdle},
+		{"run devops engineering devops", []Kind{EventEcho, EventTaskStart}, "", StateRunning},
 		{"run cooking", []Kind{EventEcho, EventError, EventNotice, EventPrompt}, "unknown topic", StateIdle},
 		{"RUN Engineering", []Kind{EventEcho, EventTaskStart}, "", StateRunning},
 		{"exit", []Kind{EventEcho, EventExit}, "", StateExited},
@@ -255,4 +257,28 @@ func FuzzHandleLine(f *testing.F) {
 			}
 		}
 	})
+}
+
+func TestRunMixesTopics(t *testing.T) {
+	e := newEngine(t, 7)
+	e.HandleLine("run devops engineering devops")
+	if len(e.running) != 2 {
+		t.Fatalf("duplicates must be removed: %d topics", len(e.running))
+	}
+	seen := map[string]bool{}
+	for range 6000 {
+		for _, ev := range e.Tick(100 * time.Millisecond) {
+			if ev.Kind == EventRead {
+				switch {
+				case strings.HasPrefix(ev.Text, "infra/") || strings.HasPrefix(ev.Text, "deploy/") || strings.HasPrefix(ev.Text, ".github/") || strings.HasPrefix(ev.Text, "docker/") || strings.HasPrefix(ev.Text, "ops/"):
+					seen["devops"] = true
+				default:
+					seen["engineering"] = true
+				}
+			}
+		}
+	}
+	if !seen["devops"] || !seen["engineering"] {
+		t.Errorf("both topics should appear: %v", seen)
+	}
 }

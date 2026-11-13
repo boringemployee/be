@@ -33,7 +33,7 @@ Agents:
   %s
 
 Inside a session:
-  run <topic>             fake work on a topic forever
+  run <topic> [topic...]  fake work on one or more topics forever
   Esc                     stop the current task
   Ctrl+C                  exit
 `

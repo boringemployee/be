@@ -64,7 +64,9 @@ func scenarios(cat *profile.Catalog) []Scenario {
 	for _, topic := range topics[1:] {
 		out = append(out, run(agents[0], topic))
 	}
-	return out
+	mixed := run(agents[0], strings.Join(topics, " "))
+	mixed.Name = "mixed"
+	return append(out, mixed)
 }
 
 // Play runs a scenario and returns its event log and rendered output.

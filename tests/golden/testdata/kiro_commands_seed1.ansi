@@ -13,6 +13,7 @@
 [2m> help[0m
   Commands:
     run <topic>   pretend to work on a topic, forever
+    run a b c     mix several topics
     topics        list topics
     help          show this help
     exit          leave the session
@@ -27,7 +28,7 @@
     frontend       Components, CSS and pixel pushing
     security       Audits, patches and stern warnings
 [2m> run[0m
-  [31m✗[0m [31musage: run <topic>[0m
+  [31m✗[0m [31musage: run <topic> [topic...][0m
   Topics:
     data           Pipelines, dashboards and suspicious numbers
     devops         Pipelines, infrastructure and on-call heroics
