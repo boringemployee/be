@@ -1,0 +1,8 @@
+# Code owners must approve changes to sensitive paths.
+# TODO: replace the placeholder with a real GitHub user or team, e.g. a maintainers team.
+# *                 OWNER
+# /internal/        OWNER
+# /cmd/             OWNER
+# /.github/         OWNER
+# /go.mod           OWNER
+# /go.sum           OWNER
