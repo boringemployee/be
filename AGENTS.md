@@ -11,7 +11,7 @@ It is a parody: it never does real work.
 
 ## Architecture
 
-- Go 1.27. One engine, two thin frontends: native CLI (`cmd/cli`, binary `be`) and
+- Go 1.27. One engine, two thin frontends: native CLI (`cmd/be`) and
   WebAssembly (`cmd/wasm`, rendered with xterm.js in `web/`).
 - The engine takes input (keys, lines, size) and emits events. It never touches a terminal.
 - `internal/render` turns events into ANSI text and is the **only** place that creates
@@ -22,7 +22,7 @@ It is a parody: it never does real work.
 - CLI terminal handling uses `golang.org/x/term` only; no TUI frameworks.
 
 ```
-cmd/cli  cmd/wasm  internal/{engine,generator,render,profile,adapter/{tty,wasm}}
+cmd/be  cmd/wasm  internal/{engine,generator,render,profile,adapter/{tty,wasm}}
 content/{agents,topics}  web/  tests/golden/  docs/
 ```
 
