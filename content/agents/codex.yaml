@@ -1,0 +1,41 @@
+# Parody of a terminal coding agent with a boxed header card. Original wording.
+name: codex
+title: Codecks CLI
+version: v0.9.1
+accent: "#56B6C2"
+
+welcome:
+  - card:
+      - ">_ {title} ({version})"
+      - "model:     overthinker-5 medium   /model to change"
+      - "directory: {cwd}"
+  - list:
+      title: "To get started, describe a task or try one of these commands:"
+      items:
+        - "/init - create a notes file nobody will read"
+        - "/status - show how busy you look"
+        - "/review - pretend to review your changes"
+        - "run <topic> - look productive indefinitely"
+
+live:
+  - status: {}
+  - input: { style: bare, marker: "›", placeholder: "Ask anything, or run <topic>" }
+  - footer:
+      left: "⏎ send   esc stop   ⌃C quit"
+      right: "100% context left"
+
+tools: bullet
+spinner: ["·", "•", "●", "•"]
+thinking_words:
+  - Working
+  - Reasoning
+  - Planning
+  - Exploring
+  - Considering options
+  - Re-reading the ticket
+  - Estimating story points
+done_messages:
+  - "Done. Summary: changed things, tests pass, nothing exploded."
+  - "Finished. I kept the diff minimal and the confidence maximal."
+  - "Complete. Let me know if you want me to pretend to do more."
+stopped_message: "Interrupted. Tell me what to do differently."

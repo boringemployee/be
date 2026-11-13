@@ -1,0 +1,138 @@
+
+ [38;2;217;119;87m ▄▀▀▀▄ [0m   [1mClock Code [0m[2mv0.4.2[0m
+ [38;2;217;119;87m█  █▄ █[0m   [2mMagnum Opus 5 (1M context) with low effort · Boring Pro[0m
+ [38;2;217;119;87m ▀▄▄▄▀ [0m   [2m~[0m
+
+ [38;2;217;119;87m▎[0m [1mFake mode is now Clock Code's default permission mode.[0m
+ [38;2;217;119;87m▎[0m [2mFake mode lets Clock Code skip every tool call. Nothing runs, nothing[0m
+ [38;2;217;119;87m▎[0m [2mchanges, and the progress keeps moving anyway.[0m
+ [38;2;217;119;87m▎[0m [2mType 'run <topic>' to look busy, or 'help' for commands.[0m
+
+[2m❯ run devops[0m
+
+[38;2;217;119;87m●[0m [1mMigrate auth-service alerts to the new dashboard[0m
+  [38;2;217;119;87m●[0m Read(deploy/k8s/api-deployment.yaml)
+    [2m⎿[0m [2mRead 375 lines[0m
+  [38;2;217;119;87m●[0m Read(infra/terraform/main.tf)
+    [2m⎿[0m [2mRead 374 lines[0m
+  [38;2;217;119;87m●[0m Update(deploy/k8s/api-deployment.yaml)
+      [31m-healthcheck: { interval: 10s }[0m
+      [31m-# TODO: ask platform team[0m
+      [32m+retries: 3[0m
+      [32m+min_replicas = 2[0m
+  [38;2;217;119;87m●[0m Run(kubectl get pods -n staging)
+      [2mwarning: deprecated field in deploy/k8s/api-deployment.yaml[0m
+      [2mrollout status: 3 of 3 updated replicas are available[0m
+      [31mFAIL health-check-worker[0m
+  [38;2;217;119;87m●[0m Update(deploy/k8s/api-deployment.yaml)
+      [31m-timeout-minutes: 15[0m
+      [31m-  limits: { cpu: 500m, memory: 512Mi }[0m
+      [32m+image: api:1.42.0[0m
+      [32m+# TODO: ask platform team[0m
+      [32m+min_replicas = 2[0m
+  [38;2;217;119;87m●[0m Run(kubectl get pods -n staging)
+      [2mrollout status: 3 of 3 updated replicas are available[0m
+      [2mwarning: deprecated field in infra/terraform/variables.tf[0m
+      [32mPASS smoke-test-api[0m
+[32m●[0m All set. Moving on to the next item before anyone notices.
+
+[38;2;217;119;87m●[0m [1mInvestigate why smoke-test-api only fails on Fridays[0m
+  [38;2;217;119;87m●[0m Read(ops/alerts/latency.yaml)
+    [2m⎿[0m [2mRead 391 lines[0m
+  [38;2;217;119;87m●[0m Update(ops/alerts/latency.yaml)
+      [31m-timeout-minutes: 15[0m
+      [31m-image: api:1.42.0[0m
+      [32m+replicas: 3[0m
+  [38;2;217;119;87m●[0m Run(make deploy-staging)
+      [2mwarning: deprecated field in infra/terraform/variables.tf[0m
+      [2mPlan: 2 to add, 1 to change, 0 to destroy.[0m
+      [32mPASS load-test-search[0m
+[32m●[0m Complete. I left the code slightly better than I found it.
+
+[38;2;217;119;87m●[0m [1mRotate the staging certificates for auth-service[0m
+  [38;2;217;119;87m●[0m Read(deploy/k8s/worker-hpa.yaml)
+    [2m⎿[0m [2mRead 459 lines[0m
+  [38;2;217;119;87m●[0m Update(deploy/k8s/worker-hpa.yaml)
+      [31m-instance_type = "t3.medium"[0m
+      [31m-image: api:1.42.0[0m
+      [32m+healthcheck: { interval: 10s }[0m
+  [38;2;217;119;87m●[0m Run(kubectl get pods -n staging)
+      [2mlinting deploy/k8s/api-deployment.yaml[0m
+      [2mrollout status: 3 of 3 updated replicas are available[0m
+      [2mpod/api-7d9f8 1/1 Running[0m
+      [32mPASS load-test-search[0m
+[32m●[0m Finished. The change is small, focused, and suspiciously elegant.
+
+[38;2;217;119;87m●[0m [1mFix the flaky deploy step in deploy/k8s/api-deployment.yaml[0m
+  [38;2;217;119;87m●[0m Read(deploy/k8s/api-deployment.yaml)
+    [2m⎿[0m [2mRead 375 lines[0m
+  [38;2;217;119;87m●[0m Read(infra/terraform/variables.tf)
+    [2m⎿[0m [2mRead 408 lines[0m
+  [38;2;217;119;87m●[0m Read(infra/terraform/main.tf)
+    [2m⎿[0m [2mRead 374 lines[0m
+  [38;2;217;119;87m●[0m Update(deploy/k8s/api-deployment.yaml)
+      [31m-  cache: true[0m
+      [32m+retries: 3[0m
+  [38;2;217;119;87m●[0m Run(docker build -t api:dev .)
+      [2mwarning: deprecated field in docker/api.Dockerfile[0m
+      [2mpod/api-7d9f8 1/1 Running[0m
+      [2mPlan: 2 to add, 1 to change, 0 to destroy.[0m
+      [2mcache hit: go-mod-deps[0m
+      [32mPASS canary-checkout[0m
+[32m●[0m All set. Moving on to the next item before anyone notices.
+
+[38;2;217;119;87m●[0m [1mSpeed up CI caching for billing-worker[0m
+  [38;2;217;119;87m●[0m Read(infra/terraform/main.tf)
+    [2m⎿[0m [2mRead 374 lines[0m
+  [38;2;217;119;87m●[0m Update(infra/terraform/main.tf)
+      [31m-image: api:1.42.0[0m
+      [31m-instance_type = "t3.medium"[0m
+      [32m+retries: 3[0m
+      [32m+  cache: true[0m
+      [32m+  limits: { cpu: 500m, memory: 512Mi }[0m
+  [38;2;217;119;87m●[0m Run(helm lint charts/api)
+      [2mwarning: deprecated field in deploy/k8s/api-deployment.yaml[0m
+      [2mPlan: 2 to add, 1 to change, 0 to destroy.[0m
+      [31mFAIL smoke-test-api[0m
+  [38;2;217;119;87m●[0m Update(infra/terraform/main.tf)
+      [31m-instance_type = "t3.medium"[0m
+      [31m-# TODO: ask platform team[0m
+      [32m+timeout-minutes: 15[0m
+      [32m+  cache: true[0m
+  [38;2;217;119;87m●[0m Run(helm lint charts/api)
+      [2mrollout status: 3 of 3 updated replicas are available[0m
+      [2mlinting deploy/k8s/worker-hpa.yaml[0m
+      [2mpod/api-7d9f8 1/1 Running[0m
+      [2mcache hit: go-mod-deps[0m
+      [32mPASS health-check-worker[0m
+[32m●[0m Finished. The change is small, focused, and suspiciously elegant.
+
+[38;2;217;119;87m●[0m [1mMigrate api-gateway alerts to the new dashboard[0m
+  [38;2;217;119;87m●[0m Read(deploy/k8s/api-deployment.yaml)
+    [2m⎿[0m [2mRead 375 lines[0m
+  [38;2;217;119;87m●[0m Update(deploy/k8s/api-deployment.yaml)
+      [31m-replicas: 3[0m
+      [31m-  limits: { cpu: 500m, memory: 512Mi }[0m
+      [32m+healthcheck: { interval: 10s }[0m
+      [32m+min_replicas = 2[0m
+  [38;2;217;119;87m●[0m Run(make deploy-staging)
+      [2mSuccessfully built image api:dev[0m
+      [2mlinting infra/terraform/main.tf[0m
+      [2mwarning: deprecated field in infra/terraform/main.tf[0m
+      [31mFAIL health-check-worker[0m
+  [38;2;217;119;87m●[0m Update(deploy/k8s/api-deployment.yaml)
+      [31m-timeout-minutes: 15[0m
+      [31m-healthcheck: { interval: 10s }[0m
+      [32m+retries: 3[0m
+      [32m+  cache: true[0m
+      [32m+# TODO: ask platform team[0m
+  [38;2;217;119;87m●[0m Run(make deploy-staging)
+      [2mlinting infra/terraform/main.tf[0m
+      [2mpod/api-7d9f8 1/1 Running[0m
+      [2mSuccessfully built image api:dev[0m
+      [2mcache hit: go-mod-deps[0m
+      [32mPASS smoke-test-api[0m
+  [33m⎿[0m [33mInterrupted. What should I do instead?[0m
+
+
+[2mSession ended. Back to real work.[0m

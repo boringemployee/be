@@ -1,0 +1,55 @@
+name: devops
+description: Pipelines, infrastructure and on-call heroics
+tasks:
+  - "Fix the flaky deploy step in {file}"
+  - "Bump the base image for {module}"
+  - "Add resource limits to the {module} deployment"
+  - "Speed up CI caching for {module}"
+  - "Rotate the staging certificates for {module}"
+  - "Investigate why {test} only fails on Fridays"
+  - "Migrate {module} alerts to the new dashboard"
+files:
+  - .github/workflows/deploy.yml
+  - infra/terraform/main.tf
+  - infra/terraform/variables.tf
+  - deploy/k8s/api-deployment.yaml
+  - deploy/k8s/worker-hpa.yaml
+  - docker/api.Dockerfile
+  - ops/alerts/latency.yaml
+modules:
+  - api-gateway
+  - billing-worker
+  - search-indexer
+  - auth-service
+  - nightly-batch
+tests:
+  - smoke-test-api
+  - health-check-worker
+  - canary-checkout
+  - load-test-search
+commands:
+  - terraform plan
+  - kubectl get pods -n staging
+  - docker build -t api:dev .
+  - helm lint charts/api
+  - make deploy-staging
+logs:
+  - "Plan: 2 to add, 1 to change, 0 to destroy."
+  - "pod/api-7d9f8 1/1 Running"
+  - "Successfully built image api:dev"
+  - "Step 7/12 : RUN make build"
+  - "rollout status: 3 of 3 updated replicas are available"
+  - "linting {file}"
+  - "cache hit: go-mod-deps"
+  - "warning: deprecated field in {file}"
+edits:
+  - "image: api:1.42.0"
+  - "replicas: 3"
+  - "  limits: { cpu: 500m, memory: 512Mi }"
+  - "timeout-minutes: 15"
+  - "retries: 3"
+  - "instance_type = \"t3.medium\""
+  - "min_replicas = 2"
+  - "  cache: true"
+  - "healthcheck: { interval: 10s }"
+  - "# TODO: ask platform team"

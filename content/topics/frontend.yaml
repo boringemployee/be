@@ -1,0 +1,50 @@
+name: frontend
+description: Components, CSS and pixel pushing
+tasks:
+  - "Fix the layout shift in {module}"
+  - "Make {file} accessible to screen readers"
+  - "Center the div in {module}"
+  - "Add dark mode to {module}"
+  - "Reduce bundle size of {module}"
+  - "Fix hydration warning in {file}"
+  - "Make {test} less flaky"
+files:
+  - src/components/Button.tsx
+  - src/components/Modal.tsx
+  - src/pages/checkout.tsx
+  - src/hooks/useCart.ts
+  - src/styles/theme.css
+  - src/app/layout.tsx
+modules:
+  - checkout
+  - navbar
+  - settings-page
+  - design-system
+  - onboarding
+tests:
+  - Button.test.tsx
+  - checkout.spec.ts
+  - Modal.test.tsx
+  - a11y.spec.ts
+commands:
+  - npm run lint
+  - npm test
+  - npm run build
+  - npx tsc --noEmit
+logs:
+  - "Compiled successfully in 4.1s"
+  - "Tests: 128 passed, 128 total"
+  - "No ESLint warnings or errors"
+  - "checking {file}"
+  - "bundle size: 182 kB (-12 kB)"
+  - "warning: React Hook has a missing dependency"
+edits:
+  - "display: flex;"
+  - "align-items: center;"
+  - "aria-label=\"Close dialog\""
+  - "const [open, setOpen] = useState(false);"
+  - "useEffect(() => { setOpen(false); }, [route]);"
+  - "className=\"btn btn-primary\""
+  - "export default memo(Button);"
+  - "color: var(--text-muted);"
+  - "/* TODO: ask design */"

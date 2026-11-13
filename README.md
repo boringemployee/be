@@ -21,12 +21,17 @@ $ be claude
 
 Early development. See the [phases in the design doc](docs/DESIGN.md#phases).
 
-| Command          | Status   |
-| ---------------- | -------- |
-| `be --version`   | ✅       |
-| `be claude`      | ✅       |
-| `be codex`, `be kiro` | Phase 4 |
-| Web playground   | Phase 5  |
+| Command | UI name | Status |
+| --- | --- | --- |
+| `be claude` | Clock Code | ✅ |
+| `be codex` | Codecks CLI | ✅ |
+| `be gemini` | Geminy CLI | ✅ |
+| `be kiro` | Kiwi CLI | ✅ |
+| `be grok` | Groan CLI | ✅ |
+| `be preview <agent>` | sample screen | ✅ |
+| Web playground | | Phase 5 |
+
+Topics: `data`, `devops`, `engineering`, `frontend`, `security` (type `topics` in a session).
 
 ## Install
 

@@ -19,15 +19,27 @@
     Ctrl+C        exit
 [2m❯ topics[0m
   Topics:
+    data           Pipelines, dashboards and suspicious numbers
+    devops         Pipelines, infrastructure and on-call heroics
     engineering    Refactors, bug fixes and flaky tests
+    frontend       Components, CSS and pixel pushing
+    security       Audits, patches and stern warnings
 [2m❯ run[0m
   [31m✗[0m [31musage: run <topic>[0m
   Topics:
+    data           Pipelines, dashboards and suspicious numbers
+    devops         Pipelines, infrastructure and on-call heroics
     engineering    Refactors, bug fixes and flaky tests
+    frontend       Components, CSS and pixel pushing
+    security       Audits, patches and stern warnings
 [2m❯ run nope[0m
   [31m✗[0m [31munknown topic "nope"[0m
   Topics:
+    data           Pipelines, dashboards and suspicious numbers
+    devops         Pipelines, infrastructure and on-call heroics
     engineering    Refactors, bug fixes and flaky tests
+    frontend       Components, CSS and pixel pushing
+    security       Audits, patches and stern warnings
 [2m❯ hello[0m
   I'd love to help with that, but I only pretend to work.
   Try: run <topic>   (type 'topics' to see them)

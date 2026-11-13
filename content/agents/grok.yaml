@@ -1,0 +1,40 @@
+# Parody of a terminal coding agent with a bold banner. Original wording.
+name: grok
+title: Groan CLI
+version: v0.3.7
+accent: "#E5E5E5"
+
+welcome:
+  - banner:
+      text: "GROAN"
+      gradient: ["#FFFFFF", "#8A8A8A"]
+  - text:
+      - "{title} {version} · model: groan-4-heavy-ish · {cwd}"
+  - list:
+      title: "Things I can pretend to do:"
+      items:
+        - "run <topic> - work on something with maximum confidence"
+        - "help - list commands, with commentary"
+        - "esc - interrupt me mid-thought"
+
+live:
+  - status: { idle: "humor: on" }
+  - input: { style: ruled, marker: "▶" }
+  - footer:
+      highlight: "unhinged mode"
+      left: "esc to stop · ctrl+c to leave"
+
+tools: boxed
+spinner: ["◢", "◣", "◤", "◥"]
+thinking_words:
+  - Thinking hard
+  - Thinking harder
+  - Checking the vibes
+  - Questioning everything
+  - Being maximally helpful
+  - Searching my feelings
+done_messages:
+  - "Done. That was easier than it looked, which is suspicious."
+  - "Fixed. You're welcome, and also it was my idea."
+  - "Shipped it. Fortune favors the bold and the well-tested."
+stopped_message: "Fine. Stopping. Your loss."

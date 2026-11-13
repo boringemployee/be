@@ -74,8 +74,8 @@ app with a strict CSP.
 1. **Foundation**: module, Makefile, docs, templates. ✅
 2. **Core engine**: engine, generator, profile, first YAML, 100% coverage. ✅
 3. **Renderer + CLI (v0.1)**: `be claude`, `run engineering`, golden tests. ✅
-4. **More agents and topics (v0.2)**
+4. **More agents and topics (v0.2)** ✅
    - 4a. Layout blocks, `be preview`, layout reference. ✅
-   - 4b. Codex, Gemini, Kiro and Grok parodies as YAML only; more topics; guides.
+   - 4b. Codex, Gemini, Kiro and Grok parodies as YAML only; more topics; guides. ✅
 5. **Web (v0.3)**: WASM build, xterm.js page, shared golden tests.
 6. **CI/CD**: tests, coverage gate, signed releases, Cloudflare Pages deploy.

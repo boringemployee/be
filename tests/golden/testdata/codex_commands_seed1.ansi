@@ -1,0 +1,51 @@
+
+ [38;2;86;182;194m╭────────────────────────────────────────────────────╮[0m
+ [38;2;86;182;194m│[0m [1m>_ Codecks CLI ([0m[2mv0.9.1[0m[1m)[0m                            [38;2;86;182;194m│[0m
+ [38;2;86;182;194m│[0m model:     overthinker-5 medium   /model to change [38;2;86;182;194m│[0m
+ [38;2;86;182;194m│[0m directory: ~                                       [38;2;86;182;194m│[0m
+ [38;2;86;182;194m╰────────────────────────────────────────────────────╯[0m
+
+ [1mTo get started, describe a task or try one of these commands:[0m
+ • /init - create a notes file nobody will read
+ • /status - show how busy you look
+ • /review - pretend to review your changes
+ • run <topic> - look productive indefinitely
+
+[2m› help[0m
+  Commands:
+    run <topic>   pretend to work on a topic, forever
+    topics        list topics
+    help          show this help
+    exit          leave the session
+  Keys:
+    Esc           stop the current task
+    Ctrl+C        exit
+[2m› topics[0m
+  Topics:
+    data           Pipelines, dashboards and suspicious numbers
+    devops         Pipelines, infrastructure and on-call heroics
+    engineering    Refactors, bug fixes and flaky tests
+    frontend       Components, CSS and pixel pushing
+    security       Audits, patches and stern warnings
+[2m› run[0m
+  [31m✗[0m [31musage: run <topic>[0m
+  Topics:
+    data           Pipelines, dashboards and suspicious numbers
+    devops         Pipelines, infrastructure and on-call heroics
+    engineering    Refactors, bug fixes and flaky tests
+    frontend       Components, CSS and pixel pushing
+    security       Audits, patches and stern warnings
+[2m› run nope[0m
+  [31m✗[0m [31munknown topic "nope"[0m
+  Topics:
+    data           Pipelines, dashboards and suspicious numbers
+    devops         Pipelines, infrastructure and on-call heroics
+    engineering    Refactors, bug fixes and flaky tests
+    frontend       Components, CSS and pixel pushing
+    security       Audits, patches and stern warnings
+[2m› hello[0m
+  I'd love to help with that, but I only pretend to work.
+  Try: run <topic>   (type 'topics' to see them)
+[2m› exit[0m
+
+[2mSession ended. Back to real work.[0m

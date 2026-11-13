@@ -36,24 +36,33 @@ type Scenario struct {
 	Actions     []Action
 }
 
+// scenarios covers every agent and every topic without recording every
+// combination: agents change how events look, topics change which events
+// happen, so each agent runs the first topic and each topic runs the first
+// agent.
 func scenarios(cat *profile.Catalog) []Scenario {
+	run := func(agent, topic string) Scenario {
+		return Scenario{
+			Agent: agent, Name: topic, Seed: 42, Width: 80,
+			Actions: []Action{
+				{Line: "run " + topic},
+				{Ticks: 90 * time.Second},
+				{Key: engine.KeyEsc},
+				{Key: engine.KeyCtrlC},
+			},
+		}
+	}
+	agents, topics := cat.AgentNames(), cat.TopicNames()
 	var out []Scenario
-	for _, agent := range cat.AgentNames() {
+	for _, agent := range agents {
 		out = append(out, Scenario{
 			Agent: agent, Name: "commands", Seed: 1, Width: 80,
 			Actions: []Action{{Line: "help"}, {Line: "topics"}, {Line: "run"}, {Line: "run nope"}, {Line: "hello"}, {Line: "exit"}},
 		})
-		for _, topic := range cat.TopicNames() {
-			out = append(out, Scenario{
-				Agent: agent, Name: topic, Seed: 42, Width: 80,
-				Actions: []Action{
-					{Line: "run " + topic},
-					{Ticks: 90 * time.Second},
-					{Key: engine.KeyEsc},
-					{Key: engine.KeyCtrlC},
-				},
-			})
-		}
+		out = append(out, run(agent, topics[0]))
+	}
+	for _, topic := range topics[1:] {
+		out = append(out, run(agents[0], topic))
 	}
 	return out
 }

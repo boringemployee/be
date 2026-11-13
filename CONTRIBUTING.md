@@ -18,10 +18,10 @@ make web    # build the web playground (from Phase 5)
 
 A new agent or topic is **one YAML file** in `content/`, with no Go code needed.
 Agent layouts are described in [docs/layout.md](docs/layout.md); check yours with
-`go run ./cmd/be preview <agent>`. More guides arrive with Phase 4b:
+`go run ./cmd/be preview <agent>`. Step-by-step guides:
 
-- `docs/adding-an-agent.md`
-- `docs/adding-a-topic.md`
+- [docs/adding-an-agent.md](docs/adding-an-agent.md)
+- [docs/adding-a-topic.md](docs/adding-a-topic.md)
 
 Every YAML file is automatically checked against a strict schema and the safety rules below.
 

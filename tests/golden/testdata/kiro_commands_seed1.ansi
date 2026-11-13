@@ -1,0 +1,50 @@
+
+ [38;2;144;70;255m  ▄██▄ [0m   [1mWelcome to Kiwi CLI [0m[2mv1.3.0[0m
+ [38;2;144;70;255m ██◉██▶[0m   [2mSpec-driven fake development[0m
+ [38;2;144;70;255m ▀███▀ [0m   [2mUsing model: Clawed Sunnet 4.5-ish[0m
+ [38;2;144;70;255m  ▌ ▌  [0m   [2m~[0m
+
+ [38;2;144;70;255m▎[0m [1mDid you know?[0m
+ [38;2;144;70;255m▎[0m [2mYou can run <topic> to generate specs, steering docs and tasks that nobody[0m
+ [38;2;144;70;255m▎[0m [2mwill review.[0m
+
+ [2m/help all commands  ·  esc stop  ·  ctrl+c exit[0m
+
+[2m> help[0m
+  Commands:
+    run <topic>   pretend to work on a topic, forever
+    topics        list topics
+    help          show this help
+    exit          leave the session
+  Keys:
+    Esc           stop the current task
+    Ctrl+C        exit
+[2m> topics[0m
+  Topics:
+    data           Pipelines, dashboards and suspicious numbers
+    devops         Pipelines, infrastructure and on-call heroics
+    engineering    Refactors, bug fixes and flaky tests
+    frontend       Components, CSS and pixel pushing
+    security       Audits, patches and stern warnings
+[2m> run[0m
+  [31m✗[0m [31musage: run <topic>[0m
+  Topics:
+    data           Pipelines, dashboards and suspicious numbers
+    devops         Pipelines, infrastructure and on-call heroics
+    engineering    Refactors, bug fixes and flaky tests
+    frontend       Components, CSS and pixel pushing
+    security       Audits, patches and stern warnings
+[2m> run nope[0m
+  [31m✗[0m [31munknown topic "nope"[0m
+  Topics:
+    data           Pipelines, dashboards and suspicious numbers
+    devops         Pipelines, infrastructure and on-call heroics
+    engineering    Refactors, bug fixes and flaky tests
+    frontend       Components, CSS and pixel pushing
+    security       Audits, patches and stern warnings
+[2m> hello[0m
+  I'd love to help with that, but I only pretend to work.
+  Try: run <topic>   (type 'topics' to see them)
+[2m> exit[0m
+
+[2mSession ended. Back to real work.[0m
