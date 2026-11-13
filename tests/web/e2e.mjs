@@ -4,7 +4,8 @@
 //    proves the CLI and the web share identical behavior.
 // 2. An interactive session works: run, Esc, Ctrl+C and restart.
 // 3. Share URL parameters are allowlisted.
-// 4. The page runs under its production CSP with no violations or errors.
+// 4. The setup dialog appears on a first visit and writes the choice to the URL.
+// 5. The page runs under its production CSP with no violations or errors.
 //
 // Set SCREENSHOT_DIR to also save screenshots.
 import { readFile, readdir, mkdir } from "node:fs/promises";
@@ -98,14 +99,39 @@ try {
   await page.waitForTimeout(2500);
   text = await screen();
   check(text.includes("> run devops") && !text.includes("nope"), "share URL runs allowlisted topics only");
-  check(await page.$eval("#agent", (s) => s.value) === "gemini", "share URL selects the agent");
+  check((await page.textContent("#title")).includes("gemini"), "share URL selects the agent");
+  check(!(await page.$eval("#setup", (d) => d.open)), "a URL with a query skips the setup dialog");
   await shot("web-gemini.png");
 
   await open("?agent=%3Cimg%20src%3Dx%20onerror%3Dalert(1)%3E&topic=%3Cscript%3E&seed=1e9");
   text = await screen();
-  check(await page.$eval("#agent", (s) => s.value) === "claude" && !text.includes("❯ run"), "unknown or malicious parameters are ignored");
+  check((await page.textContent("#title")).includes("claude") && !text.includes("❯ run"), "unknown or malicious parameters are ignored");
 
-  // 4. CSP and errors.
+  // 4. Setup dialog on a first visit (no query).
+  await page.goto(base);
+  await page.waitForFunction(() => globalThis.be && document.getElementById("setup").open);
+  check(true, "first visit without a query opens the setup dialog");
+  await page.keyboard.press("Escape");
+  check(await page.$eval("#setup", (d) => d.open), "Esc cannot dismiss the dialog before a session exists");
+  await page.click('label.option:has(input[value="codex"])');
+  await page.click('label.option:has(input[value="devops"])');
+  await page.click('label.option:has(input[value="frontend"])');
+  await shot("web-setup.png");
+  await page.click("#setup-start");
+  await page.waitForTimeout(1500);
+  const url = new URL(page.url());
+  check(url.search === "?agent=codex&topic=devops,frontend", `starting writes the choice into the URL (${url.search})`);
+  check((await screen()).includes("› run devops frontend"), "the chosen agent runs the chosen topics");
+  await page.reload();
+  await page.waitForFunction(() => globalThis.be && globalThis.beTerminal);
+  await page.waitForTimeout(300);
+  check(!(await page.$eval("#setup", (d) => d.open)) && (await screen()).includes("Codecks"), "reloading the URL skips the dialog");
+  await page.click("#new-session");
+  check(await page.$eval("#setup", (d) => d.open) && await page.isVisible("#setup-cancel"), "New session reopens the dialog with Cancel");
+  await page.keyboard.press("Escape");
+  check(!(await page.$eval("#setup", (d) => d.open)), "Esc closes the dialog while a session runs");
+
+  // 5. CSP and errors.
   check(problems.length === 0, `no CSP violations or page errors ${problems.slice(0, 3).join(" | ")}`);
 } finally {
   await browser.close();

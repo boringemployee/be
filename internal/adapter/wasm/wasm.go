@@ -47,6 +47,7 @@ func Register() {
 		"resize":     js.FuncOf(a.resize),
 		"exited":     js.FuncOf(func(js.Value, []js.Value) any { return a.session == nil || a.session.Exited() }),
 		"recordings": js.FuncOf(a.recordings),
+		"catalog":    js.FuncOf(a.catalog),
 	}
 	js.Global().Set("be", js.ValueOf(api))
 }
@@ -125,4 +126,18 @@ func (a *app) recordings(js.Value, []js.Value) any {
 		out = append(out, map[string]any{"file": r.File, "content": r.Content})
 	}
 	return js.ValueOf(out)
+}
+
+// catalog() returns the agents and topics for the setup dialog as
+// {agents: [{name, title, accent}], topics: [{name, description}]}.
+func (a *app) catalog(js.Value, []js.Value) any {
+	var agents, topics []any
+	for _, name := range a.cat.AgentNames() {
+		ag := a.cat.Agents[name]
+		agents = append(agents, map[string]any{"name": name, "title": ag.Title, "accent": ag.Accent})
+	}
+	for _, name := range a.cat.TopicNames() {
+		topics = append(topics, map[string]any{"name": name, "description": a.cat.Topics[name].Description})
+	}
+	return js.ValueOf(map[string]any{"agents": agents, "topics": topics})
 }

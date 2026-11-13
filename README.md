@@ -42,8 +42,10 @@ The same engine compiled to WebAssembly, in a browser terminal (xterm.js):
 make serve    # builds web/dist and serves http://localhost:8080
 ```
 
-Share a session with URL parameters: `?agent=gemini&topic=devops,frontend&seed=42`.
-Only these three parameters are read, and each is checked against an allowlist.
+On a first visit a **New session** dialog asks for an agent and optional topics. Starting
+writes the choice into the URL (e.g. `?agent=gemini&topic=devops,frontend`), so reloading or
+sharing the link skips the dialog. `seed` can be added for a reproducible session. Only these
+three parameters are read, and each is checked against an allowlist.
 
 ## Install
 

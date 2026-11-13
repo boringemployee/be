@@ -19,13 +19,27 @@
     <header class="titlebar">
       <span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
       <span class="title" id="title">~/work — zsh</span>
-      <label class="agent">
-        <span class="sr-only">Agent</span>
-        <select id="agent"></select>
-      </label>
+      <button type="button" class="new-session" id="new-session">New session</button>
     </header>
     <main id="terminal" aria-label="Terminal"></main>
   </div>
+  <dialog id="setup" aria-labelledby="setup-title">
+    <form method="dialog" id="setup-form">
+      <h1 id="setup-title">New session</h1>
+      <fieldset>
+        <legend>Agent</legend>
+        <div class="options" id="agent-options"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Start with topics <span class="hint">optional</span></legend>
+        <div class="options topics" id="topic-options"></div>
+      </fieldset>
+      <div class="actions">
+        <button type="button" id="setup-cancel" class="secondary">Cancel</button>
+        <button type="submit" id="setup-start" class="primary">Start session</button>
+      </div>
+    </form>
+  </dialog>
   <noscript>This page needs JavaScript and WebAssembly.</noscript>
   <script src="xterm.js"></script>
   <script src="wasm_exec.js"></script>
