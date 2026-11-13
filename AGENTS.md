@@ -38,6 +38,9 @@ content/{agents,topics/<name>}  web/  tests/golden/  docs/
    product text. The UI uses parody names (e.g. "Clock Code", "Magnum Opus 5"), never real
    product or model names. CLI commands (`be claude`) may name the tool being parodied.
    Office-safe.
+6. **Looks legitimate.** Text shown in the UI must read like real agent output: never words
+   like "fake", "pretend", "parody" or jokes that give it away. Golden tests enforce this.
+   (Docs, README and code comments may say what the project is.)
 4. **Minimal dependencies.** Ask before adding one. Pin GitHub Actions by commit SHA,
    default workflow permissions to read-only, never use `pull_request_target`, and keep
    secrets (e.g. `CLOUDFLARE_API_TOKEN`) behind a protected environment.
