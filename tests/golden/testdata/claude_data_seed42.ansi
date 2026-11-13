@@ -1,12 +1,12 @@
 
  [38;2;217;119;87m ▄▀▀▀▄ [0m   [1mClock Code [0m[2mv0.4.2[0m
- [38;2;217;119;87m█  █▄ █[0m   [2mMagnum Opus 5 (1M context) with low effort · Boring Pro[0m
+ [38;2;217;119;87m█  █▄ █[0m   [2mMagnum Opus 5 (1M context) with high effort · Team[0m
  [38;2;217;119;87m ▀▄▄▄▀ [0m   [2m~[0m
 
- [38;2;217;119;87m▎[0m [1mFake mode is now Clock Code's default permission mode.[0m
- [38;2;217;119;87m▎[0m [2mFake mode lets Clock Code skip every tool call. Nothing runs, nothing[0m
- [38;2;217;119;87m▎[0m [2mchanges, and the progress keeps moving anyway.[0m
- [38;2;217;119;87m▎[0m [2mType 'run <topic>' to look busy, or 'help' for commands.[0m
+ [38;2;217;119;87m▎[0m [1mAccept-edits mode is now Clock Code's default permission mode.[0m
+ [38;2;217;119;87m▎[0m [2mClock Code applies file edits automatically and asks before running commands[0m
+ [38;2;217;119;87m▎[0m [2mit has not seen before. Review changes in your diff as usual.[0m
+ [38;2;217;119;87m▎[0m [2mType 'run <topic>' to start a task, or 'help' for commands.[0m
 
 [2m❯ run data[0m
 
@@ -31,7 +31,7 @@
       [2mrows processed: 1,284,551[0m
       [2mfreshness: OK (12 minutes)[0m
       [32mPASS test_revenue_not_null[0m
-[32m●[0m All set. Moving on to the next item before anyone notices.
+[32m●[0m All set. Moving on to the next item.
 
 [38;2;217;119;87m●[0m [1mExplain why revenue doubled in daily-revenue[0m
   [38;2;217;119;87m●[0m Read(dags/nightly_etl.py)
@@ -53,7 +53,7 @@
       [2mfreshness: OK (12 minutes)[0m
       [2mwarning: 2 rows with null customer_id (ignored)[0m
       [32mPASS test_no_duplicate_orders[0m
-[32m●[0m All set. Moving on to the next item before anyone notices.
+[32m●[0m All set. Moving on to the next item.
 
 [38;2;217;119;87m●[0m [1mExplain why revenue doubled in churn-model[0m
   [38;2;217;119;87m●[0m Read(models/marts/fct_orders.sql)
@@ -71,7 +71,7 @@
       [2mquery time: 4.2s (was 31.8s)[0m
       [2mFound 3 models, 12 tests, 2 sources[0m
       [32mPASS test_no_duplicate_orders[0m
-[32m●[0m Complete. I left the code slightly better than I found it.
+[32m●[0m Complete. I also removed two unused helpers in the same file.
 
 [38;2;217;119;87m●[0m [1mBackfill marketing-attribution for the last quarter[0m
   [38;2;217;119;87m●[0m Read(notebooks/churn_analysis.ipynb)
@@ -85,7 +85,7 @@
       [2mwarning: 2 rows with null customer_id (ignored)[0m
       [2mfreshness: OK (12 minutes)[0m
       [32mPASS test_events_freshness[0m
-[32m●[0m Finished. The change is small, focused, and suspiciously elegant.
+[32m●[0m Finished. The change is small and focused; no behavior changes outside this m…
 
 [38;2;217;119;87m●[0m [1mFix the duplicate rows in notebooks/churn_analysis.ipynb[0m
   [38;2;217;119;87m●[0m Read(notebooks/churn_analysis.ipynb)
@@ -115,10 +115,10 @@
       [2mchecking dags/nightly_etl.py[0m
       [2mquery time: 4.2s (was 31.8s)[0m
       [32mPASS test_no_duplicate_orders[0m
-[32m●[0m All set. Moving on to the next item before anyone notices.
+[32m●[0m All set. Moving on to the next item.
 
 [38;2;217;119;87m●[0m [1mSpeed up the daily-revenue query[0m
   [33m⎿[0m [33mInterrupted. What should I do instead?[0m
 
 
-[2mSession ended. Back to real work.[0m
+[2mSession ended.[0m

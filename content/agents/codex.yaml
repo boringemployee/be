@@ -12,10 +12,10 @@ welcome:
   - list:
       title: "To get started, describe a task or try one of these commands:"
       items:
-        - "/init - create a notes file nobody will read"
-        - "/status - show how busy you look"
-        - "/review - pretend to review your changes"
-        - "run <topic> - look productive indefinitely"
+        - "/init - create an AGENT notes file with instructions"
+        - "/status - show current session configuration"
+        - "/review - review your uncommitted changes"
+        - "run <topic> - work through tasks on a topic"
 
 live:
   - status: {}
@@ -33,9 +33,9 @@ thinking_words:
   - Exploring
   - Considering options
   - Re-reading the ticket
-  - Estimating story points
+  - Checking related tests
 done_messages:
-  - "Done. Summary: changed things, tests pass, nothing exploded."
-  - "Finished. I kept the diff minimal and the confidence maximal."
-  - "Complete. Let me know if you want me to pretend to do more."
+  - "Done. Summary: updated the implementation and tests; all checks pass."
+  - "Finished. I kept the diff minimal and added a regression test."
+  - "Complete. Let me know if you want me to continue with follow-ups."
 stopped_message: "Interrupted. Tell me what to do differently."

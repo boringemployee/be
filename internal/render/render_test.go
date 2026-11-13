@@ -63,7 +63,7 @@ func TestEvents(t *testing.T) {
 		{"command check", profile.ToolsCheck, engine.Event{Kind: engine.EventCommand, Text: "make", Lines: []string{"FAIL x"}}, "  ✓ Shell make\r\n      FAIL x\r\n"},
 		{"done", profile.ToolsBoxed, engine.Event{Kind: engine.EventTaskDone, Text: "Done"}, "● Done\r\n"},
 		{"stopped", profile.ToolsBoxed, engine.Event{Kind: engine.EventStopped, Text: "Stopped"}, "  ⎿ Stopped\r\n\r\n"},
-		{"exit", profile.ToolsBoxed, engine.Event{Kind: engine.EventExit}, "\r\nSession ended. Back to real work.\r\n"},
+		{"exit", profile.ToolsBoxed, engine.Event{Kind: engine.EventExit}, "\r\nSession ended.\r\n"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

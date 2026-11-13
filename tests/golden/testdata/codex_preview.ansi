@@ -6,10 +6,10 @@
  [38;2;86;182;194m╰────────────────────────────────────────────────────╯[0m
 
  [1mTo get started, describe a task or try one of these commands:[0m
- • /init - create a notes file nobody will read
- • /status - show how busy you look
- • /review - pretend to review your changes
- • run <topic> - look productive indefinitely
+ • /init - create an AGENT notes file with instructions
+ • /status - show current session configuration
+ • /review - review your uncommitted changes
+ • run <topic> - work through tasks on a topic
 
 [2m› run data[0m
 
@@ -34,7 +34,7 @@
       [2mrows processed: 1,284,551[0m
       [2mfreshness: OK (12 minutes)[0m
       [32mPASS test_revenue_not_null[0m
-[32m●[0m Finished. I kept the diff minimal and the confidence maximal.
+[32m●[0m Finished. I kept the diff minimal and added a regression test.
 
                                                                                
 [38;2;86;182;194m›[0m [2mAsk anything, or run <topic>[0m

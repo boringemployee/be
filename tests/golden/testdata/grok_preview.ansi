@@ -7,10 +7,10 @@
 
  [2mGroan CLI [0m[2mv0.3.7[0m[2m · model: groan-4-heavy-ish · ~/work/project[0m
 
- [1mThings I can pretend to do:[0m
- • run <topic> - work on something with maximum confidence
- • help - list commands, with commentary
- • esc - interrupt me mid-thought
+ [1mCommands:[0m
+ • run <topic> - start working on a topic
+ • help - list all commands
+ • esc - interrupt the current task
 
 [2m▶ run data[0m
 
@@ -35,10 +35,10 @@
       [2mrows processed: 1,284,551[0m
       [2mfreshness: OK (12 minutes)[0m
       [32mPASS test_revenue_not_null[0m
-[32m●[0m Fixed. You're welcome, and also it was my idea.
+[32m●[0m Fixed. I added a test so this does not regress.
 
-                                                                      [2mhumor: on[0m
+                                                                     [2mmode: auto[0m
 [2m───────────────────────────────────────────────────────────────────────────────[0m
 [38;2;229;229;229m▶[0m 
 [2m───────────────────────────────────────────────────────────────────────────────[0m
-  [33munhinged mode[0m [2mesc to stop · ctrl+c to leave[0m
+  [33mauto mode[0m [2mesc to stop · ctrl+c to leave[0m

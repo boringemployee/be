@@ -6,10 +6,10 @@
  [38;2;86;182;194m╰────────────────────────────────────────────────────╯[0m
 
  [1mTo get started, describe a task or try one of these commands:[0m
- • /init - create a notes file nobody will read
- • /status - show how busy you look
- • /review - pretend to review your changes
- • run <topic> - look productive indefinitely
+ • /init - create an AGENT notes file with instructions
+ • /status - show current session configuration
+ • /review - review your uncommitted changes
+ • run <topic> - work through tasks on a topic
 
 [2m› run data[0m
 
@@ -34,7 +34,7 @@
       [2mrows processed: 1,284,551[0m
       [2mfreshness: OK (12 minutes)[0m
       [32mPASS test_revenue_not_null[0m
-[32m●[0m Finished. I kept the diff minimal and the confidence maximal.
+[32m●[0m Finished. I kept the diff minimal and added a regression test.
 
 [38;2;86;182;194m●[0m [1mExplain why revenue doubled in daily-revenue[0m
   [38;2;86;182;194m•[0m Read dags/nightly_etl.py
@@ -56,7 +56,7 @@
       [2mfreshness: OK (12 minutes)[0m
       [2mwarning: 2 rows with null customer_id (ignored)[0m
       [32mPASS test_no_duplicate_orders[0m
-[32m●[0m Done. Summary: changed things, tests pass, nothing exploded.
+[32m●[0m Done. Summary: updated the implementation and tests; all checks pass.
 
 [38;2;86;182;194m●[0m [1mExplain why revenue doubled in churn-model[0m
   [38;2;86;182;194m•[0m Read models/marts/fct_orders.sql
@@ -74,7 +74,7 @@
       [2mquery time: 4.2s (was 31.8s)[0m
       [2mFound 3 models, 12 tests, 2 sources[0m
       [32mPASS test_no_duplicate_orders[0m
-[32m●[0m Complete. Let me know if you want me to pretend to do more.
+[32m●[0m Complete. Let me know if you want me to continue with follow-ups.
 
 [38;2;86;182;194m●[0m [1mBackfill marketing-attribution for the last quarter[0m
   [38;2;86;182;194m•[0m Read notebooks/churn_analysis.ipynb
@@ -88,7 +88,7 @@
       [2mwarning: 2 rows with null customer_id (ignored)[0m
       [2mfreshness: OK (12 minutes)[0m
       [32mPASS test_events_freshness[0m
-[32m●[0m Finished. I kept the diff minimal and the confidence maximal.
+[32m●[0m Finished. I kept the diff minimal and added a regression test.
 
 [38;2;86;182;194m●[0m [1mFix the duplicate rows in notebooks/churn_analysis.ipynb[0m
   [38;2;86;182;194m•[0m Read notebooks/churn_analysis.ipynb
@@ -118,10 +118,10 @@
       [2mchecking dags/nightly_etl.py[0m
       [2mquery time: 4.2s (was 31.8s)[0m
       [32mPASS test_no_duplicate_orders[0m
-[32m●[0m Complete. Let me know if you want me to pretend to do more.
+[32m●[0m Complete. Let me know if you want me to continue with follow-ups.
 
 [38;2;86;182;194m●[0m [1mSpeed up the daily-revenue query[0m
   [33m⎿[0m [33mInterrupted. Tell me what to do differently.[0m
 
 
-[2mSession ended. Back to real work.[0m
+[2mSession ended.[0m

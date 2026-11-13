@@ -61,7 +61,7 @@ func TestCommands(t *testing.T) {
 		{"   ", []Kind{EventPrompt}, "", StateIdle},
 		{"help", []Kind{EventEcho, EventNotice, EventPrompt}, "Esc", StateIdle},
 		{"topics", []Kind{EventEcho, EventNotice, EventPrompt}, "engineering", StateIdle},
-		{"make me a sandwich", []Kind{EventEcho, EventNotice, EventPrompt}, "pretend", StateIdle},
+		{"make me a sandwich", []Kind{EventEcho, EventNotice, EventPrompt}, "Start a task with", StateIdle},
 		{"run", []Kind{EventEcho, EventError, EventNotice, EventPrompt}, "usage", StateIdle},
 		{"run engineering nope other", []Kind{EventEcho, EventError, EventNotice, EventPrompt}, `unknown topic "nope", "other"`, StateIdle},
 		{"run a b c d e f g h i j k", []Kind{EventEcho, EventError, EventNotice, EventPrompt}, "too many topics", StateIdle},

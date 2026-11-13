@@ -197,7 +197,7 @@ func (r *Renderer) Event(ev engine.Event) string {
 	case engine.EventStopped:
 		b.WriteString(r.line("  ", "⎿", yellow, yellow, ev.Text) + NL)
 	case engine.EventExit:
-		b.WriteString(NL + r.line("", "", "", dim, "Session ended. Back to real work."))
+		b.WriteString(NL + r.line("", "", "", dim, "Session ended."))
 	}
 	return b.String()
 }

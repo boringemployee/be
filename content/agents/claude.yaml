@@ -12,19 +12,19 @@ welcome:
         - " ▀▄▄▄▀ "
       lines:
         - "{title} {version}"
-        - "Magnum Opus 5 (1M context) with low effort · Boring Pro"
+        - "Magnum Opus 5 (1M context) with high effort · Team"
         - "{cwd}"
   - notice:
-      - "Fake mode is now {title}'s default permission mode."
-      - "Fake mode lets {title} skip every tool call. Nothing runs, nothing changes, and the progress keeps moving anyway."
-      - "Type 'run <topic>' to look busy, or 'help' for commands."
+      - "Accept-edits mode is now {title}'s default permission mode."
+      - "{title} applies file edits automatically and asks before running commands it has not seen before. Review changes in your diff as usual."
+      - "Type 'run <topic>' to start a task, or 'help' for commands."
 
 live:
   - status: { idle: "○ low · /effort" }
   - input: { style: ruled, marker: "❯" }
   - footer:
-      highlight: "▸▸ fake mode on"
-      left: "(shift+tab does nothing) · esc to stop"
+      highlight: "▸▸ accept edits on"
+      left: "(shift+tab to switch) · esc to interrupt"
 
 tools: boxed
 spinner: ["◐", "◓", "◑", "◒"]
@@ -34,14 +34,13 @@ thinking_words:
   - Percolating
   - Noodling
   - Synthesizing
-  - Overthinking
   - Cogitating
   - Marinating
   - Contemplating the codebase
-  - Consulting the rubber duck
+  - Tracing call sites
 done_messages:
-  - "Done. All tests pass. I also tidied up a few things nobody asked about."
-  - "Finished. The change is small, focused, and suspiciously elegant."
-  - "Complete. I left the code slightly better than I found it."
-  - "All set. Moving on to the next item before anyone notices."
+  - "Done. All tests pass and the change is ready for review."
+  - "Finished. The change is small and focused; no behavior changes outside this module."
+  - "Complete. I also removed two unused helpers in the same file."
+  - "All set. Moving on to the next item."
 stopped_message: "Interrupted. What should I do instead?"

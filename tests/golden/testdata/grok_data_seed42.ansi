@@ -7,10 +7,10 @@
 
  [2mGroan CLI [0m[2mv0.3.7[0m[2m · model: groan-4-heavy-ish · ~[0m
 
- [1mThings I can pretend to do:[0m
- • run <topic> - work on something with maximum confidence
- • help - list commands, with commentary
- • esc - interrupt me mid-thought
+ [1mCommands:[0m
+ • run <topic> - start working on a topic
+ • help - list all commands
+ • esc - interrupt the current task
 
 [2m▶ run data[0m
 
@@ -35,7 +35,7 @@
       [2mrows processed: 1,284,551[0m
       [2mfreshness: OK (12 minutes)[0m
       [32mPASS test_revenue_not_null[0m
-[32m●[0m Fixed. You're welcome, and also it was my idea.
+[32m●[0m Fixed. I added a test so this does not regress.
 
 [38;2;229;229;229m●[0m [1mExplain why revenue doubled in daily-revenue[0m
   [38;2;229;229;229m●[0m Read(dags/nightly_etl.py)
@@ -57,7 +57,7 @@
       [2mfreshness: OK (12 minutes)[0m
       [2mwarning: 2 rows with null customer_id (ignored)[0m
       [32mPASS test_no_duplicate_orders[0m
-[32m●[0m Done. That was easier than it looked, which is suspicious.
+[32m●[0m Done. The fix was smaller than expected; tests are green.
 
 [38;2;229;229;229m●[0m [1mExplain why revenue doubled in churn-model[0m
   [38;2;229;229;229m●[0m Read(models/marts/fct_orders.sql)
@@ -75,7 +75,7 @@
       [2mquery time: 4.2s (was 31.8s)[0m
       [2mFound 3 models, 12 tests, 2 sources[0m
       [32mPASS test_no_duplicate_orders[0m
-[32m●[0m Shipped it. Fortune favors the bold and the well-tested.
+[32m●[0m Done. Changes are ready to commit.
 
 [38;2;229;229;229m●[0m [1mBackfill marketing-attribution for the last quarter[0m
   [38;2;229;229;229m●[0m Read(notebooks/churn_analysis.ipynb)
@@ -89,7 +89,7 @@
       [2mwarning: 2 rows with null customer_id (ignored)[0m
       [2mfreshness: OK (12 minutes)[0m
       [32mPASS test_events_freshness[0m
-[32m●[0m Fixed. You're welcome, and also it was my idea.
+[32m●[0m Fixed. I added a test so this does not regress.
 
 [38;2;229;229;229m●[0m [1mFix the duplicate rows in notebooks/churn_analysis.ipynb[0m
   [38;2;229;229;229m●[0m Read(notebooks/churn_analysis.ipynb)
@@ -119,10 +119,10 @@
       [2mchecking dags/nightly_etl.py[0m
       [2mquery time: 4.2s (was 31.8s)[0m
       [32mPASS test_no_duplicate_orders[0m
-[32m●[0m Shipped it. Fortune favors the bold and the well-tested.
+[32m●[0m Done. Changes are ready to commit.
 
 [38;2;229;229;229m●[0m [1mSpeed up the daily-revenue query[0m
-  [33m⎿[0m [33mFine. Stopping. Your loss.[0m
+  [33m⎿[0m [33mStopped. What would you like to do next?[0m
 
 
-[2mSession ended. Back to real work.[0m
+[2mSession ended.[0m

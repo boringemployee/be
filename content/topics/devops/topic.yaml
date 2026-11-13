@@ -1,6 +1,6 @@
 # Topic: run devops. Packs are the other files in this folder; lists missing
 # from a pack fall back to the lists in this file.
-description: Pipelines, infrastructure and on-call heroics
+description: Pipelines, infrastructure and deployments
 # Shared by every devops pack unless a pack defines its own.
 modules:
   - api-gateway

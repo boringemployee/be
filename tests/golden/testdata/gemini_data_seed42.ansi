@@ -6,9 +6,9 @@
   [38;2;75;149;228m█[0m[38;2;79;147;226m█[0m[38;2;82;146;225m█[0m[38;2;86;144;223m█[0m [38;2;94;140;221m█[0m[38;2;98;139;219m█[0m[38;2;102;137;218m█[0m[38;2;105;135;217m█[0m[38;2;109;133;215m█[0m [38;2;117;130;212m█[0m   [38;2;132;122;206m█[0m [38;2;140;121;197m█[0m[38;2;144;119;192m█[0m[38;2;148;118;187m█[0m [38;2;156;116;177m█[0m   [38;2;171;111;158m█[0m   [38;2;187;106;138m█[0m  
 
  [1mTips for getting started:[0m
- 1. Ask questions, edit files, or run <topic> to look busy.
- 2. Be specific for the best results. Or don't, nothing happens anyway.
- 3. Create notes files to customize interactions you will never have.
+ 1. Ask questions, edit files, or run <topic> to work through tasks.
+ 2. Be specific for the best results.
+ 3. Create context files to customize your interactions.
  4. Type help for more information.
 
 [2m> run data[0m
@@ -34,7 +34,7 @@
       [2mrows processed: 1,284,551[0m
       [2mfreshness: OK (12 minutes)[0m
       [32mPASS test_revenue_not_null[0m
-[32m●[0m Task complete. I also considered seven alternatives and rejected them.
+[32m●[0m Task complete. I verified the change with the existing test suite.
 
 [38;2;139;123;232m●[0m [1mExplain why revenue doubled in daily-revenue[0m
   [32m✓[0m ReadFile dags/nightly_etl.py
@@ -74,7 +74,7 @@
       [2mquery time: 4.2s (was 31.8s)[0m
       [2mFound 3 models, 12 tests, 2 sources[0m
       [32mPASS test_no_duplicate_orders[0m
-[32m●[0m Finished. Everything compiles, which is the important part.
+[32m●[0m Finished. Everything builds and the tests pass.
 
 [38;2;139;123;232m●[0m [1mBackfill marketing-attribution for the last quarter[0m
   [32m✓[0m ReadFile notebooks/churn_analysis.ipynb
@@ -88,7 +88,7 @@
       [2mwarning: 2 rows with null customer_id (ignored)[0m
       [2mfreshness: OK (12 minutes)[0m
       [32mPASS test_events_freshness[0m
-[32m●[0m Task complete. I also considered seven alternatives and rejected them.
+[32m●[0m Task complete. I verified the change with the existing test suite.
 
 [38;2;139;123;232m●[0m [1mFix the duplicate rows in notebooks/churn_analysis.ipynb[0m
   [32m✓[0m ReadFile notebooks/churn_analysis.ipynb
@@ -118,10 +118,10 @@
       [2mchecking dags/nightly_etl.py[0m
       [2mquery time: 4.2s (was 31.8s)[0m
       [32mPASS test_no_duplicate_orders[0m
-[32m●[0m Finished. Everything compiles, which is the important part.
+[32m●[0m Finished. Everything builds and the tests pass.
 
 [38;2;139;123;232m●[0m [1mSpeed up the daily-revenue query[0m
   [33m⎿[0m [33mRequest cancelled.[0m
 
 
-[2mSession ended. Back to real work.[0m
+[2mSession ended.[0m

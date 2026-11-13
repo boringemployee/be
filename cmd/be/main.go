@@ -20,10 +20,10 @@ import (
 	"github.com/boringemployee/be/internal/version"
 )
 
-const usage = `be - look busy with a fake AI coding agent
+const usage = `be - AI coding agent sessions in your terminal
 
 Usage:
-  be <agent> [--seed N]   start a fake agent session
+  be <agent> [--seed N]   start an agent session
   be preview <agent> [topic]
                           print a sample screen (for checking agent YAML)
   be --version            print the version
@@ -33,7 +33,7 @@ Agents:
   %s
 
 Inside a session:
-  run <topic> [topic...]  fake work on one or more topics forever
+  run <topic> [topic...]  work on one or more topics
   Esc                     stop the current task
   Ctrl+C                  exit
 `

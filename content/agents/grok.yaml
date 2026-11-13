@@ -11,30 +11,30 @@ welcome:
   - text:
       - "{title} {version} · model: groan-4-heavy-ish · {cwd}"
   - list:
-      title: "Things I can pretend to do:"
+      title: "Commands:"
       items:
-        - "run <topic> - work on something with maximum confidence"
-        - "help - list commands, with commentary"
-        - "esc - interrupt me mid-thought"
+        - "run <topic> - start working on a topic"
+        - "help - list all commands"
+        - "esc - interrupt the current task"
 
 live:
-  - status: { idle: "humor: on" }
+  - status: { idle: "mode: auto" }
   - input: { style: ruled, marker: "▶" }
   - footer:
-      highlight: "unhinged mode"
+      highlight: "auto mode"
       left: "esc to stop · ctrl+c to leave"
 
 tools: boxed
 spinner: ["◢", "◣", "◤", "◥"]
 thinking_words:
   - Thinking hard
-  - Thinking harder
-  - Checking the vibes
-  - Questioning everything
-  - Being maximally helpful
-  - Searching my feelings
+  - Reasoning
+  - Inspecting the code
+  - Weighing options
+  - Writing the patch
+  - Double-checking
 done_messages:
-  - "Done. That was easier than it looked, which is suspicious."
-  - "Fixed. You're welcome, and also it was my idea."
-  - "Shipped it. Fortune favors the bold and the well-tested."
-stopped_message: "Fine. Stopping. Your loss."
+  - "Done. The fix was smaller than expected; tests are green."
+  - "Fixed. I added a test so this does not regress."
+  - "Done. Changes are ready to commit."
+stopped_message: "Stopped. What would you like to do next?"

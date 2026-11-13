@@ -1,7 +1,7 @@
 tasks:
   - "Fix the layout shift in {module}"
   - "Make {file} accessible to screen readers"
-  - "Center the div in {module}"
+  - "Fix alignment issues in {module}"
   - "Add dark mode to {module}"
   - "Reduce bundle size of {module}"
   - "Fix hydration warning in {file}"

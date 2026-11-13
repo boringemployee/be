@@ -51,4 +51,5 @@ Review the new files in `tests/golden/testdata/`; the `.events` files are readab
 - No control characters, URLs, IP addresses, encoded blobs or dangerous commands.
 - Unknown fields or blocks fail. If the blocks cannot express what you need, open an issue:
   a new block type is added once in Go and every agent can use it.
-- Keep it office-safe.
+- Keep it office-safe, and make it look legitimate: UI text must read like a real tool.
+  Words like "fake", "pretend" or "parody" fail the golden tests.

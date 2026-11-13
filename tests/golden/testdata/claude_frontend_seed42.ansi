@@ -1,12 +1,12 @@
 
  [38;2;217;119;87m ▄▀▀▀▄ [0m   [1mClock Code [0m[2mv0.4.2[0m
- [38;2;217;119;87m█  █▄ █[0m   [2mMagnum Opus 5 (1M context) with low effort · Boring Pro[0m
+ [38;2;217;119;87m█  █▄ █[0m   [2mMagnum Opus 5 (1M context) with high effort · Team[0m
  [38;2;217;119;87m ▀▄▄▄▀ [0m   [2m~[0m
 
- [38;2;217;119;87m▎[0m [1mFake mode is now Clock Code's default permission mode.[0m
- [38;2;217;119;87m▎[0m [2mFake mode lets Clock Code skip every tool call. Nothing runs, nothing[0m
- [38;2;217;119;87m▎[0m [2mchanges, and the progress keeps moving anyway.[0m
- [38;2;217;119;87m▎[0m [2mType 'run <topic>' to look busy, or 'help' for commands.[0m
+ [38;2;217;119;87m▎[0m [1mAccept-edits mode is now Clock Code's default permission mode.[0m
+ [38;2;217;119;87m▎[0m [2mClock Code applies file edits automatically and asks before running commands[0m
+ [38;2;217;119;87m▎[0m [2mit has not seen before. Review changes in your diff as usual.[0m
+ [38;2;217;119;87m▎[0m [2mType 'run <topic>' to start a task, or 'help' for commands.[0m
 
 [2m❯ run frontend[0m
 
@@ -23,7 +23,7 @@
       [2mchecking src/hooks/useCart.ts[0m
       [2mwarning: React Hook has a missing dependency[0m
       [32mPASS Button.test.tsx[0m
-[32m●[0m All set. Moving on to the next item before anyone notices.
+[32m●[0m All set. Moving on to the next item.
 
 [38;2;217;119;87m●[0m [1mReduce bundle size of checkout[0m
   [38;2;217;119;87m●[0m Read(src/hooks/useCart.ts)
@@ -42,7 +42,7 @@
       [2mCompiled successfully in 4.1s[0m
       [2mbundle size: 182 kB (-12 kB)[0m
       [32mPASS Modal.test.tsx[0m
-[32m●[0m Finished. The change is small, focused, and suspiciously elegant.
+[32m●[0m Finished. The change is small and focused; no behavior changes outside this m…
 
 [38;2;217;119;87m●[0m [1mReduce bundle size of design-system[0m
   [38;2;217;119;87m●[0m Read(src/pages/checkout.tsx)
@@ -61,7 +61,7 @@
       [2mwarning: React Hook has a missing dependency[0m
       [2mNo ESLint warnings or errors[0m
       [32mPASS a11y.spec.ts[0m
-[32m●[0m Done. All tests pass. I also tidied up a few things nobody asked about.
+[32m●[0m Done. All tests pass and the change is ready for review.
 
 [38;2;217;119;87m●[0m [1mAdd dark mode to onboarding[0m
   [38;2;217;119;87m●[0m Read(src/components/Button.tsx)
@@ -88,7 +88,7 @@
       [2mwarning: React Hook has a missing dependency[0m
       [2mNo ESLint warnings or errors[0m
       [32mPASS Button.test.tsx[0m
-[32m●[0m Complete. I left the code slightly better than I found it.
+[32m●[0m Complete. I also removed two unused helpers in the same file.
 
 [38;2;217;119;87m●[0m [1mFix the layout shift in design-system[0m
   [38;2;217;119;87m●[0m Read(src/components/Button.tsx)
@@ -111,7 +111,7 @@
       [2mTests: 128 passed, 128 total[0m
       [2mCompiled successfully in 4.1s[0m
       [32mPASS a11y.spec.ts[0m
-[32m●[0m Complete. I left the code slightly better than I found it.
+[32m●[0m Complete. I also removed two unused helpers in the same file.
 
 [38;2;217;119;87m●[0m [1mMake Button.test.tsx less flaky[0m
   [38;2;217;119;87m●[0m Read(src/app/layout.tsx)
@@ -121,4 +121,4 @@
   [33m⎿[0m [33mInterrupted. What should I do instead?[0m
 
 
-[2mSession ended. Back to real work.[0m
+[2mSession ended.[0m

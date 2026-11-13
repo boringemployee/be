@@ -7,15 +7,15 @@
 
  [2mGroan CLI [0m[2mv0.3.7[0m[2m · model: groan-4-heavy-ish · ~[0m
 
- [1mThings I can pretend to do:[0m
- • run <topic> - work on something with maximum confidence
- • help - list commands, with commentary
- • esc - interrupt me mid-thought
+ [1mCommands:[0m
+ • run <topic> - start working on a topic
+ • help - list all commands
+ • esc - interrupt the current task
 
 [2m▶ help[0m
   Commands:
-    run <topic>   pretend to work on a topic, forever
-    run a b c     mix several topics
+    run <topic>   work on tasks for a topic
+    run a b c     work across several topics
     topics        list topics
     help          show this help
     exit          leave the session
@@ -24,30 +24,30 @@
     Ctrl+C        exit
 [2m▶ topics[0m
   Topics:
-    data           Pipelines, dashboards and suspicious numbers
-    devops         Pipelines, infrastructure and on-call heroics
+    data           Pipelines, models and data quality
+    devops         Pipelines, infrastructure and deployments
     engineering    Refactors, bug fixes and flaky tests
-    frontend       Components, CSS and pixel pushing
-    security       Audits, patches and stern warnings
+    frontend       Components, styling and accessibility
+    security       Audits, patches and hardening
 [2m▶ run[0m
   [31m✗[0m [31musage: run <topic> [topic...][0m
   Topics:
-    data           Pipelines, dashboards and suspicious numbers
-    devops         Pipelines, infrastructure and on-call heroics
+    data           Pipelines, models and data quality
+    devops         Pipelines, infrastructure and deployments
     engineering    Refactors, bug fixes and flaky tests
-    frontend       Components, CSS and pixel pushing
-    security       Audits, patches and stern warnings
+    frontend       Components, styling and accessibility
+    security       Audits, patches and hardening
 [2m▶ run nope[0m
   [31m✗[0m [31munknown topic "nope"[0m
   Topics:
-    data           Pipelines, dashboards and suspicious numbers
-    devops         Pipelines, infrastructure and on-call heroics
+    data           Pipelines, models and data quality
+    devops         Pipelines, infrastructure and deployments
     engineering    Refactors, bug fixes and flaky tests
-    frontend       Components, CSS and pixel pushing
-    security       Audits, patches and stern warnings
+    frontend       Components, styling and accessibility
+    security       Audits, patches and hardening
 [2m▶ hello[0m
-  I'd love to help with that, but I only pretend to work.
-  Try: run <topic>   (type 'topics' to see them)
+  Start a task with: run <topic>
+  Type 'topics' to list topics or 'help' for commands.
 [2m▶ exit[0m
 
-[2mSession ended. Back to real work.[0m
+[2mSession ended.[0m

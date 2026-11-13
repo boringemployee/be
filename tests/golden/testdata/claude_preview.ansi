@@ -1,12 +1,12 @@
 
  [38;2;217;119;87m ▄▀▀▀▄ [0m   [1mClock Code [0m[2mv0.4.2[0m
- [38;2;217;119;87m█  █▄ █[0m   [2mMagnum Opus 5 (1M context) with low effort · Boring Pro[0m
+ [38;2;217;119;87m█  █▄ █[0m   [2mMagnum Opus 5 (1M context) with high effort · Team[0m
  [38;2;217;119;87m ▀▄▄▄▀ [0m   [2m~/work/project[0m
 
- [38;2;217;119;87m▎[0m [1mFake mode is now Clock Code's default permission mode.[0m
- [38;2;217;119;87m▎[0m [2mFake mode lets Clock Code skip every tool call. Nothing runs, nothing[0m
- [38;2;217;119;87m▎[0m [2mchanges, and the progress keeps moving anyway.[0m
- [38;2;217;119;87m▎[0m [2mType 'run <topic>' to look busy, or 'help' for commands.[0m
+ [38;2;217;119;87m▎[0m [1mAccept-edits mode is now Clock Code's default permission mode.[0m
+ [38;2;217;119;87m▎[0m [2mClock Code applies file edits automatically and asks before running commands[0m
+ [38;2;217;119;87m▎[0m [2mit has not seen before. Review changes in your diff as usual.[0m
+ [38;2;217;119;87m▎[0m [2mType 'run <topic>' to start a task, or 'help' for commands.[0m
 
 [2m❯ run data[0m
 
@@ -31,10 +31,10 @@
       [2mrows processed: 1,284,551[0m
       [2mfreshness: OK (12 minutes)[0m
       [32mPASS test_revenue_not_null[0m
-[32m●[0m All set. Moving on to the next item before anyone notices.
+[32m●[0m All set. Moving on to the next item.
 
                                                                 [2m○ low · /effort[0m
 [2m───────────────────────────────────────────────────────────────────────────────[0m
 [38;2;217;119;87m❯[0m 
 [2m───────────────────────────────────────────────────────────────────────────────[0m
-  [33m▸▸ fake mode on[0m [2m(shift+tab does nothing) · esc to stop[0m
+  [33m▸▸ accept edits on[0m [2m(shift+tab to switch) · esc to interrupt[0m

@@ -79,4 +79,5 @@ make golden && make test
   piping into a shell or interpreter, `base64 -d`, and similar.
 - No URLs, IP addresses (use host names or plain words), encoded blobs or control characters.
 - Unknown placeholders and unknown fields fail; packs cannot have a `description`.
-- Keep it office-safe: fake work, real-sounding but harmless.
+- Keep it office-safe and realistic: it should read like real work, with no giveaway words
+  such as "fake" or "pretend" (the golden tests check this).

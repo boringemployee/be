@@ -13,12 +13,12 @@ welcome:
         - "  ▌ ▌  "
       lines:
         - "Welcome to {title} {version}"
-        - "Spec-driven fake development"
+        - "Spec-driven development"
         - "Using model: Clawed Sunnet 4.5-ish"
         - "{cwd}"
   - notice:
       - "Did you know?"
-      - "You can run <topic> to generate specs, steering docs and tasks that nobody will review."
+      - "You can run <topic> to generate specs, steering docs and tasks for a feature."
   - text:
       - "/help all commands  ·  esc stop  ·  ctrl+c exit"
 
@@ -39,5 +39,5 @@ thinking_words:
 done_messages:
   - "Task complete. Requirements met, design updated, specs in sync."
   - "Done. Marked the task as complete in tasks.md."
-  - "Finished. All acceptance criteria are satisfied, probably."
+  - "Finished. All acceptance criteria are satisfied."
 stopped_message: "Stopped. Waiting for your next instruction."

@@ -100,8 +100,8 @@ func (e *Engine) HandleLine(line string) []Event {
 		return append(out, e.exit()...)
 	default:
 		out = append(out, Event{Kind: EventNotice, Lines: []string{
-			"I'd love to help with that, but I only pretend to work.",
-			"Try: run <topic>   (type 'topics' to see them)",
+			"Start a task with: run <topic>",
+			"Type 'topics' to list topics or 'help' for commands.",
 		}})
 	}
 	return append(out, e.prompt())
@@ -178,8 +178,8 @@ func stepEvent(s generator.Step) Event {
 func (e *Engine) help() []string {
 	return []string{
 		"Commands:",
-		"  run <topic>   pretend to work on a topic, forever",
-		"  run a b c     mix several topics",
+		"  run <topic>   work on tasks for a topic",
+		"  run a b c     work across several topics",
 		"  topics        list topics",
 		"  help          show this help",
 		"  exit          leave the session",

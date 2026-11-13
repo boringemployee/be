@@ -6,15 +6,15 @@
   [38;2;75;149;228m█[0m[38;2;79;147;226m█[0m[38;2;82;146;225m█[0m[38;2;86;144;223m█[0m [38;2;94;140;221m█[0m[38;2;98;139;219m█[0m[38;2;102;137;218m█[0m[38;2;105;135;217m█[0m[38;2;109;133;215m█[0m [38;2;117;130;212m█[0m   [38;2;132;122;206m█[0m [38;2;140;121;197m█[0m[38;2;144;119;192m█[0m[38;2;148;118;187m█[0m [38;2;156;116;177m█[0m   [38;2;171;111;158m█[0m   [38;2;187;106;138m█[0m  
 
  [1mTips for getting started:[0m
- 1. Ask questions, edit files, or run <topic> to look busy.
- 2. Be specific for the best results. Or don't, nothing happens anyway.
- 3. Create notes files to customize interactions you will never have.
+ 1. Ask questions, edit files, or run <topic> to work through tasks.
+ 2. Be specific for the best results.
+ 3. Create context files to customize your interactions.
  4. Type help for more information.
 
 [2m> help[0m
   Commands:
-    run <topic>   pretend to work on a topic, forever
-    run a b c     mix several topics
+    run <topic>   work on tasks for a topic
+    run a b c     work across several topics
     topics        list topics
     help          show this help
     exit          leave the session
@@ -23,30 +23,30 @@
     Ctrl+C        exit
 [2m> topics[0m
   Topics:
-    data           Pipelines, dashboards and suspicious numbers
-    devops         Pipelines, infrastructure and on-call heroics
+    data           Pipelines, models and data quality
+    devops         Pipelines, infrastructure and deployments
     engineering    Refactors, bug fixes and flaky tests
-    frontend       Components, CSS and pixel pushing
-    security       Audits, patches and stern warnings
+    frontend       Components, styling and accessibility
+    security       Audits, patches and hardening
 [2m> run[0m
   [31m✗[0m [31musage: run <topic> [topic...][0m
   Topics:
-    data           Pipelines, dashboards and suspicious numbers
-    devops         Pipelines, infrastructure and on-call heroics
+    data           Pipelines, models and data quality
+    devops         Pipelines, infrastructure and deployments
     engineering    Refactors, bug fixes and flaky tests
-    frontend       Components, CSS and pixel pushing
-    security       Audits, patches and stern warnings
+    frontend       Components, styling and accessibility
+    security       Audits, patches and hardening
 [2m> run nope[0m
   [31m✗[0m [31munknown topic "nope"[0m
   Topics:
-    data           Pipelines, dashboards and suspicious numbers
-    devops         Pipelines, infrastructure and on-call heroics
+    data           Pipelines, models and data quality
+    devops         Pipelines, infrastructure and deployments
     engineering    Refactors, bug fixes and flaky tests
-    frontend       Components, CSS and pixel pushing
-    security       Audits, patches and stern warnings
+    frontend       Components, styling and accessibility
+    security       Audits, patches and hardening
 [2m> hello[0m
-  I'd love to help with that, but I only pretend to work.
-  Try: run <topic>   (type 'topics' to see them)
+  Start a task with: run <topic>
+  Type 'topics' to list topics or 'help' for commands.
 [2m> exit[0m
 
-[2mSession ended. Back to real work.[0m
+[2mSession ended.[0m

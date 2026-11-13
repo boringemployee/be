@@ -12,9 +12,9 @@ welcome:
       title: "Tips for getting started:"
       numbered: true
       items:
-        - "Ask questions, edit files, or run <topic> to look busy."
-        - "Be specific for the best results. Or don't, nothing happens anyway."
-        - "Create notes files to customize interactions you will never have."
+        - "Ask questions, edit files, or run <topic> to work through tasks."
+        - "Be specific for the best results."
+        - "Create context files to customize your interactions."
         - "Type help for more information."
 
 live:
@@ -29,14 +29,14 @@ tools: check
 spinner: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
 thinking_words:
   - Thinking
-  - Reticulating splines
-  - Consulting the multiverse
-  - Aligning the stars
-  - Calibrating vibes
+  - Analyzing dependencies
+  - Reviewing the codebase
+  - Planning changes
+  - Verifying assumptions
   - Counting tokens
-  - Generating synergy
+  - Drafting the edit
 done_messages:
   - "All done. The changes are in place and the tests are green."
-  - "Task complete. I also considered seven alternatives and rejected them."
-  - "Finished. Everything compiles, which is the important part."
+  - "Task complete. I verified the change with the existing test suite."
+  - "Finished. Everything builds and the tests pass."
 stopped_message: "Request cancelled."
