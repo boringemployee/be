@@ -9,13 +9,18 @@ import (
 const validAgent = `
 name: demo
 title: Demo
-banner: ["hello"]
+version: v1.2.3
+mascot: ["##"]
+header: ["model", "{cwd}"]
+notice: ["hello"]
 prompt: "> "
 accent: "#112233"
 spinner: ["-", "+"]
 thinking_words: [Thinking]
 layout: inline
-greeting: Hi
+status_right: low
+footer_mode: mode
+footer_hint: hint
 done_messages: [Done]
 stopped_message: Stopped
 `
@@ -103,7 +108,12 @@ func TestParseAgentErrors(t *testing.T) {
 		{"bad accent", "#112233", "red", "accent:"},
 		{"no spinner", `spinner: ["-", "+"]`, "spinner: []", "spinner: need at least 1"},
 		{"bad layout", "layout: inline", "layout: grid", "layout:"},
-		{"unsafe banner", `banner: ["hello"]`, `banner: ["see https://x.example"]`, "banner[0]: contains a URL"},
+		{"unsafe notice", `notice: ["hello"]`, `notice: ["see https://x.example"]`, "notice[0]: contains a URL"},
+		{"no notice", `notice: ["hello"]`, `notice: []`, "notice: need at least 1"},
+		{"tall mascot", `mascot: ["##"]`, `mascot: [a, b, c, d, e, f, g]`, "mascot: at most 6"},
+		{"bad version", "version: v1.2.3", "version: latest", "version:"},
+		{"bad header placeholder", `"{cwd}"`, `"{home}"`, "header[1]: unknown placeholder {home}"},
+		{"unsafe footer", "footer_hint: hint", "footer_hint: 'rm -rf /'", "footer_hint: contains dangerous"},
 		{"empty item", "thinking_words: [Thinking]", "thinking_words: ['']", "thinking_words[0]: required"},
 	}
 	for _, tt := range tests {
@@ -142,7 +152,7 @@ func FuzzParse(f *testing.F) {
 	f.Add([]byte(validTopic))
 	f.Fuzz(func(t *testing.T, data []byte) {
 		if a, err := ParseAgent(data); err == nil {
-			for _, s := range append(append([]string{a.Title, a.Greeting}, a.Banner...), a.ThinkingWords...) {
+			for _, s := range append(append([]string{a.Title, a.FooterHint}, a.Notice...), a.ThinkingWords...) {
 				if CheckText(s) != nil {
 					t.Fatalf("accepted unsafe text %q", s)
 				}

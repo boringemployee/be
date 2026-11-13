@@ -103,7 +103,7 @@ func TestSessionRunEscAndExit(t *testing.T) {
 		t.Fatal(err)
 	}
 	text := out.String()
-	for _, want := range []string{"Claude-ish", "> help", "Commands:", "> run engineering", "●", "Esc to stop", "Interrupted", "Session ended"} {
+	for _, want := range []string{"Clock Code", "❯ help", "Commands:", "❯ run engineering", "●", "Esc to stop", "Interrupted", "Session ended"} {
 		if !strings.Contains(text, want) {
 			t.Errorf("output missing %q", want)
 		}

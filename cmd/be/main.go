@@ -102,6 +102,19 @@ func run(args []string, stdout, stderr io.Writer) int {
 	return 0
 }
 
+// displayDir returns the current folder with the home folder shortened to
+// "~". It is only shown in the header, never used.
+func displayDir() string {
+	dir, err := os.Getwd()
+	if err != nil {
+		return "~"
+	}
+	if home, err := os.UserHomeDir(); err == nil && strings.HasPrefix(dir, home) {
+		dir = "~" + strings.TrimPrefix(dir, home)
+	}
+	return dir
+}
+
 // interactive puts the terminal in raw mode and runs the session.
 func interactive(eng *engine.Engine, _ options) error {
 	in, out := int(os.Stdin.Fd()), int(os.Stdout.Fd())
@@ -135,6 +148,8 @@ func interactive(eng *engine.Engine, _ options) error {
 	ticker := time.NewTicker(tty.FrameInterval)
 	defer ticker.Stop()
 
-	s := &tty.Session{Engine: eng, Renderer: render.New(eng.Agent(), width()), Out: os.Stdout, Width: width}
+	r := render.New(eng.Agent(), width())
+	r.SetCwd(displayDir())
+	s := &tty.Session{Engine: eng, Renderer: r, Out: os.Stdout, Width: width}
 	return s.Run(keys, ticker.C)
 }

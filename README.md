@@ -9,7 +9,7 @@ while you stare thoughtfully at the screen.
 ```
 $ be claude
 > run engineering
-✻ Refactoring session cache to remove circular imports…
+● Refactoring session cache to remove circular imports…
 ```
 
 - **Esc** stops the current task but keeps you in the session.
@@ -46,6 +46,10 @@ New agents and topics are just YAML files. See [CONTRIBUTING.md](CONTRIBUTING.md
 
 `be` is a parody. It is not affiliated with, endorsed by, or connected to Anthropic, OpenAI,
 Amazon, Google, or any other company. Product names belong to their owners.
+All names, mascots and text shown in the UI are original parodies (e.g. "Clock Code").
+If you represent a trademark owner and want something changed or removed, please open an
+issue and we will act on it promptly.
+
 Please use responsibly; your manager may also have read this README.
 
 ## License

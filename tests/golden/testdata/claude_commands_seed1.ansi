@@ -1,33 +1,36 @@
-[1m[38;2;217;119;87mClaude-ish Code (parody)[0m
-[38;2;217;119;87m╭──────────────────────────────────────────╮[0m
-[38;2;217;119;87m│ * Welcome to Claude-ish Code             │[0m
-[38;2;217;119;87m│   Definitely working. Please don't look. │[0m
-[38;2;217;119;87m╰──────────────────────────────────────────╯[0m
-[2mType 'run <topic>' to look busy, or 'help' for commands.[0m
 
-[2m> help[0m
-Commands:
-  run <topic>   pretend to work on a topic, forever
-  topics        list topics
-  help          show this help
-  exit          leave the session
-Keys:
-  Esc           stop the current task
-  Ctrl+C        exit
-[2m> topics[0m
-Topics:
-  engineering    Refactors, bug fixes and flaky tests
-[2m> run[0m
-[31m✗[0m [31musage: run <topic>[0m
-Topics:
-  engineering    Refactors, bug fixes and flaky tests
-[2m> run nope[0m
-[31m✗[0m [31munknown topic "nope"[0m
-Topics:
-  engineering    Refactors, bug fixes and flaky tests
-[2m> hello[0m
-I'd love to help with that, but I only pretend to work.
-Try: run <topic>   (type 'topics' to see them)
-[2m> exit[0m
+ [38;2;217;119;87m ▄▀▀▀▄ [0m   [1mClock Code[0m[2m v0.4.2[0m
+ [38;2;217;119;87m█  █▄ █[0m   [2mMagnum Opus 5 (1M context) with low effort · Boring Pro[0m
+ [38;2;217;119;87m ▀▄▄▄▀ [0m   [2m~[0m
+
+ [38;2;217;119;87m▎[0m [1mFake mode is now Clock Code's default permission mode.[0m
+ [38;2;217;119;87m▎[0m [2mFake mode lets Clock Code skip every tool call. Nothing runs, nothing[0m
+ [38;2;217;119;87m▎[0m [2mchanges, and the progress keeps moving anyway.[0m
+ [38;2;217;119;87m▎[0m [2mType 'run <topic>' to look busy, or 'help' for commands.[0m
+
+[2m❯ help[0m
+  Commands:
+    run <topic>   pretend to work on a topic, forever
+    topics        list topics
+    help          show this help
+    exit          leave the session
+  Keys:
+    Esc           stop the current task
+    Ctrl+C        exit
+[2m❯ topics[0m
+  Topics:
+    engineering    Refactors, bug fixes and flaky tests
+[2m❯ run[0m
+  [31m✗[0m [31musage: run <topic>[0m
+  Topics:
+    engineering    Refactors, bug fixes and flaky tests
+[2m❯ run nope[0m
+  [31m✗[0m [31munknown topic "nope"[0m
+  Topics:
+    engineering    Refactors, bug fixes and flaky tests
+[2m❯ hello[0m
+  I'd love to help with that, but I only pretend to work.
+  Try: run <topic>   (type 'topics' to see them)
+[2m❯ exit[0m
 
 [2mSession ended. Back to real work.[0m

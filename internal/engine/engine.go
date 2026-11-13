@@ -45,8 +45,7 @@ func (e *Engine) Agent() *profile.Agent { return e.agent }
 
 // Start returns the welcome screen and first prompt.
 func (e *Engine) Start() []Event {
-	lines := append(append([]string{}, e.agent.Banner...), e.agent.Greeting)
-	return []Event{{Kind: EventWelcome, Text: e.agent.Title, Lines: lines}, e.prompt()}
+	return []Event{{Kind: EventWelcome, Text: e.agent.Title, Lines: e.agent.Notice}, e.prompt()}
 }
 
 func (e *Engine) prompt() Event { return Event{Kind: EventPrompt, Text: e.agent.Prompt} }

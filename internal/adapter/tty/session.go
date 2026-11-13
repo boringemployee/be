@@ -21,6 +21,7 @@ type Session struct {
 	Width func() int
 
 	input   []rune
+	drawn   bool // whether a live area is on screen
 	word    string
 	frame   int
 	elapsed time.Duration
@@ -92,11 +93,13 @@ func (s *Session) handle(in Input) error {
 	return s.emit(nil)
 }
 
-// emit prints the permanent output of events above the live line, then
-// redraws the live line (status while running, input while idle).
+// emit prints the permanent output of events above the live area, then
+// redraws the live area (status and input box) unless the session ended.
 func (s *Session) emit(events []engine.Event) error {
 	var b strings.Builder
-	b.WriteString(render.ClearLine)
+	if s.drawn {
+		b.WriteString(s.Renderer.ClearLive())
+	}
 	for _, ev := range events {
 		switch ev.Kind {
 		case engine.EventTaskStart:
@@ -106,11 +109,15 @@ func (s *Session) emit(events []engine.Event) error {
 		}
 		b.WriteString(s.Renderer.Event(ev))
 	}
-	switch s.Engine.State() {
-	case engine.StateRunning:
-		b.WriteString(s.Renderer.Status(s.frame, s.word, s.elapsed))
-	case engine.StateIdle:
-		b.WriteString(s.Renderer.Input(string(s.input)))
+	s.drawn = s.Engine.State() != engine.StateExited
+	if s.drawn {
+		b.WriteString(s.Renderer.Live(render.LiveState{
+			Running: s.Engine.State() == engine.StateRunning,
+			Frame:   s.frame,
+			Word:    s.word,
+			Elapsed: s.elapsed,
+			Input:   string(s.input),
+		}))
 	}
 	_, err := io.WriteString(s.Out, b.String())
 	return err

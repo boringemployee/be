@@ -5,7 +5,7 @@ type Kind int
 
 // Event kinds. Renderers decide how each one looks.
 const (
-	EventWelcome   Kind = iota // Text: title, Lines: banner then greeting
+	EventWelcome   Kind = iota // Text: title, Lines: notice
 	EventPrompt                // Text: prompt; the session is waiting for input
 	EventEcho                  // Text: the line the user typed
 	EventNotice                // Lines: informational output (help, topics, hints)

@@ -1,12 +1,19 @@
-# Parody profile. Inspired by the general feel of agent CLIs; no real logos or text.
+# Parody profile. Mimics the layout of agent CLIs with original art and wording.
 name: claude
-title: Claude-ish Code (parody)
-banner:
-  - "╭──────────────────────────────────────────╮"
-  - "│ * Welcome to Claude-ish Code             │"
-  - "│   Definitely working. Please don't look. │"
-  - "╰──────────────────────────────────────────╯"
-prompt: "> "
+title: Clock Code
+version: v0.4.2
+mascot:
+  - " ▄▀▀▀▄ "
+  - "█  █▄ █"
+  - " ▀▄▄▄▀ "
+header:
+  - "Magnum Opus 5 (1M context) with low effort · Boring Pro"
+  - "{cwd}"
+notice:
+  - "Fake mode is now Clock Code's default permission mode."
+  - "Fake mode lets Clock Code skip every tool call. Nothing runs, nothing changes, and the progress keeps moving anyway."
+  - "Type 'run <topic>' to look busy, or 'help' for commands."
+prompt: "❯ "
 accent: "#D97757"
 spinner: ["◐", "◓", "◑", "◒"]
 thinking_words:
@@ -21,7 +28,9 @@ thinking_words:
   - Contemplating the codebase
   - Consulting the rubber duck
 layout: boxed
-greeting: "Type 'run <topic>' to look busy, or 'help' for commands."
+status_right: "○ low · /effort"
+footer_mode: "▸▸ fake mode on"
+footer_hint: "(shift+tab does nothing) · esc to stop"
 done_messages:
   - "Done. All tests pass. I also tidied up a few things nobody asked about."
   - "Finished. The change is small, focused, and suspiciously elegant."

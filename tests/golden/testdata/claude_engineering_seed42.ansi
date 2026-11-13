@@ -1,11 +1,14 @@
-[1m[38;2;217;119;87mClaude-ish Code (parody)[0m
-[38;2;217;119;87m╭──────────────────────────────────────────╮[0m
-[38;2;217;119;87m│ * Welcome to Claude-ish Code             │[0m
-[38;2;217;119;87m│   Definitely working. Please don't look. │[0m
-[38;2;217;119;87m╰──────────────────────────────────────────╯[0m
-[2mType 'run <topic>' to look busy, or 'help' for commands.[0m
 
-[2m> run engineering[0m
+ [38;2;217;119;87m ▄▀▀▀▄ [0m   [1mClock Code[0m[2m v0.4.2[0m
+ [38;2;217;119;87m█  █▄ █[0m   [2mMagnum Opus 5 (1M context) with low effort · Boring Pro[0m
+ [38;2;217;119;87m ▀▄▄▄▀ [0m   [2m~[0m
+
+ [38;2;217;119;87m▎[0m [1mFake mode is now Clock Code's default permission mode.[0m
+ [38;2;217;119;87m▎[0m [2mFake mode lets Clock Code skip every tool call. Nothing runs, nothing[0m
+ [38;2;217;119;87m▎[0m [2mchanges, and the progress keeps moving anyway.[0m
+ [38;2;217;119;87m▎[0m [2mType 'run <topic>' to look busy, or 'help' for commands.[0m
+
+[2m❯ run engineering[0m
 
 [38;2;217;119;87m●[0m [1mRefactor config-loader to remove a circular import[0m
   [38;2;217;119;87m●[0m Read(internal/auth/session.go)

@@ -28,15 +28,23 @@ const (
 
 // Agent describes how a fake agent looks and talks.
 type Agent struct {
-	Name           string   `yaml:"name"`
-	Title          string   `yaml:"title"`
-	Banner         []string `yaml:"banner"`
+	Name    string `yaml:"name"`
+	Title   string `yaml:"title"`
+	Version string `yaml:"version"`
+	// Mascot is a small original pixel-art icon shown left of the header.
+	Mascot []string `yaml:"mascot"`
+	// Header lines appear under "Title Version"; {cwd} is the current folder.
+	Header []string `yaml:"header"`
+	// Notice is a highlighted block under the header; the first line is bold.
+	Notice         []string `yaml:"notice"`
 	Prompt         string   `yaml:"prompt"`
 	Accent         string   `yaml:"accent"`
 	Spinner        []string `yaml:"spinner"`
 	ThinkingWords  []string `yaml:"thinking_words"`
 	Layout         Layout   `yaml:"layout"`
-	Greeting       string   `yaml:"greeting"`
+	StatusRight    string   `yaml:"status_right"`
+	FooterMode     string   `yaml:"footer_mode"`
+	FooterHint     string   `yaml:"footer_hint"`
 	DoneMessages   []string `yaml:"done_messages"`
 	StoppedMessage string   `yaml:"stopped_message"`
 }
@@ -76,8 +84,9 @@ func sortedKeys[V any](m map[string]V) []string {
 }
 
 var (
-	nameRE  = regexp.MustCompile(`^[a-z][a-z0-9-]{0,31}$`)
-	colorRE = regexp.MustCompile(`^#[0-9a-fA-F]{6}$`)
+	nameRE    = regexp.MustCompile(`^[a-z][a-z0-9-]{0,31}$`)
+	colorRE   = regexp.MustCompile(`^#[0-9a-fA-F]{6}$`)
+	versionRE = regexp.MustCompile(`^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$`)
 	// Placeholders a task template may use.
 	placeholderRE = regexp.MustCompile(`\{([a-z]+)\}`)
 	placeholders  = map[string]bool{"file": true, "module": true, "test": true}
@@ -168,11 +177,15 @@ func (c *checker) str(field, s string, required bool) {
 }
 
 func (c *checker) list(field string, items []string, min int) {
+	c.listMax(field, items, min, MaxItems)
+}
+
+func (c *checker) listMax(field string, items []string, min, max int) {
 	if len(items) < min {
 		c.fail("%s: need at least %d item(s)", field, min)
 	}
-	if len(items) > MaxItems {
-		c.fail("%s: at most %d items", field, MaxItems)
+	if len(items) > max {
+		c.fail("%s: at most %d items", field, max)
 	}
 	for i, s := range items {
 		c.str(fmt.Sprintf("%s[%d]", field, i), s, true)
@@ -189,7 +202,19 @@ func (a *Agent) validate() error {
 	var c checker
 	c.name(a.Name)
 	c.str("title", a.Title, true)
-	c.list("banner", a.Banner, 0)
+	if !versionRE.MatchString(a.Version) {
+		c.fail("version: %q must look like v1.2.3", a.Version)
+	}
+	c.listMax("mascot", a.Mascot, 0, 6)
+	c.listMax("header", a.Header, 0, 4)
+	for i, h := range a.Header {
+		for _, m := range placeholderRE.FindAllStringSubmatch(h, -1) {
+			if m[1] != "cwd" {
+				c.fail("header[%d]: unknown placeholder {%s}", i, m[1])
+			}
+		}
+	}
+	c.listMax("notice", a.Notice, 1, 6)
 	c.str("prompt", a.Prompt, true)
 	if !colorRE.MatchString(a.Accent) {
 		c.fail("accent: %q must be a #rrggbb color", a.Accent)
@@ -199,7 +224,9 @@ func (a *Agent) validate() error {
 	if a.Layout != LayoutBoxed && a.Layout != LayoutInline {
 		c.fail("layout: %q must be %q or %q", a.Layout, LayoutBoxed, LayoutInline)
 	}
-	c.str("greeting", a.Greeting, true)
+	c.str("status_right", a.StatusRight, false)
+	c.str("footer_mode", a.FooterMode, false)
+	c.str("footer_hint", a.FooterHint, false)
 	c.list("done_messages", a.DoneMessages, 1)
 	c.str("stopped_message", a.StoppedMessage, true)
 	return errors.Join(c.errs...)
