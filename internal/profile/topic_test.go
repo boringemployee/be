@@ -79,6 +79,7 @@ func TestLoadTopicErrors(t *testing.T) {
 		{"description in pack", map[string]string{"topics/work/topic.yaml": validTopic, "topics/work/go.yaml": "description: x\n"}, "field description not found"},
 		{"unreadable pack", map[string]string{"topics/work/topic.yaml": validTopic, "topics/work/go.yaml/x": ""}, "go.yaml"},
 		{"bad output placeholder", map[string]string{"topics/work/topic.yaml": strings.Replace(validTopic, `output: ["ok {module}"]`, `output: ["{home}"]`, 1)}, "topic.commands[0].output[0]: unknown placeholder"},
+		{"bad run placeholder", map[string]string{"topics/work/topic.yaml": strings.Replace(validTopic, "run: make test", `run: "make {home}"`, 1)}, "topic.commands[0].run: unknown placeholder"},
 		{"no commands", map[string]string{"topics/work/topic.yaml": strings.Replace(validTopic, `commands: [{run: make test, output: ["ok {module}"], failure: ["FAIL {test}"]}]`, "", 1)}, "topic.commands: need 1 to"},
 		{"command without run", map[string]string{"topics/work/topic.yaml": strings.Replace(validTopic, "run: make test", `run: ""`, 1)}, "commands[0].run: required"},
 		{"too much output", map[string]string{"topics/work/topic.yaml": strings.Replace(validTopic, `failure: ["FAIL {test}"]`, "failure: [a, b, c, d, e, f, g, h, i]", 1)}, "failure: at most 8"},

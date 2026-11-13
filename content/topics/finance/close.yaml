@@ -1,0 +1,79 @@
+tasks:
+  - "Reconcile the {module} ledger for November"
+  - "Match the unapplied payments in {file}"
+  - "Book the month-end accruals for {module}"
+  - "Explain the variance in {module} versus budget"
+  - "Clear the suspense account items in {file}"
+  - "Prepare the {module} close checklist"
+  - "Fix the FX revaluation for {module}"
+  - "Investigate the duplicate vendor invoices in {file}"
+files:
+  - close/2026-11/bank_rec_operating.xlsx
+  - close/2026-11/ap_aging.xlsx
+  - close/2026-11/ar_aging.xlsx
+  - close/2026-11/accruals.xlsx
+  - close/2026-11/trial_balance.csv
+  - close/2026-11/variance_analysis.xlsx
+commands:
+  - run: python close/reconcile.py --account 1010 --period 2026-11
+    output:
+      - "bank statement lines:   1,412"
+      - "ledger entries:         1,408"
+      - "matched automatically:  1,396"
+      - "matched by rule:           12"
+      - "unmatched:                  0"
+      - "difference: 0.00"
+    failure:
+      - "bank statement lines:   1,412"
+      - "ledger entries:         1,408"
+      - "matched automatically:  1,396"
+      - "unmatched:                 16"
+      - "difference: 4,812.50 (bank higher than ledger)"
+  - run: python close/trial_balance.py --period 2026-11
+    output:
+      - "accounts: 214"
+      - "total debits:   18,904,221.37"
+      - "total credits:  18,904,221.37"
+      - "trial balance is in balance"
+    failure:
+      - "accounts: 214"
+      - "total debits:   18,904,221.37"
+      - "total credits:  18,899,408.87"
+      - "out of balance by 4,812.50"
+  - run: python close/duplicates.py {file}
+    output:
+      - "scanned 2,904 invoices from 311 vendors"
+      - "no likely duplicates"
+    failure:
+      - "scanned 2,904 invoices from 311 vendors"
+      - "likely duplicate: INV-20419 and INV-20419A (same vendor, amount 4,812.50, 2 days apart)"
+      - "1 likely duplicate"
+  - run: python close/variance.py --module {module} --vs budget
+    output:
+      - "line            actual       budget     variance"
+      - "Software       142,800      130,000     +9.8%"
+      - "Contractors     88,450       95,000     -6.9%"
+      - "Travel          21,310       18,000    +18.4%"
+      - "3 lines above the 5% threshold need commentary"
+  - run: python close/checklist.py --period 2026-11
+    output:
+      - "[x] bank reconciliations (3/3)"
+      - "[x] AP and AR aging reviewed"
+      - "[x] accruals booked (14)"
+      - "[ ] variance commentary (2 of 5 lines)"
+      - "[ ] controller sign-off"
+edits:
+  - from: "Accrued expenses | 0.00"
+    to: "Accrued expenses | 38,200.00"
+  - from: "Status: Unmatched"
+    to: "Status: Matched to deposit 2026-11-14"
+  - to: "Commentary: Software above budget due to annual license renewal paid in November."
+  - from: "FX rate EUR/USD: 1.0712"
+    to: "FX rate EUR/USD: 1.0864 (month-end close rate)"
+  - from: "INV-20419A | 4,812.50 | Approved"
+    to: "INV-20419A | 4,812.50 | Voided (duplicate of INV-20419)"
+  - to: "Journal entry JE-11-042: reclass 1,250.00 from suspense to prepaid expenses"
+  - from: "Reviewer: "
+    to: "Reviewer: Controller"
+  - from: "Due: 2026-12-05"
+    to: "Due: 2026-12-03 (business day 3)"

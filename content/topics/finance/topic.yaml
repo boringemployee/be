@@ -1,0 +1,15 @@
+# Topic: run finance. Packs are the other files in this folder; lists missing
+# from a pack fall back to the lists in this file.
+description: Month-end close, reconciliations and forecasts
+modules:
+  - accounts-payable
+  - accounts-receivable
+  - revenue-recognition
+  - payroll
+  - cash-forecast
+  - expenses
+tests:
+  - bank-rec-check
+  - trial-balance-check
+  - accruals-check
+  - variance-check

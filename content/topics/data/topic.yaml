@@ -7,8 +7,12 @@ modules:
   - churn-model
   - orders-mart
   - marketing-attribution
+  - inventory-snapshot
+  - subscriptions
 tests:
   - test_no_duplicate_orders
   - test_revenue_not_null
   - test_events_freshness
   - test_churn_auc
+  - test_inventory_non_negative
+  - test_subscription_dates

@@ -1,0 +1,43 @@
+tasks:
+  - "Document the new {module} endpoints"
+  - "Add request and response examples to {file}"
+  - "Fix the schema drift between {file} and the server"
+  - "Mark the old {module} fields as deprecated"
+  - "Generate client docs for {module}"
+files:
+  - api/openapi.yaml
+  - api/schemas/order.yaml
+  - api/schemas/user.yaml
+  - api/paths/payments.yaml
+commands:
+  - run: npx @redocly/cli lint api/openapi.yaml
+    output:
+      - "validating api/openapi.yaml..."
+      - "api/openapi.yaml: valid (47 operations, 0 warnings)"
+    failure:
+      - "validating api/openapi.yaml..."
+      - "[1] {file}:44:7 at #/paths/~1orders/get/responses"
+      - "Operation must have at least one 4XX response.  operation-4xx-response"
+      - "❌ Validation failed with 1 error."
+  - run: make api-diff
+    output:
+      - "comparing api/openapi.yaml with the server routes..."
+      - "47 operations match"
+    failure:
+      - "comparing api/openapi.yaml with the server routes..."
+      - "missing in spec: POST /v2/refunds"
+      - "type mismatch: Order.total (spec: integer, server: string)"
+      - "45 operations match, 2 differ"
+  - run: npx @redocly/cli build-docs api/openapi.yaml -o build/api.html
+    output:
+      - "Prerendering docs"
+      - "🎉 bundled successfully in: build/api.html (612 KiB) [⏱ 1.9s]."
+edits:
+  - to: "      \"404\": { $ref: \"#/components/responses/NotFound\" }"
+  - from: "total: { type: integer }"
+    to: "total: { type: string, format: decimal, example: \"129.90\" }"
+  - to: "deprecated: true"
+  - to: "description: Refunds a captured payment. Partial refunds are allowed."
+  - to: "example: { id: \"ord_8f2k1\", status: \"paid\", total: \"129.90\" }"
+  - from: "summary: Get order"
+    to: "summary: Get an order by ID"

@@ -7,8 +7,14 @@ modules:
   - settings-page
   - design-system
   - onboarding
+  - search-results
+  - account-menu
+  - pricing-page
 tests:
   - Button.test.tsx
   - checkout.spec.ts
   - Modal.test.tsx
   - a11y.spec.ts
+  - Navbar.test.tsx
+  - search.spec.ts
+  - pricing.spec.ts

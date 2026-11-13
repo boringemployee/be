@@ -1,0 +1,66 @@
+tasks:
+  - "Apply the company template to {file}"
+  - "Fix the heading levels in {file} so the table of contents works"
+  - "Tighten the executive summary of the {module} memo"
+  - "Update the numbers in {file} to match the latest forecast"
+  - "Resolve the open review comments in {file}"
+  - "Fix the broken cross-references in {file}"
+  - "Add alt text to every figure in {file}"
+files:
+  - docs/board_update_Q4.docx
+  - docs/hiring_plan_2027.docx
+  - docs/vendor_review.docx
+  - docs/team_roadmap.docx
+  - docs/policy_remote_work.docx
+commands:
+  - run: python scripts/check_document.py {file}
+    output:
+      - "loading {file} (14 pages, 3 tables, 6 figures)"
+      - "headings: 4 levels, no skipped levels"
+      - "styles: 100% from template"
+      - "comments: 0 open"
+      - "0 issues"
+    failure:
+      - "loading {file} (14 pages, 3 tables, 6 figures)"
+      - "page 3: heading jumps from level 1 to level 3"
+      - "page 7: 'Figure 4' reference points to a missing caption"
+      - "page 9: 4 paragraphs use direct formatting instead of styles"
+      - "comments: 5 open"
+      - "8 issues"
+  - run: python scripts/accessibility.py {file}
+    output:
+      - "figures with alt text: 6/6"
+      - "tables with header rows: 3/3"
+      - "reading order: ok"
+    failure:
+      - "figures with alt text: 4/6"
+      - "tables with header rows: 2/3"
+      - "{file}: 3 accessibility issues"
+  - run: pandoc {file} -o build/review.pdf
+    output:
+      - "[INFO] Running filter crossref"
+      - "[INFO] Rendering 14 pages"
+  - run: python scripts/word_count.py {file} --by-section
+    output:
+      - "Executive summary      312 words   (target 250)"
+      - "Context                640 words"
+      - "Proposal             1,104 words"
+      - "Risks and mitigations  488 words"
+      - "Total                2,544 words"
+edits:
+  - from: "Style: Normal + Bold, 16pt"
+    to: "Style: Heading 2"
+  - from: "Revenue grew significantly this quarter."
+    to: "Revenue grew 2.2% quarter over quarter, to 1.31M."
+  - from: "We will hire about 10 people next year."
+    to: "We plan 12 hires in 2027: 7 in engineering, 3 in sales and 2 in operations."
+  - from: "See figure 4 above."
+    to: "See Figure 4: Pipeline by region."
+  - to: "Alt text: Bar chart of pipeline by region; East leads with 41%."
+  - from: "In order to"
+    to: "To"
+  - from: "The team has been working very hard on a number of initiatives."
+    to: "The team shipped three of the four planned initiatives."
+  - to: "Owner: Operations. Review date: March 2027."
+  - from: "TBD"
+    to: "15 January 2027"

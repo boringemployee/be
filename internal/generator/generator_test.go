@@ -167,3 +167,33 @@ func TestNextSingleTopicSpendsNoDraw(t *testing.T) {
 		t.Fatal("multi-topic Next returned no steps")
 	}
 }
+
+// A task names one module throughout: in its title, its commands and their
+// output.
+func TestTaskUsesOneModule(t *testing.T) {
+	p := &profile.Pack{
+		Tasks:    []string{"Fix {module}"},
+		Files:    []string{"a.go"},
+		Modules:  []string{"m1", "m2", "m3", "m4", "m5"},
+		Tests:    []string{"T1", "T2", "T3"},
+		Commands: []profile.Command{{Run: "make {module} {test}", Output: []string{"ok {module} {test}"}, Failure: []string{"FAIL {module} {test}"}}},
+		Edits:    []profile.Edit{{To: "x"}},
+	}
+	g := New(3, agent)
+	for range 50 {
+		steps := g.Next(&profile.Topic{Packs: []*profile.Pack{p}})
+		module := strings.TrimPrefix(steps[0].Text, "Fix ")
+		for _, s := range steps {
+			if s.Kind != StepCommand {
+				continue
+			}
+			if !strings.HasPrefix(s.Text, "make "+module+" ") {
+				t.Fatalf("command %q does not use module %q", s.Text, module)
+			}
+			test := strings.TrimPrefix(s.Text, "make "+module+" ")
+			if want := module + " " + test; !strings.HasSuffix(s.Lines[0], want) {
+				t.Fatalf("output %q does not match command %q", s.Lines[0], s.Text)
+			}
+		}
+	}
+}

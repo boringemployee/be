@@ -3,19 +3,51 @@ tasks:
   - "Speed up CI caching for {module}"
   - "Run {test} on every pull request"
   - "Split the {module} pipeline into parallel jobs"
+  - "Pin every third-party action in {file} to a commit"
+  - "Add a manual approval gate before production in {file}"
+  - "Cut the {module} build time in half"
+  - "Upload test reports from {module} as build artifacts"
 files:
   - .github/workflows/deploy.yml
   - .github/workflows/ci.yml
   - .github/workflows/nightly.yml
+  - .github/workflows/release.yml
+  - .github/workflows/e2e.yml
 commands:
   - run: actionlint
     output: []
     failure:
       - "{file}:24:9: property \"node-version\" is not defined [expression]"
+      - "{file}:61:15: shellcheck reported issue in this script: SC2086 Double quote to prevent globbing [shellcheck]"
   - run: make ci-check
     output:
       - "validating {file}"
+      - "checking action pins... ok"
+      - "checking job permissions... ok"
       - "all workflows valid"
+    failure:
+      - "validating {file}"
+      - "checking action pins... 1 unpinned action"
+      - "  {file}:33 uses a tag instead of a commit"
+      - "make: *** [ci-check] Error 1"
+  - run: gh run list --workflow ci.yml --limit 5
+    output:
+      - "STATUS  TITLE                         WORKFLOW  BRANCH  EVENT         ELAPSED"
+      - "✓       Cache module downloads        ci        main    push          4m12s"
+      - "✓       Split integration tests       ci        main    push          4m38s"
+      - "X       Bump node to 22               ci        main    pull_request  6m02s"
+      - "✓       Add smoke test to deploy      ci        main    push          7m55s"
+  - run: gh run watch
+    output:
+      - "✓ build (ubuntu-24.04) in 2m11s"
+      - "✓ test (ubuntu-24.04) in 3m04s"
+      - "✓ lint in 48s"
+      - "Run CI completed with 'success'"
+    failure:
+      - "✓ build (ubuntu-24.04) in 2m09s"
+      - "X test (ubuntu-24.04) in 3m22s"
+      - "  Process completed with exit code 1."
+      - "Run CI completed with 'failure'"
 edits:
   - from: "timeout-minutes: 15"
     to: "timeout-minutes: 30"
@@ -27,3 +59,11 @@ edits:
   - to: "concurrency: { group: deploy-${{ github.ref }}, cancel-in-progress: true }"
   - from: "  node-version: 20"
     to: "  node-version: 22"
+  - to: "permissions: { contents: read }"
+  - to: "environment: production"
+  - to: "strategy: { matrix: { shard: [1, 2, 3, 4] } }"
+  - from: "run: npm test"
+    to: "run: npm test -- --shard=${{ matrix.shard }}/4"
+  - to: "if: always()"
+  - from: "  fetch-depth: 0"
+    to: "  fetch-depth: 1"

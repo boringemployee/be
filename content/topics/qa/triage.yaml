@@ -1,0 +1,42 @@
+tasks:
+  - "Triage the new bugs reported against {module}"
+  - "Write a test plan for the {module} release"
+  - "Reproduce the customer issue in {module}"
+  - "Update the regression checklist in {file}"
+  - "Verify the fixes shipped for {module} last sprint"
+files:
+  - qa/test-plans/checkout-v3.md
+  - qa/regression-checklist.md
+  - qa/bug-reports/BUG-4182.md
+  - qa/release-notes-verification.md
+commands:
+  - run: make bugs-list MODULE={module}
+    output:
+      - "ID        PRI  STATUS       TITLE"
+      - "BUG-4182  P1   New          Discount not applied when cart has gift card"
+      - "BUG-4177  P2   Triaged      Address form loses state on back navigation"
+      - "BUG-4169  P3   Needs info   Search results flicker on slow connections"
+      - "3 open, 1 needs triage"
+  - run: make regression-run SUITE=smoke
+    output:
+      - "smoke suite: 42 checks"
+      - "passed: 42"
+      - "failed: 0"
+      - "blocked: 0"
+    failure:
+      - "smoke suite: 42 checks"
+      - "passed: 40"
+      - "failed: 1 (checkout: gift card plus discount code)"
+      - "blocked: 1 (billing portal: staging payment provider down)"
+edits:
+  - from: "Priority: unset"
+    to: "Priority: P1"
+  - to: "Steps to reproduce: 1. Add a gift card 2. Apply code SAVE10 3. Total ignores the discount"
+  - from: "Status: New"
+    to: "Status: Triaged"
+  - to: "- [ ] Discount and gift card can be combined"
+  - from: "- [ ] Address form keeps state on back navigation"
+    to: "- [x] Address form keeps state on back navigation (verified on 3.8.1)"
+  - to: "Out of scope: legacy billing portal, covered by the billing team"
+  - from: "Environment: ?"
+    to: "Environment: staging, desktop and mobile web"

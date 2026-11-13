@@ -26,24 +26,36 @@
   Topics:
     data           Pipelines, models and data quality
     devops         Pipelines, infrastructure and deployments
+    docs           Guides, API references and runbooks
     engineering    Refactors, bug fixes and flaky tests
+    finance        Month-end close, reconciliations and forecasts
     frontend       Components, styling and accessibility
+    office         Spreadsheets, documents and slide decks
+    qa             Test plans, end-to-end suites and bug triage
     security       Audits, patches and hardening
 [2m▶ run[0m
   [31m✗[0m [31musage: run <topic> [topic...][0m
   Topics:
     data           Pipelines, models and data quality
     devops         Pipelines, infrastructure and deployments
+    docs           Guides, API references and runbooks
     engineering    Refactors, bug fixes and flaky tests
+    finance        Month-end close, reconciliations and forecasts
     frontend       Components, styling and accessibility
+    office         Spreadsheets, documents and slide decks
+    qa             Test plans, end-to-end suites and bug triage
     security       Audits, patches and hardening
 [2m▶ run nope[0m
   [31m✗[0m [31munknown topic "nope"[0m
   Topics:
     data           Pipelines, models and data quality
     devops         Pipelines, infrastructure and deployments
+    docs           Guides, API references and runbooks
     engineering    Refactors, bug fixes and flaky tests
+    finance        Month-end close, reconciliations and forecasts
     frontend       Components, styling and accessibility
+    office         Spreadsheets, documents and slide decks
+    qa             Test plans, end-to-end suites and bug triage
     security       Audits, patches and hardening
 [2m▶ hello[0m
   Start a task with: run <topic>

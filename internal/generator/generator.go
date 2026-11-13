@@ -64,8 +64,11 @@ func (g *Generator) Next(topics ...*profile.Topic) []Step {
 
 func (g *Generator) task(t *profile.Pack) []Step {
 	file := pick(g, t.Files)
+	// One module and test per task, so the task, its commands and their
+	// output all talk about the same thing.
+	v := vars{file: file, module: pick(g, t.Modules), test: pick(g, t.Tests)}
 	steps := []Step{
-		{Kind: StepStart, Text: g.fill(pick(g, t.Tasks), t, file), Delay: g.between(300, 700)},
+		{Kind: StepStart, Text: v.fill(pick(g, t.Tasks)), Delay: g.between(300, 700)},
 		g.think(),
 	}
 	for _, f := range g.distinct(t.Files, 1+g.rng.IntN(3), file) {
@@ -78,13 +81,13 @@ func (g *Generator) task(t *profile.Pack) []Step {
 	// commands with failure output can fail.
 	if g.rng.IntN(4) == 0 && len(cmd.Failure) > 0 {
 		steps = append(steps,
-			Step{Kind: StepCommand, Text: cmd.Run, Lines: g.output(t, cmd.Failure, file), Delay: g.between(1500, 4000)},
+			Step{Kind: StepCommand, Text: v.fill(cmd.Run), Lines: v.output(cmd.Failure), Delay: g.between(1500, 4000)},
 			g.think(),
 			g.edit(t, file),
 		)
 	}
 	steps = append(steps,
-		Step{Kind: StepCommand, Text: cmd.Run, Lines: g.output(t, cmd.Output, file), OK: true, Delay: g.between(1500, 4000)},
+		Step{Kind: StepCommand, Text: v.fill(cmd.Run), Lines: v.output(cmd.Output), OK: true, Delay: g.between(1500, 4000)},
 		Step{Kind: StepDone, Text: pick(g, g.agent.DoneMessages), Delay: g.between(1000, 2500)},
 	)
 	return steps
@@ -112,13 +115,16 @@ func (g *Generator) edit(t *profile.Pack, file string) Step {
 	return Step{Kind: StepEdit, Text: file, Lines: lines, Numbers: numbers, Delay: g.between(800, 2000)}
 }
 
-// output fills the placeholders in a command's output lines, keeping their
-// order (the last line is usually a summary). {file} is the file the task
+// vars are the values of a task's placeholders. {file} is the file the task
 // edits, so errors point at the code that was changed.
-func (g *Generator) output(t *profile.Pack, lines []string, file string) []string {
+type vars struct{ file, module, test string }
+
+// output fills the placeholders in a command's output lines, keeping their
+// order (the last line is usually a summary).
+func (v vars) output(lines []string) []string {
 	out := make([]string, len(lines))
 	for i, l := range lines {
-		out[i] = g.fill(l, t, file)
+		out[i] = v.fill(l)
 	}
 	return out
 }
@@ -137,10 +143,6 @@ func (g *Generator) distinct(items []string, n int, first string) []string {
 	return out
 }
 
-func (g *Generator) fill(s string, t *profile.Pack, file string) string {
-	return strings.NewReplacer(
-		"{file}", file,
-		"{module}", pick(g, t.Modules),
-		"{test}", pick(g, t.Tests),
-	).Replace(s)
+func (v vars) fill(s string) string {
+	return strings.NewReplacer("{file}", v.file, "{module}", v.module, "{test}", v.test).Replace(s)
 }

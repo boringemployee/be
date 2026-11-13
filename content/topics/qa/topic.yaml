@@ -1,0 +1,16 @@
+# Topic: run qa. Packs are the other files in this folder; lists missing
+# from a pack fall back to the lists in this file.
+description: Test plans, end-to-end suites and bug triage
+modules:
+  - checkout-flow
+  - signup-flow
+  - search
+  - billing-portal
+  - mobile-web
+  - admin-console
+tests:
+  - checkout.spec.ts
+  - signup.spec.ts
+  - search.spec.ts
+  - billing.spec.ts
+  - admin.spec.ts

@@ -4,31 +4,63 @@ tasks:
   - "Split the {module} state file"
   - "Tag every resource owned by {module}"
   - "Fix drift in {file}"
+  - "Upgrade the cloud provider version used by {module}"
+  - "Move {module} to a reusable module"
+  - "Enable encryption at rest for {module} storage"
+  - "Turn on access logging for the {module} load balancer"
 files:
   - infra/terraform/main.tf
   - infra/terraform/variables.tf
   - infra/terraform/outputs.tf
   - infra/terraform/modules/network/main.tf
+  - infra/terraform/modules/storage/main.tf
+  - infra/terraform/envs/staging/backend.tf
+  - infra/terraform/versions.tf
 commands:
   - run: terraform fmt -check -recursive
     output: []
     failure:
       - "{file}"
+  - run: terraform init -upgrade
+    output:
+      - "Initializing the backend..."
+      - "Initializing modules..."
+      - "Initializing provider plugins..."
+      - "- Installing hashicorp/aws v5.84.0..."
+      - "Terraform has been successfully initialized!"
   - run: terraform validate
     output:
       - "Success! The configuration is valid."
     failure:
       - "Error: Unsupported argument"
-      - "  on {file} line 18:"
-  - run: terraform plan
+      - "  on {file} line 18, in resource \"aws_s3_bucket\" \"logs\":"
+      - "  18:   acl = \"private\""
+      - "An argument named \"acl\" is not expected here."
+  - run: terraform plan -out=tfplan
     output:
-      - "Refreshing state..."
+      - "Refreshing state... [id=vpc-0a91f2c4]"
+      - "Refreshing state... [id={module}-logs]"
+      - "  ~ update in-place"
+      - "  ~ tags = { + \"owner\" = \"platform\" }"
       - "Plan: 0 to add, 3 to change, 0 to destroy."
-  - run: tflint
+      - "Saved the plan to: tfplan"
+    failure:
+      - "Refreshing state... [id={module}-logs]"
+      - "Error: Error acquiring the state lock"
+      - "Lock Info: ID: 6e1c0b54, Operation: OperationTypePlan, Who: ci@runner-41"
+  - run: tflint --recursive
     output: []
     failure:
       - "1 issue(s) found:"
       - "Warning: terraform \"required_version\" attribute is required ({file}:1)"
+  - run: checkov -d infra/terraform --compact
+    output:
+      - "Passed checks: 118, Failed checks: 0, Skipped checks: 4"
+    failure:
+      - "Check: CKV_AWS_19: \"Ensure all data stored in the S3 bucket is securely encrypted at rest\""
+      - "  FAILED for resource: aws_s3_bucket.{module}"
+      - "  File: {file}:22-31"
+      - "Passed checks: 117, Failed checks: 1, Skipped checks: 4"
 edits:
   - from: "instance_type = \"t3.small\""
     to: "instance_type = \"t3.medium\""
@@ -41,3 +73,11 @@ edits:
     to: "count = var.enabled ? 1 : 0"
   - from: "min_size = 1"
     to: "min_size = 2"
+  - to: "import { to = aws_s3_bucket.legacy, id = \"legacy-uploads\" }"
+  - to: "required_version = \">= 1.9\""
+  - from: "acl = \"private\""
+    to: "object_ownership = \"BucketOwnerEnforced\""
+  - to: "server_side_encryption_configuration { rule { apply_server_side_encryption_by_default { sse_algorithm = \"aws:kms\" } } }"
+  - from: "source = \"./modules/network\""
+    to: "source = \"../../modules/network\""
+  - to: "moved { from = aws_s3_bucket.logs, to = module.storage.aws_s3_bucket.logs }"

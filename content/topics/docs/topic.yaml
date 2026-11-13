@@ -1,0 +1,15 @@
+# Topic: run docs. Packs are the other files in this folder; lists missing
+# from a pack fall back to the lists in this file.
+description: Guides, API references and runbooks
+modules:
+  - getting-started
+  - api-reference
+  - payments-runbook
+  - deploy-guide
+  - architecture
+  - changelog
+tests:
+  - link-check
+  - spell-check
+  - examples-compile
+  - style-lint

@@ -1,0 +1,58 @@
+tasks:
+  - "Template the {module} chart for multiple environments"
+  - "Bump the {module} chart version and update the changelog"
+  - "Add an ingress to the {module} chart"
+  - "Fix the failing helm test for {module}"
+  - "Move hard-coded values in {file} into values files"
+files:
+  - charts/api/values.yaml
+  - charts/api/templates/deployment.yaml
+  - charts/api/templates/ingress.yaml
+  - charts/api/Chart.yaml
+  - charts/api/values-production.yaml
+commands:
+  - run: helm lint charts/api
+    output:
+      - "==> Linting charts/api"
+      - "[INFO] Chart.yaml: icon is recommended"
+      - "1 chart(s) linted, 0 chart(s) failed"
+    failure:
+      - "==> Linting charts/api"
+      - "[ERROR] templates/deployment.yaml: unable to parse YAML: error converting YAML to JSON: line 41: did not find expected key"
+      - "Error: 1 chart(s) linted, 1 chart(s) failed"
+  - run: helm template api charts/api -f charts/api/values-production.yaml
+    output:
+      - "# Source: api/templates/service.yaml"
+      - "# Source: api/templates/deployment.yaml"
+      - "# Source: api/templates/ingress.yaml"
+      - "# Source: api/templates/hpa.yaml"
+  - run: helm upgrade --install api charts/api -n staging --atomic --wait
+    output:
+      - "Release \"api\" has been upgraded. Happy Helming!"
+      - "NAME: api"
+      - "NAMESPACE: staging"
+      - "STATUS: deployed"
+      - "REVISION: 58"
+    failure:
+      - "Error: UPGRADE FAILED: release api failed, and has been rolled back due to atomic being set: context deadline exceeded"
+  - run: helm test api -n staging
+    output:
+      - "TEST SUITE:     api-test-connection"
+      - "Phase:          Succeeded"
+    failure:
+      - "TEST SUITE:     api-test-connection"
+      - "Phase:          Failed"
+      - "Error: 1 error occurred: pod api-test-connection failed"
+edits:
+  - from: "version: 1.14.2"
+    to: "version: 1.15.0"
+  - from: "appVersion: \"1.41.2\""
+    to: "appVersion: \"1.42.0\""
+  - from: "replicas: 2"
+    to: "replicas: {{ .Values.replicaCount }}"
+  - to: "{{- if .Values.ingress.enabled }}"
+  - to: "{{- end }}"
+  - from: "image: api:latest"
+    to: "image: \"{{ .Values.image.repository }}:{{ .Values.image.tag }}\""
+  - to: "  ingressClassName: internal"
+  - to: "resources: {{- toYaml .Values.resources | nindent 12 }}"

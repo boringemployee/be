@@ -2,30 +2,69 @@ tasks:
   - "Bump the base image for {module}"
   - "Shrink the {module} image"
   - "Run {module} as a non-root user"
+  - "Convert the {module} Dockerfile to a multi-stage build"
+  - "Fix the cache misses in {file}"
+  - "Add a health check to the {module} container"
+  - "Fix the CVEs reported in the {module} image"
 files:
   - docker/api.Dockerfile
   - docker/worker.Dockerfile
   - docker/indexer.Dockerfile
+  - docker/media.Dockerfile
+  - docker-compose.yml
 commands:
   - run: docker build -t api:dev .
     output:
       - "[+] Building 41.2s (14/14) FINISHED"
+      - " => [build 4/8] COPY go.mod go.sum ./"
+      - " => CACHED [build 5/8] RUN go mod download"
+      - " => [build 6/8] RUN go build -o /app ./cmd/server"
       - " => exporting to image"
       - " => naming to docker.io/library/api:dev"
     failure:
       - "[+] Building 12.8s (9/14)"
       - " => ERROR [build 6/8] RUN go build -o /app ./cmd/server"
       - "ERROR: failed to solve: process did not complete successfully: exit code: 1"
-  - run: hadolint docker/api.Dockerfile
+  - run: hadolint {file}
     output: []
     failure:
-      - "docker/api.Dockerfile:12 DL3008 warning: Pin versions in apt get install"
+      - "{file}:12 DL3008 warning: Pin versions in apt get install"
+      - "{file}:19 DL3025 warning: Use arguments JSON notation for CMD and ENTRYPOINT arguments"
+  - run: docker images api
+    output:
+      - "REPOSITORY   TAG       IMAGE ID       CREATED          SIZE"
+      - "api          dev       4c1f9e2ab7d3   12 seconds ago   23.4MB"
+      - "api          1.41.2    9b2e01f6c5a8   3 weeks ago      412MB"
+  - run: trivy image api:dev
+    output:
+      - "api:dev (debian 12.11)"
+      - "Total: 0 (UNKNOWN: 0, LOW: 0, MEDIUM: 0, HIGH: 0, CRITICAL: 0)"
+    failure:
+      - "api:dev (debian 12.11)"
+      - "Total: 2 (UNKNOWN: 0, LOW: 0, MEDIUM: 1, HIGH: 1, CRITICAL: 0)"
+      - "│ libssl3 │ CVE-2026-1187 │ HIGH │ fixed │ 3.0.15-1 │ 3.0.16-1 │"
+  - run: docker compose up -d --wait
+    output:
+      - "[+] Running 4/4"
+      - " ✔ Container app-postgres-1  Healthy"
+      - " ✔ Container app-redis-1     Healthy"
+      - " ✔ Container app-api-1       Healthy"
+      - " ✔ Container app-worker-1    Started"
 edits:
   - from: "FROM golang:1.26"
-    to: "FROM golang:1.27"
+    to: "FROM golang:1.27 AS build"
   - from: "FROM debian:bookworm"
     to: "FROM gcr.io/distroless/static-debian12"
   - to: "USER nonroot:nonroot"
   - from: "RUN go build -o /app ./cmd/server"
     to: "RUN CGO_ENABLED=0 go build -trimpath -o /app ./cmd/server"
   - to: "HEALTHCHECK CMD [\"/app\", \"healthcheck\"]"
+  - to: "COPY --from=build /app /app"
+  - from: "COPY . ."
+    to: "COPY go.mod go.sum ./"
+  - to: "RUN --mount=type=cache,target=/go/pkg/mod go mod download"
+  - from: "CMD /app serve"
+    to: "CMD [\"/app\", \"serve\"]"
+  - from: "RUN apt-get install -y ffmpeg"
+    to: "RUN apt-get install -y --no-install-recommends ffmpeg=7:5.1.6-0"
+  - to: "  depends_on: { postgres: { condition: service_healthy } }"
