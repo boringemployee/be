@@ -49,15 +49,52 @@ three parameters are read, and each is checked against an allowlist.
 
 ## Install
 
+Install the latest version on Linux or macOS:
+
 ```sh
-go install github.com/boringemployee/be/cmd/be@latest
-# or build from source:
-make cli && ./bin/be --help
+curl -fsSL https://be.boringemployee.com/install.sh | sh
 ```
 
-Or download a binary for Linux, macOS or Windows from
-[Releases](https://github.com/boringemployee/be/releases). Releases are signed; see
-[SECURITY.md](SECURITY.md#verifying-releases) to verify them.
+With Go 1.21+ installed it runs `go install`; otherwise it downloads the release for your OS
+and CPU, verifies its checksum (and signature, if `cosign` is installed) and installs `be`
+into `~/.local/bin`. [Read the script](https://be.boringemployee.com/install.sh) first; it is short.
+The same script is also available from GitHub:
+`https://raw.githubusercontent.com/boringemployee/be/main/install.sh`.
+
+Install a specific version:
+
+```sh
+curl -fsSL https://be.boringemployee.com/install.sh | sh -s -- v0.1.0
+```
+
+Download the release binary even when Go is installed:
+
+```sh
+curl -fsSL https://be.boringemployee.com/install.sh | BE_METHOD=binary sh
+```
+
+Install into another folder, such as `/usr/local/bin`:
+
+```sh
+curl -fsSL https://be.boringemployee.com/install.sh | BE_INSTALL_DIR=/usr/local/bin sudo -E sh
+```
+
+Install with Go directly:
+
+```sh
+go install github.com/boringemployee/be/cmd/be@latest
+```
+
+Build from source:
+
+```sh
+make cli
+```
+
+Then run `./bin/be --help`.
+
+On Windows, download the `.zip` from [Releases](https://github.com/boringemployee/be/releases).
+Releases are signed; see [SECURITY.md](SECURITY.md#verifying-releases) to verify them.
 
 ## Contributing
 
