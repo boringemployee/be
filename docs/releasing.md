@@ -3,8 +3,8 @@
 ## Web (Cloudflare Pages)
 
 The web version is deployed by Cloudflare Pages' Git integration: every push to `main`
-deploys production, and every other branch gets a preview URL. No GitHub workflow or
-Cloudflare token is involved.
+deploys production. Preview builds are turned off. No GitHub workflow or Cloudflare token
+is involved.
 
 Project settings (Workers & Pages > your project > Settings > Build):
 
@@ -15,6 +15,7 @@ Project settings (Workers & Pages > your project > Settings > Build):
 | Build command | `make web` |
 | Build output directory | `web/dist` |
 | Root directory | *(empty)* |
+| Preview branches (Settings > Builds > Branch control) | None |
 
 Environment variables (Settings > Variables and Secrets, for Production and Preview):
 
@@ -45,7 +46,9 @@ headers, including the CSP, come from `web/_headers`, which is copied into `web/
 | Status checks | `Go (lint, tests, coverage, fuzz, vulnerabilities)` and `Web (WebAssembly build and browser tests)` (source: GitHub Actions) |
 
 Direct pushes to `main` are then rejected; every change, including documentation and
-AGENTS.md, goes through a pull request.
+AGENTS.md, goes through a pull request. Pull requests are squash-merged: one pull request
+per phase or feature becomes one commit on `main`. When merging, edit the squash message so
+it ends with the `Co-Authored-By` trailer from AGENTS.md exactly once.
 
 ## CLI releases
 
