@@ -1,5 +1,6 @@
 // Web frontend for be. All session logic runs in be.wasm (the same Go code as
-// the CLI); this file only connects it to xterm.js and the page.
+// the CLI); this file only connects it to xterm.js and the page, and shows
+// the New session dialog and a loading indicator while be.wasm downloads.
 //
 // Share URLs: ?agent=<name>&topic=<a,b>&seed=<digits>. Only these parameters
 // are read, and each is checked against an allowlist before use. Without a
@@ -15,16 +16,68 @@
   const title = $("title");
   const dialog = $("setup");
 
-  const go = new Go();
-  const wasm = await WebAssembly.instantiateStreaming(fetch("be.wasm"), go.importObject)
-    .catch(async () => {
-      // Some static servers send the wrong MIME type for .wasm.
-      const bytes = await (await fetch("be.wasm")).arrayBuffer();
-      return WebAssembly.instantiate(bytes, go.importObject);
-    });
-  go.run(wasm.instance); // registers globalThis.be
-  const be = globalThis.be;
-  const catalog = be.catalog();
+  // --- Loading ---------------------------------------------------------------
+  // The page shows something right away: catalog.json (a few KB) is enough for
+  // the New session dialog, while be.wasm (several MB) downloads in parallel
+  // behind a progress indicator.
+
+  const loading = $("loading");
+  const loadingBar = $("loading-bar");
+  function showLoading(text) {
+    $("loading-text").textContent = text;
+    loading.hidden = false;
+  }
+  function progress(fraction) {
+    loadingBar.parentElement.classList.toggle("indeterminate", fraction == null);
+    loadingBar.style.width = fraction == null ? "" : `${Math.round(fraction * 100)}%`;
+  }
+  let failed = false;
+  function loadFailed() {
+    failed = true;
+    if (dialog.open) dialog.close();
+    loading.classList.add("error");
+    showLoading("Couldn't load the session. Reload the page to try again.");
+  }
+
+  // loadEngine downloads and starts be.wasm, reporting progress when the size
+  // is known (not for compressed responses, whose length differs).
+  async function loadEngine() {
+    const res = await fetch("be.wasm");
+    if (!res.ok) throw new Error(`be.wasm: HTTP ${res.status}`);
+    const total = res.headers.get("Content-Encoding") ? 0 : Number(res.headers.get("Content-Length")) || 0;
+    progress(total ? 0 : null);
+    const reader = res.body.getReader();
+    const chunks = [];
+    let received = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      received += value.length;
+      if (total) progress(Math.min(received / total, 1));
+    }
+    const bytes = new Uint8Array(received);
+    let offset = 0;
+    for (const c of chunks) {
+      bytes.set(c, offset);
+      offset += c.length;
+    }
+    const go = new Go();
+    const { instance } = await WebAssembly.instantiate(bytes, go.importObject);
+    go.run(instance); // registers globalThis.be
+    return globalThis.be;
+  }
+
+  let be = null; // set once the engine is ready
+  const engine = loadEngine().then((b) => (be = b));
+  engine.catch(loadFailed);
+
+  // The catalog comes from catalog.json; if that fails, from the engine.
+  const catalog = await fetch("catalog.json")
+    .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`catalog.json: HTTP ${r.status}`))))
+    .catch(() => engine.then((b) => b.catalog()))
+    .catch(() => null);
+  if (!catalog) return; // loadFailed has already shown the error
   const agentNames = catalog.agents.map((a) => a.name);
   const topicNames = catalog.topics.map((t) => t.name);
 
@@ -61,12 +114,24 @@
     const cols = Math.max(20, Math.floor(innerW / cellW) - 1); // keep room for the scrollbar
     const rows = Math.max(5, Math.floor(innerH / cellH));
     term.resize(cols, rows);
-    be.resize(cols);
+    if (be) be.resize(cols);
     title.textContent = `${CWD} — ${agent} — ${cols}×${rows}`;
     return cols;
   }
 
-  function start(topics) {
+  // start begins a session, first waiting for the engine if it is still
+  // downloading.
+  async function start(topics) {
+    if (failed) return; // keep the error message visible
+    if (!be) {
+      showLoading("Starting session…");
+      try {
+        await engine;
+      } catch {
+        return; // loadFailed has already shown the error
+      }
+    }
+    loading.hidden = true;
     started = true;
     term.reset();
     const cols = fit();
@@ -111,13 +176,30 @@
     document.querySelector('input[name="agent"]:checked')?.focus();
   }
 
-  $("setup-form").addEventListener("submit", () => {
+  $("setup-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
     agent = document.querySelector('input[name="agent"]:checked')?.value || agentNames[0];
     runTopics = [...document.querySelectorAll('input[name="topic"]:checked')].map((el) => el.value);
     // Names come from the allowlist, so the query needs no escaping and the
     // comma stays readable in shared links.
     const query = `?agent=${agent}` + (runTopics.length ? `&topic=${runTopics.join(",")}` : "");
     history.replaceState(null, "", location.pathname + query);
+    // If the engine is still downloading, keep the dialog open with a busy
+    // button, then start as soon as it is ready.
+    const button = $("setup-start");
+    if (!be) {
+      button.disabled = true;
+      button.textContent = "Starting…";
+      try {
+        await engine;
+      } catch {
+        return;
+      } finally {
+        button.disabled = false;
+        button.textContent = "Start session";
+      }
+    }
+    dialog.close();
     start(runTopics);
   });
   $("setup-cancel").addEventListener("click", () => dialog.close());
@@ -129,7 +211,7 @@
   // --- Terminal I/O ---------------------------------------------------------
 
   term.onData((data) => {
-    if (!started) return;
+    if (!started || !be) return;
     if (be.exited()) {
       if (data === "\r") start([]);
       return;
@@ -139,7 +221,7 @@
   });
 
   setInterval(() => {
-    if (!started) return;
+    if (!started || !be) return;
     const out = be.frame();
     if (out) term.write(out);
   }, FRAME_MS);
@@ -152,6 +234,7 @@
 
   if (hasQuery) start(runTopics);
   else {
+    loading.hidden = true; // the dialog shows instead; the engine keeps loading
     fit();
     openSetup();
   }

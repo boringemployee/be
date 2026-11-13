@@ -16,6 +16,7 @@ web: ## Build the static web app into web/dist
 	GOOS=js GOARCH=wasm go build -trimpath -ldflags "$(LDFLAGS)" -o web/dist/be.wasm ./cmd/wasm
 	cp "$$(go env GOROOT)/lib/wasm/wasm_exec.js" web/dist/
 	cp web/node_modules/@xterm/xterm/lib/xterm.js web/node_modules/@xterm/xterm/css/xterm.css web/dist/
+	go run ./tools/catalog > web/dist/catalog.json
 	cp $(WEB_FILES) web/dist/
 	cp install.sh web/dist/install.sh
 

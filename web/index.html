@@ -11,6 +11,9 @@
   <meta name="referrer" content="no-referrer">
   <title>Terminal</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <!-- Start downloading the engine right away, in parallel with xterm.js. -->
+  <link rel="preload" href="be.wasm" as="fetch" type="application/wasm" crossorigin="anonymous">
+  <link rel="preload" href="catalog.json" as="fetch" type="application/json" crossorigin="anonymous">
   <link rel="stylesheet" href="xterm.css">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -21,7 +24,13 @@
       <span class="title" id="title">~/work — zsh</span>
       <button type="button" class="new-session" id="new-session">New session</button>
     </header>
-    <main id="terminal" aria-label="Terminal"></main>
+    <main id="terminal" aria-label="Terminal">
+      <div class="loading" id="loading" role="status" aria-live="polite">
+        <span class="spinner" aria-hidden="true"></span>
+        <span id="loading-text">Starting session…</span>
+        <span class="bar" aria-hidden="true"><span id="loading-bar"></span></span>
+      </div>
+    </main>
   </div>
   <dialog id="setup" aria-labelledby="setup-title">
     <form method="dialog" id="setup-form">

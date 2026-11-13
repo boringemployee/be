@@ -27,7 +27,9 @@ function check(ok, message) {
 
 const server = await serve("web/dist", 0);
 const base = `http://127.0.0.1:${server.address().port}/`;
-const browser = await chromium.launch();
+// CHROMIUM_PATH runs the tests with an existing Chromium instead of the one
+// Playwright downloads (useful when versions differ locally).
+const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
 const page = await browser.newPage({ viewport: { width: 1100, height: 720 }, deviceScaleFactor: shots ? 2 : 1 });
 
 const problems = [];
@@ -144,11 +146,42 @@ try {
   await page.keyboard.press("Escape");
   check(!(await page.$eval("#setup", (d) => d.open)), "Esc closes the dialog while a session runs");
 
+  // 5. Loading on a slow connection: the dialog appears before the engine,
+  //    a loading indicator shows while waiting, and failures are reported.
+  const slow = async (route) => {
+    await new Promise((ok) => setTimeout(ok, 2500));
+    await route.continue();
+  };
+  await page.route("**/be.wasm", slow);
+  await page.goto(base);
+  await page.waitForSelector("#setup[open]", { timeout: 1500 });
+  check(await page.evaluate(() => !globalThis.be), "first visit shows the dialog before the engine has loaded");
+  await page.click("#setup-start");
+  check((await page.textContent("#setup-start")) === "Starting…" && await page.isDisabled("#setup-start"), "Start shows Starting… while the engine loads");
+  await page.waitForFunction(() => globalThis.be && !document.getElementById("setup").open, null, { timeout: 10000 });
+  await page.waitForTimeout(300);
+  check((await screen()).includes("Clock Code") && await page.isHidden("#loading"), "the session starts once the engine is ready");
+
+  await page.goto(base + "?agent=kiro");
+  check(await page.isVisible("#loading") && (await page.textContent("#loading-text")) === "Starting session…", "a shared link shows a loading indicator while the engine loads");
+  await shot("web-loading.png");
+  await page.waitForFunction(() => globalThis.be, null, { timeout: 10000 });
+  await page.waitForTimeout(300);
+  check(await page.isHidden("#loading") && (await screen()).includes("Kiwi CLI"), "the indicator disappears when the session starts");
+  await page.unroute("**/be.wasm", slow);
+
+  await page.route("**/be.wasm", (route) => route.fulfill({ status: 404, body: "" }));
+  await page.goto(base + "?agent=claude");
+  await page.waitForSelector(".loading.error", { timeout: 5000 });
+  check((await page.textContent("#loading-text")).includes("Reload the page"), "a failed download shows an error instead of a blank page");
+  await page.unrouteAll();
+  problems.length = 0; // the 404 above is expected
+
   // The install script is served from the site, as text.
   const install = await page.request.get(base + "install.sh");
   check(install.ok() && (await install.text()).startsWith("#!/bin/sh") && install.headers()["content-type"].startsWith("text/plain"), "install.sh is served as text from the site");
 
-  // 5. CSP and errors.
+  // 6. CSP and errors.
   check(problems.length === 0, `no CSP violations or page errors ${problems.slice(0, 3).join(" | ")}`);
 } finally {
   await browser.close();

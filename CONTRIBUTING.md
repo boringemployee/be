@@ -14,6 +14,7 @@ make cli    # build bin/be
 make web    # build the web version into web/dist (needs Node.js)
 make serve  # serve it on http://localhost:8080
 make e2e    # browser tests (installs Playwright from tests/web)
+# set CHROMIUM_PATH=/path/to/chromium to use an existing browser
 ```
 
 ## Easiest contributions: agents and topics
