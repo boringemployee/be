@@ -185,7 +185,7 @@ func TestDeterministicSession(t *testing.T) {
 
 func TestSanitize(t *testing.T) {
 	tests := map[string]string{
-		"  run backend  ":    "run backend",
+		"  run backend  ":        "run backend",
 		"\x1b[31mred\x1b[0m":     "[31mred[0m",
 		"tab\tnew\nline":         "tabnewline",
 		"zero​width ":            "zerowidth",

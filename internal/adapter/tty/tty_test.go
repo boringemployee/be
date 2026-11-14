@@ -92,12 +92,12 @@ func TestSessionRunEscAndExit(t *testing.T) {
 	s := newSession(t, &out)
 	s.Width = func() int { return 60 }
 	err := play(t, s, []step{
-		{ticks: 3},                        // idle ticks redraw nothing
-		{keys: "helo\x7fp\r"},             // typing with backspace
+		{ticks: 3},                    // idle ticks redraw nothing
+		{keys: "helo\x7fp\r"},         // typing with backspace
 		{keys: "xx\x15run backend\r"}, // Ctrl+U clears
-		{ticks: 300},                      // 30s of fake work
-		{keys: "\x1b"},                    // Esc stops, still in session
-		{keys: "\x04"},                    // Ctrl+D on empty line exits
+		{ticks: 300},                  // 30s of fake work
+		{keys: "\x1b"},                // Esc stops, still in session
+		{keys: "\x04"},                // Ctrl+D on empty line exits
 	})
 	if err != nil {
 		t.Fatal(err)
