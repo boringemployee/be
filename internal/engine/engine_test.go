@@ -60,14 +60,14 @@ func TestCommands(t *testing.T) {
 		{"", []Kind{EventPrompt}, "", StateIdle},
 		{"   ", []Kind{EventPrompt}, "", StateIdle},
 		{"help", []Kind{EventEcho, EventNotice, EventPrompt}, "Esc", StateIdle},
-		{"topics", []Kind{EventEcho, EventNotice, EventPrompt}, "engineering", StateIdle},
+		{"topics", []Kind{EventEcho, EventNotice, EventPrompt}, "backend", StateIdle},
 		{"make me a sandwich", []Kind{EventEcho, EventNotice, EventPrompt}, "Start a task with", StateIdle},
 		{"run", []Kind{EventEcho, EventError, EventNotice, EventPrompt}, "usage", StateIdle},
-		{"run engineering nope other", []Kind{EventEcho, EventError, EventNotice, EventPrompt}, `unknown topic "nope", "other"`, StateIdle},
+		{"run backend nope other", []Kind{EventEcho, EventError, EventNotice, EventPrompt}, `unknown topic "nope", "other"`, StateIdle},
 		{"run a b c d e f g h i j k", []Kind{EventEcho, EventError, EventNotice, EventPrompt}, "too many topics", StateIdle},
-		{"run devops engineering devops", []Kind{EventEcho, EventTaskStart}, "", StateRunning},
+		{"run devops backend devops", []Kind{EventEcho, EventTaskStart}, "", StateRunning},
 		{"run cooking", []Kind{EventEcho, EventError, EventNotice, EventPrompt}, "unknown topic", StateIdle},
-		{"RUN Engineering", []Kind{EventEcho, EventTaskStart}, "", StateRunning},
+		{"RUN Backend", []Kind{EventEcho, EventTaskStart}, "", StateRunning},
 		{"exit", []Kind{EventEcho, EventExit}, "", StateExited},
 	}
 	for _, tt := range tests {
@@ -97,7 +97,7 @@ func flatten(events []Event) string {
 
 func TestRunForeverThenEsc(t *testing.T) {
 	e := newEngine(t, 42)
-	e.HandleLine("run engineering")
+	e.HandleLine("run backend")
 
 	if got := e.HandleLine("help"); len(got) != 1 || !strings.Contains(flatten(got), "Busy") {
 		t.Fatalf("line while running = %+v", got)
@@ -129,14 +129,14 @@ func TestRunForeverThenEsc(t *testing.T) {
 		t.Fatalf("Tick while idle = %v, want nil", ev)
 	}
 	// Can start again after stopping.
-	if got := kinds(e.HandleLine("run engineering")); got[1] != EventTaskStart {
+	if got := kinds(e.HandleLine("run backend")); got[1] != EventTaskStart {
 		t.Fatalf("second run kinds = %v", got)
 	}
 }
 
 func TestTickZeroOrNegative(t *testing.T) {
 	e := newEngine(t, 1)
-	e.HandleLine("run engineering")
+	e.HandleLine("run backend")
 	if e.Tick(0) != nil || e.Tick(-time.Second) != nil {
 		t.Fatal("non-positive Tick must emit nothing")
 	}
@@ -160,7 +160,7 @@ func TestKeys(t *testing.T) {
 
 func TestCtrlCWhileRunning(t *testing.T) {
 	e := newEngine(t, 1)
-	e.HandleLine("run engineering")
+	e.HandleLine("run backend")
 	e.Tick(10 * time.Second)
 	e.HandleKey(KeyCtrlC)
 	if e.State() != StateExited {
@@ -172,7 +172,7 @@ func TestDeterministicSession(t *testing.T) {
 	record := func() []Event {
 		e := newEngine(t, 99)
 		out := e.Start()
-		out = append(out, e.HandleLine("run engineering")...)
+		out = append(out, e.HandleLine("run backend")...)
 		for range 600 {
 			out = append(out, e.Tick(100*time.Millisecond)...)
 		}
@@ -185,7 +185,7 @@ func TestDeterministicSession(t *testing.T) {
 
 func TestSanitize(t *testing.T) {
 	tests := map[string]string{
-		"  run engineering  ":    "run engineering",
+		"  run backend  ":        "run backend",
 		"\x1b[31mred\x1b[0m":     "[31mred[0m",
 		"tab\tnew\nline":         "tabnewline",
 		"zero​width ":            "zerowidth",
@@ -211,7 +211,7 @@ func TestKindString(t *testing.T) {
 // TestRandomInputProperties drives sessions with random input and checks
 // invariants that must always hold.
 func TestRandomInputProperties(t *testing.T) {
-	lines := []string{"run engineering", "help", "topics", "", "run nope", "hello", "\x1b]52;c;aGk=\x07"}
+	lines := []string{"run backend", "help", "topics", "", "run nope", "hello", "\x1b]52;c;aGk=\x07"}
 	for seed := range uint64(200) {
 		rng := rand.New(rand.NewPCG(seed, 0))
 		e := newEngine(t, seed)
@@ -247,7 +247,7 @@ func TestRandomInputProperties(t *testing.T) {
 }
 
 func FuzzHandleLine(f *testing.F) {
-	f.Add("run engineering")
+	f.Add("run backend")
 	f.Add("\x1b[2J")
 	f.Fuzz(func(t *testing.T, line string) {
 		e := newEngine(t, 1)
@@ -261,7 +261,7 @@ func FuzzHandleLine(f *testing.F) {
 
 func TestRunMixesTopics(t *testing.T) {
 	e := newEngine(t, 7)
-	e.HandleLine("run devops engineering devops")
+	e.HandleLine("run devops backend devops")
 	if len(e.running) != 2 {
 		t.Fatalf("duplicates must be removed: %d topics", len(e.running))
 	}
@@ -273,12 +273,12 @@ func TestRunMixesTopics(t *testing.T) {
 				case strings.HasPrefix(ev.Text, "infra/") || strings.HasPrefix(ev.Text, "deploy/") || strings.HasPrefix(ev.Text, ".github/") || strings.HasPrefix(ev.Text, "docker/") || strings.HasPrefix(ev.Text, "ops/"):
 					seen["devops"] = true
 				default:
-					seen["engineering"] = true
+					seen["backend"] = true
 				}
 			}
 		}
 	}
-	if !seen["devops"] || !seen["engineering"] {
+	if !seen["devops"] || !seen["backend"] {
 		t.Errorf("both topics should appear: %v", seen)
 	}
 }

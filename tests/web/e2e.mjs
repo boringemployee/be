@@ -74,11 +74,11 @@ try {
 
   // 2. Interactive session.
   check((await screen()).includes("Clock Code"), "welcome screen is shown");
-  await page.keyboard.type("run engineering");
+  await page.keyboard.type("run backend");
   await page.keyboard.press("Enter");
   await page.waitForTimeout(4000);
   let text = await screen();
-  check(text.includes("❯ run engineering") && text.includes("●"), "run engineering starts a task");
+  check(text.includes("❯ run backend") && text.includes("●"), "run backend starts a task");
   check(/Esc to stop/.test(text), "status line shows while running");
   await shot("web-running.png");
 

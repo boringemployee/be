@@ -294,8 +294,8 @@ func TestPreview(t *testing.T) {
 	}
 	e, _ := engine.New(cat, "claude", 1)
 	r := New(e.Agent(), 80)
-	out := plain(r.Preview(e, "engineering"))
-	for _, want := range []string{"Clock Code", "❯ run engineering", "●", "○ low"} {
+	out := plain(r.Preview(e, "backend"))
+	for _, want := range []string{"Clock Code", "❯ run backend", "●", "○ low"} {
 		if !strings.Contains(out, want) {
 			t.Errorf("preview missing %q", want)
 		}

@@ -37,7 +37,7 @@ func TestRun(t *testing.T) {
 		{"too many", []string{"claude", "codex"}, 2, "", "too many arguments"},
 		{"session", []string{"claude", "--seed", "42"}, 0, "", ""},
 		{"preview", []string{"preview", "claude"}, 0, "Clock Code", ""},
-		{"preview topic", []string{"preview", "claude", "engineering", "--seed", "3"}, 0, "run engineering", ""},
+		{"preview topic", []string{"preview", "claude", "backend", "--seed", "3"}, 0, "run backend", ""},
 		{"preview no agent", []string{"preview"}, 2, "", "usage: be preview"},
 		{"preview bad agent", []string{"preview", "nope"}, 2, "", "unknown agent"},
 		{"preview bad topic", []string{"preview", "claude", "nope"}, 2, "", "unknown topic"},

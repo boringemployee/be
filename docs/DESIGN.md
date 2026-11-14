@@ -45,7 +45,7 @@
   agent needs no Go code; a new block type is written once and reusable by every agent.
   See [layout.md](layout.md).
 - **Deterministic runs** from a seed and a fake clock: reproducible tests and share URLs
-  (`?agent=claude&topic=engineering&seed=42`).
+  (`?agent=claude&topic=backend&seed=42`).
 
 ### Session states
 

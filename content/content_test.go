@@ -16,7 +16,7 @@ func TestShippedContentIsValid(t *testing.T) {
 	if _, ok := c.Agents["claude"]; !ok {
 		t.Error("missing claude agent")
 	}
-	if _, ok := c.Topics["engineering"]; !ok {
-		t.Error("missing engineering topic")
+	if _, ok := c.Topics["backend"]; !ok {
+		t.Error("missing backend topic")
 	}
 }
