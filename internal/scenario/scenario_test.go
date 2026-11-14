@@ -26,7 +26,7 @@ func TestRecordings(t *testing.T) {
 		want int
 		has  []string
 	}{
-		{"render", RenderRecordings(cat), agents * 5, []string{"claude_commands_seed1.events", "claude_data_seed42.ansi", "gemini_preview.ansi"}},
+		{"render", RenderRecordings(cat), agents * 5, []string{"claude_commands_seed1.events", "claude_backend_seed42.ansi", "gemini_preview.ansi"}},
 		{"content", ContentRecordings(cat), topics + agents, []string{"claude_qa_seed42.events", "codex_mixed_seed42.ansi"}},
 	} {
 		if len(tc.recs) != tc.want {

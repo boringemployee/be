@@ -94,7 +94,7 @@ func TestSessionRunEscAndExit(t *testing.T) {
 	err := play(t, s, []step{
 		{ticks: 3},                        // idle ticks redraw nothing
 		{keys: "helo\x7fp\r"},             // typing with backspace
-		{keys: "xx\x15run engineering\r"}, // Ctrl+U clears
+		{keys: "xx\x15run backend\r"}, // Ctrl+U clears
 		{ticks: 300},                      // 30s of fake work
 		{keys: "\x1b"},                    // Esc stops, still in session
 		{keys: "\x04"},                    // Ctrl+D on empty line exits
@@ -103,7 +103,7 @@ func TestSessionRunEscAndExit(t *testing.T) {
 		t.Fatal(err)
 	}
 	text := out.String()
-	for _, want := range []string{"Clock Code", "❯ help", "Commands:", "❯ run engineering", "●", "Esc to stop", "Interrupted", "Session ended"} {
+	for _, want := range []string{"Clock Code", "❯ help", "Commands:", "❯ run backend", "●", "Esc to stop", "Interrupted", "Session ended"} {
 		if !strings.Contains(text, want) {
 			t.Errorf("output missing %q", want)
 		}
@@ -170,7 +170,7 @@ func TestSessionWriteErrors(t *testing.T) {
 	}{
 		{"start", 0, nil},
 		{"key", 1, []step{{keys: "a"}}},
-		{"tick", 2, []step{{keys: "run engineering\r"}, {ticks: 1}}},
+		{"tick", 2, []step{{keys: "run backend\r"}, {ticks: 1}}},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			s := newSession(t, nil)

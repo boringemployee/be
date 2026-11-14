@@ -1,6 +1,6 @@
 welcome "Clock Code"
 prompt "❯"
-echo "run engineering"
+echo "run backend"
 task_start "Fix the N+1 query in app/workers/scheduler.py"
 thinking "Percolating"
 read "app/workers/scheduler.py"

@@ -10,7 +10,7 @@ import (
 )
 
 // Pack is a coherent set of fake work, such as "go" or "python" within the
-// engineering topic. Each task uses a single pack, so files, edits and output
+// backend topic. Each task uses a single pack, so files, edits and output
 // never mix languages or tools.
 type Pack struct {
 	Name     string    `yaml:"-"`
